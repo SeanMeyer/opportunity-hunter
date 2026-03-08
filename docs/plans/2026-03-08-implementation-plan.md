@@ -961,11 +961,187 @@ git commit -m "test: comedy integration test and interface revision"
 
 ---
 
-## Phase 4: Powder Hunt (Port)
+## Phase 4: Movies Hunt
+
+New hunt that stress-tests the framework differently: nullable VenueID, mixed venue/non-venue opportunities, feedback-heavy evaluation, custom expiration, and manual feedback for movies not scanned by the system.
+
+### Task 27: Movies — hunt skeleton + TMDB source
+
+**Files:**
+- Create: `hunts/movies/hunt.go`, `hunts/movies/attrs.go`, `hunts/movies/sources/tmdb.go`
+- Test: `hunts/movies/hunt_test.go`
+
+**Step 1: Write tests**
+
+- Compile-time interface checks: `var _ core.Hunt`, `var _ core.Expirer`, `var _ core.WebHunt`, `var _ core.NotifyHunt`
+- `Init` validates TMDB API key
+- `DedupeKey`: `title|year` for general releases, `title|venue|date` for screenings
+- `ShouldExpire`: theatrical → true after 8 weeks, streaming → false, screening → true after date
+
+**Step 2: Run tests — FAIL**
+
+**Step 3: Implement**
+
+`MoviesHunt` implements `Hunt + Expirer + WebHunt + NotifyHunt`.
+
+- `Name()` → `"movies"`
+- `Init()` → validates TMDB API key, optional Ticketmaster key for screenings
+- `Sources()` → TMDB source (now playing + upcoming + streaming)
+- `DefaultSchedule()` → scan 24h, eval weekly, remind 1d before (theatrical only)
+
+TMDB source: calls `/movie/now_playing`, `/movie/upcoming`, and streaming provider endpoints. Returns `core.RawItem` with `VenueID = nil` for general releases.
+
+`MovieAttrs`:
+```go
+type MovieAttrs struct {
+    Genre       []string `json:"genre"`
+    Director    string   `json:"director"`
+    Cast        []string `json:"cast"`
+    TMDBRating  float64  `json:"tmdb_rating"`
+    ReleaseType string   `json:"release_type"` // "theatrical", "streaming", "screening"
+    Service     string   `json:"service"`      // "Netflix", "Paramount+", etc. (streaming only)
+}
+```
+
+**Step 4: Run tests — PASS**
+
+**Step 5: Commit**
+
+```bash
+git commit -m "feat: movies hunt skeleton with TMDB source"
+```
+
+---
+
+### Task 28: Movies — Letterboxd + Ticketmaster sources
+
+**Files:**
+- Create: `hunts/movies/sources/letterboxd.go`, `hunts/movies/sources/ticketmaster.go`
+- Test: `hunts/movies/sources/letterboxd_test.go`
+
+**Step 1: Write tests**
+
+Test Letterboxd scraper parsing with canned HTML. Test Ticketmaster source filtered to movie/film categories.
+
+**Step 2: Run tests — FAIL**
+
+**Step 3: Implement**
+
+- **Letterboxd scraper**: Scrape popular/trending pages with Colly. Returns `core.RawItem` with `VenueID = nil`.
+- **Ticketmaster source**: Reuse Ticketmaster client from performing arts, filtered to film/movie categories. Returns `core.RawItem` with venue data for local screenings.
+
+**Step 4: Run tests — PASS**
+
+**Step 5: Commit**
+
+```bash
+git commit -m "feat: movies Letterboxd scraper and Ticketmaster screening source"
+```
+
+---
+
+### Task 29: Movies — evaluator + prompt
+
+**Files:**
+- Create: `hunts/movies/evaluator.go`, `hunts/movies/prompt.go`
+- Test: `hunts/movies/evaluator_test.go`
+
+**Step 1: Write tests**
+
+Test prompt building with mixed theatrical/streaming opportunities. Test that feedback history heavily influences scoring. Test with fake LLM client.
+
+**Step 2: Run tests — FAIL**
+
+**Step 3: Implement**
+
+Evaluator is feedback-driven. Prompt structure:
+- System instruction: you are a movie recommender, learn from user taste
+- Scoring calibration for movies
+- **Heavy feedback section**: all past ratings, grouped by rating level, with genre/director patterns noted
+- Movies section with genre, director, cast, TMDB rating, release type
+- For theatrical: include venue/screening info
+- For streaming: include which service
+
+The evaluator closes over the LLM client only — no distance client needed (venue-agnostic for most movies).
+
+**Step 4: Run tests — PASS**
+
+**Step 5: Commit**
+
+```bash
+git commit -m "feat: movies evaluator with feedback-driven prompt"
+```
+
+---
+
+### Task 30: Movies — cards, notify, feedback (with manual rating)
+
+**Files:**
+- Create: `hunts/movies/cards.go`, `hunts/movies/notify.go`
+- Modify: `web/web.go`, `web/templates/feedback.html`
+- Test: `hunts/movies/cards_test.go`, `web/web_test.go`
+
+**Step 1: Write tests**
+
+- `CardRenderer`: fields for genre, director, TMDB rating, release type, streaming service (if applicable), venue (if screening)
+- `FeedbackOptions`: `loved`, `good`, `meh`, `not_for_me`
+- `NotifyFormatter`: PostMessage actions
+- Web UI: test `POST /feedback` with no opportunity_id (manual rating)
+
+**Step 2: Run tests — FAIL**
+
+**Step 3: Implement**
+
+- Cards and notify: straightforward, similar to performing arts
+- **Manual feedback in web UI**: Add a "Rate a movie" form to the movies tab. `POST /feedback` with `title` and `rating` but no `opportunity_id`. Storage layer already supports nullable opportunity_id.
+- Update `web/templates/feedback.html` to conditionally show the manual rating form for hunts that support it (movies declares this via a new method or convention)
+
+**Step 4: Run tests — PASS**
+
+**Step 5: Commit**
+
+```bash
+git commit -m "feat: movies cards, notifications, and manual feedback rating"
+```
+
+---
+
+### Task 31: Movies integration test
+
+**Files:**
+- Test: `pipeline/movies_integration_test.go`
+
+**Step 1: Write integration test**
+
+Full pipeline run with movies hunt:
+- Fake TMDB source returning 3 theatrical + 2 streaming movies
+- Fake LLM returning picks
+- Real DB, fake Discord
+- Assert: opportunities stored with nullable VenueID, Expirer correctly expires old theatrical but not streaming, picks stored, notifications sent
+
+**Step 2: Write manual feedback test**
+
+Add manual feedback (no opportunity_id) for 2 movies. Run pipeline again. Assert feedback appears in evaluator's prompt context.
+
+**Step 3: Write expiration test**
+
+Create opportunities: one theatrical 9 weeks ago, one theatrical 2 weeks ago, one streaming 6 months ago. Run expire step. Assert: old theatrical expired, recent theatrical kept, streaming kept.
+
+**Step 4: Run tests**
+
+**Step 5: Commit**
+
+```bash
+git commit -m "test: movies integration tests including manual feedback and expiration"
+```
+
+---
+
+## Phase 5: Powder Hunt (Port)
 
 Most complex hunt. Proves ReEvaluator + Briefer work. Weather sources, re-evaluation gating, macro-region grouping, threaded Discord notifications.
 
-### Task 27: Powder — domain types and catalog
+### Task 32: Powder — domain types and catalog
 
 **Files:**
 - Create: `hunts/powder/attrs.go`, `hunts/powder/catalog/regions.go`, `hunts/powder/catalog/resorts.go`
@@ -988,7 +1164,7 @@ git commit -m "feat: powder domain types and region/resort catalog"
 
 ---
 
-### Task 28: Powder — weather sources
+### Task 33: Powder — weather sources
 
 **Files:**
 - Create: `hunts/powder/sources/openmeteo.go`, `hunts/powder/sources/nws.go`
@@ -1021,7 +1197,7 @@ git commit -m "feat: powder weather sources (Open-Meteo, NWS)"
 
 ---
 
-### Task 29: Powder — hunt skeleton with ReEvaluator
+### Task 34: Powder — hunt skeleton with ReEvaluator
 
 **Files:**
 - Create: `hunts/powder/hunt.go`, `hunts/powder/detection.go`
@@ -1061,7 +1237,7 @@ git commit -m "feat: powder hunt with ReEvaluator (weather change + cooldown gat
 
 ---
 
-### Task 30: Powder — evaluator + prompt
+### Task 35: Powder — evaluator + prompt
 
 **Files:**
 - Create: `hunts/powder/evaluator.go`, `hunts/powder/prompt.go`
@@ -1094,7 +1270,7 @@ git commit -m "feat: powder evaluator with weather prompts and change classifica
 
 ---
 
-### Task 31: Powder — Briefer (grouping + synthesis)
+### Task 36: Powder — Briefer (grouping + synthesis)
 
 **Files:**
 - Create: `hunts/powder/grouping.go`, `hunts/powder/briefing.go`
@@ -1123,7 +1299,7 @@ git commit -m "feat: powder Briefer with macro-region grouping and LLM synthesis
 
 ---
 
-### Task 32: Powder — cards, notify (threaded), feedback
+### Task 37: Powder — cards, notify (threaded), feedback
 
 **Files:**
 - Create: `hunts/powder/cards.go`, `hunts/powder/notify.go`
@@ -1156,7 +1332,7 @@ git commit -m "feat: powder cards, threaded notifications, and feedback"
 
 ---
 
-### Task 33: Powder integration test
+### Task 38: Powder integration test
 
 **Files:**
 - Test: `pipeline/powder_integration_test.go`
@@ -1187,21 +1363,22 @@ git commit -m "test: powder integration tests including re-evaluation"
 
 ---
 
-## Phase 5: Integration + Polish
+## Phase 6: Integration + Polish
 
 Wire everything together, add Docker, error alerting, and final testing.
 
-### Task 34: Wire all hunts into main.go
+### Task 39: Wire all hunts into main.go
 
 **Files:**
 - Modify: `cmd/opportunity-hunter/main.go`
 
-**Step 1: Register all three hunts**
+**Step 1: Register all four hunts**
 
 ```go
 allHunts := []core.Hunt{
     &comedy.ComedyHunt{},
     &performing.PerformingHunt{},
+    &movies.MoviesHunt{},
     &powder.PowderHunt{},
 }
 ```
@@ -1218,12 +1395,12 @@ go run ./cmd/opportunity-hunter/ scan
 **Step 3: Commit**
 
 ```bash
-git commit -m "feat: wire all three hunts into CLI entrypoint"
+git commit -m "feat: wire all four hunts into CLI entrypoint"
 ```
 
 ---
 
-### Task 35: Error alerting (Discord + web UI)
+### Task 40: Error alerting (Discord + web UI)
 
 **Files:**
 - Modify: `pipeline/pipeline.go`, `web/web.go`, `web/templates/status.html`
@@ -1248,7 +1425,7 @@ git commit -m "feat: error alerting to Discord and pipeline status in web UI"
 
 ---
 
-### Task 36: Reminder system
+### Task 41: Reminder system
 
 **Files:**
 - Create: `remind/remind.go`
@@ -1274,7 +1451,7 @@ git commit -m "feat: reminder system using hunt-defined RemindBefore windows"
 
 ---
 
-### Task 37: Docker + docker-compose
+### Task 42: Docker + docker-compose
 
 **Files:**
 - Create: `Dockerfile`, `docker-compose.yml`
@@ -1312,7 +1489,7 @@ git commit -m "feat: Dockerfile and docker-compose for deployment"
 
 ---
 
-### Task 38: CONTRIBUTING.md
+### Task 43: CONTRIBUTING.md
 
 **Files:**
 - Create: `CONTRIBUTING.md`
@@ -1335,19 +1512,21 @@ git commit -m "docs: CONTRIBUTING.md with hunt authoring guide"
 
 ---
 
-### Task 39: Final integration test — all three hunts
+### Task 44: Final integration test — all four hunts
 
 **Files:**
 - Test: `pipeline/full_integration_test.go`
 
 **Step 1: Write test**
 
-Run pipeline with all three hunts enabled. Fake sources, fake LLM, real DB, fake Discord. Assert:
+Run pipeline with all four hunts enabled. Fake sources, fake LLM, real DB, fake Discord. Assert:
 - Each hunt scans, evaluates, and notifies independently
-- Shared venues work (same theater used by comedy and performing arts)
+- Shared venues work (same theater used by comedy, performing arts, and movie screenings)
+- Nullable VenueID works (streaming movies have no venue alongside venue-based hunts)
 - Sequential execution (no data races)
-- PipelineResult has results for all three hunts
-- Distance cache shared across hunts
+- PipelineResult has results for all four hunts
+- Distance cache shared across hunts (skips nil-venue opportunities)
+- Custom expiration works (movies theatrical vs streaming vs comedy/performing arts default)
 
 **Step 2: Run all tests**
 
@@ -1360,7 +1539,7 @@ make test
 **Step 4: Commit**
 
 ```bash
-git commit -m "test: full integration test with all three hunts"
+git commit -m "test: full integration test with all four hunts"
 ```
 
 ---
@@ -1372,7 +1551,8 @@ git commit -m "test: full integration test with all three hunts"
 | 1: Core Framework | 1-18 | Types, storage, pipeline, web, notify, test infra all work |
 | 2: Performing Arts | 19-22 | Framework interfaces are usable for a new hunt |
 | 3: Comedy Port | 23-26 | Grouper works, comedy-hunter migrates cleanly |
-| 4: Powder Port | 27-33 | ReEvaluator + Briefer work, threading works, re-eval works |
-| 5: Integration | 34-39 | All hunts run together, error alerting, Docker, docs |
+| 4: Movies | 27-31 | Expirer works, nullable VenueID works, manual feedback works, feedback-driven eval works |
+| 5: Powder Port | 32-38 | ReEvaluator + Briefer work, threading works, re-eval works |
+| 6: Integration | 39-44 | All hunts run together, error alerting, Docker, docs |
 
-**Total: 39 tasks.** Each task is a focused unit of work with TDD cycle and a commit.
+**Total: 44 tasks.** Each task is a focused unit of work with TDD cycle and a commit.

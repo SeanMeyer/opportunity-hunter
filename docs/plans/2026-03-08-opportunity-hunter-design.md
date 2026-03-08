@@ -6,7 +6,7 @@
 
 ## Problem
 
-Three projects — comedy-hunter, powder-hunter, and a new performing-arts hunter — share the same fundamental pattern: discover opportunities, evaluate them with an LLM, recommend the best ones, collect feedback, and improve over time. Rather than maintain three separate codebases with duplicated infrastructure, unify them into a single pluggable system.
+Four projects — comedy-hunter, powder-hunter, a new performing-arts hunter, and a new movies hunter — share the same fundamental pattern: discover opportunities, evaluate them with an LLM, recommend the best ones, collect feedback, and improve over time. Rather than maintain separate codebases with duplicated infrastructure, unify them into a single pluggable system.
 
 ## Decisions
 
@@ -17,7 +17,7 @@ Three projects — comedy-hunter, powder-hunter, and a new performing-arts hunte
 - **Per-hunt Discord webhooks** — clean channel separation
 - **Per-hunt web UI tabs** — self-contained, no cross-hunt views
 - **Shared cost tracking** — seeded from DB on startup, budget cap on Schedule
-- **Small required interface (6 methods) + 5 optional interfaces** — hunts opt in to what they need
+- **Small required interface (6 methods) + 6 optional interfaces** — hunts opt in to what they need
 - **Sequential hunt execution** — eliminates concurrency bugs; concurrent source scanning within a hunt
 - **Linear state machine** — states only move forward; re-evaluation creates new records
 - **Normalized picks table** — queryable, indexable, proper relational design
@@ -30,12 +30,12 @@ Every hunt produces the same thing: an **Opportunity** worth acting on.
 ```go
 type Opportunity struct {
     ID           int64
-    HuntName     string     // "comedy", "performing-arts", "powder"
+    HuntName     string     // "comedy", "performing-arts", "powder", "movies"
     SourceID     string
     Source       string
-    Title        string     // comedian name, show name, storm description
-    Subtitle     string     // venue name, date range
-    VenueID      int64
+    Title        string     // comedian name, show name, storm description, movie title
+    Subtitle     string     // venue name, date range, streaming service
+    VenueID      *int64     // nil for venue-agnostic opportunities (streaming movies)
     StartTime    time.Time
     EndTime      *time.Time // nil for single events, set for storm windows
     PriceMin     *float64
@@ -155,7 +155,7 @@ func (h *ComedyHunt) Init(ctx context.Context, lookup func(string) string) error
 }
 ```
 
-### Optional Interfaces (5)
+### Optional Interfaces (6)
 
 Hunts implement these only when they need non-default behavior. The core checks via type assertion at startup and falls back to sensible defaults.
 
@@ -179,6 +179,14 @@ type ReEvaluator interface {
 type Briefer interface {
     GroupForNotify(evals []Evaluation) []NotifyGroup
     Synthesize(ctx context.Context, group NotifyGroup, costTracker *CostTracker) (string, error)
+}
+
+// Expirer controls when opportunities should be marked as expired.
+// Default: expire when StartTime is in the past.
+// Movies uses this: theatrical expires ~8 weeks after release, streaming never expires.
+// Powder uses this: expire when EndTime (window end) is in the past.
+type Expirer interface {
+    ShouldExpire(opp Opportunity) bool
 }
 
 // WebHunt provides UI customization.
@@ -236,6 +244,33 @@ func (h *PowderHunt) NotifyFormatter() core.NotifyFormatter                     
 ```
 
 Note: powder does NOT implement `Grouper` (no pre-eval grouping) — each storm/region is evaluated individually. It implements `Briefer` to bundle regions into macro-region threads after evaluation. Budget gating is handled by `MaxMonthlySpendUSD` on its `Schedule`.
+
+### How movies implements this
+
+```go
+// movies implements: Hunt + Expirer + WebHunt + NotifyHunt
+type MoviesHunt struct { ... }
+
+func (h *MoviesHunt) Name() string                                                  { return "movies" }
+func (h *MoviesHunt) Init(ctx context.Context, lookup func(string) string) error     { ... }
+func (h *MoviesHunt) Sources() []core.Source                                         { ... } // TMDB + Letterboxd + Ticketmaster
+func (h *MoviesHunt) DedupeKey(raw core.RawItem) string                              { ... } // title|year or title|venue|date for screenings
+func (h *MoviesHunt) Evaluator() core.Evaluator                                      { ... }
+func (h *MoviesHunt) DefaultSchedule() core.Schedule                                  { ... }
+func (h *MoviesHunt) ShouldExpire(opp core.Opportunity) bool                         { ... } // theatrical: 8 weeks; streaming: never
+func (h *MoviesHunt) CardRenderer() core.CardRenderer                                { ... }
+func (h *MoviesHunt) FeedbackOptions() []core.FeedbackOption                          { ... }
+func (h *MoviesHunt) NotifyFormatter() core.NotifyFormatter                           { ... }
+```
+
+Note: movies does NOT implement `Grouper` (each movie evaluated individually), `ReEvaluator`, or `Briefer`. It is the simplest hunt in terms of pipeline behavior — it exercises the framework defaults. Its complexity is in the feedback loop and mixed venue/non-venue opportunities.
+
+Movies has three sources:
+- **TMDB** — new theatrical and streaming releases (no venue, VenueID=nil)
+- **Letterboxd** — trending/popular for discovery signal (no venue, VenueID=nil)
+- **Ticketmaster/Eventbrite** — local special screenings, arthouse events, film festivals (with venue)
+
+The evaluator is heavily feedback-driven. User ratings of past movies (both scanned and manually added) inform future recommendations. The LLM learns taste patterns from the feedback history.
 
 ## Pipeline
 
@@ -493,8 +528,9 @@ type FeedbackOption struct {
 - Comedy: `loved`, `not_for_me`
 - Performing arts: `loved`, `not_for_me`, `already_seen`
 - Powder: `went_great`, `went_ok`, `skipped`
+- Movies: `loved`, `good`, `meh`, `not_for_me`
 
-Core renders buttons, handles POST, stores `(opportunity_id, rating, note)`. Hunts that don't implement `WebHunt` get no feedback buttons and a generic card renderer.
+Core renders buttons, handles POST, stores `(opportunity_id, title, rating, note)`. The `opportunity_id` is nullable — movies supports rating films that weren't scanned (manual feedback via the web UI's "Rate a movie" form). Hunts that don't implement `WebHunt` get no feedback buttons and a generic card renderer.
 
 ## Storage
 
@@ -522,7 +558,9 @@ picks (id, evaluation_id, opportunity_id,
        FOREIGN KEY (evaluation_id) REFERENCES evaluations(id),
        FOREIGN KEY (opportunity_id) REFERENCES opportunities(id))
 
-feedback (id, opportunity_id, hunt_name, rating, note, created_at)
+feedback (id, opportunity_id, hunt_name, title, rating, note, created_at)
+-- opportunity_id is nullable: movies supports rating films not scanned by the system
+-- title is always set: used directly in eval prompts without joining to opportunities
 
 preferences (id, hunt_name, preferences_text)
 
@@ -577,6 +615,7 @@ type Schedule struct {
 - Comedy: scan every 12h, eval weekly, remind 1 day before
 - Performing arts: scan every 12h, eval weekly, remind 1 week + 1 day before
 - Powder: scan every 12h, eval after every scan (hunt-side gating via ReEvaluator), remind 2 days before, $10/month budget cap
+- Movies: scan every 24h, eval weekly, remind 1 day before (theatrical only, streaming has no reminders)
 
 ## Configuration
 
@@ -597,15 +636,18 @@ ERROR_DISCORD_WEBHOOK_URL=...
 HUNT_COMEDY_ENABLED=true
 HUNT_PERFORMING_ENABLED=true
 HUNT_POWDER_ENABLED=true
+HUNT_MOVIES_ENABLED=true
 
 # Per-hunt Discord webhooks
 COMEDY_DISCORD_WEBHOOK_URL=...
 PERFORMING_DISCORD_WEBHOOK_URL=...
 POWDER_DISCORD_WEBHOOK_URL=...
+MOVIES_DISCORD_WEBHOOK_URL=...
 
 # Source API keys (hunts validate in Init)
 TICKETMASTER_API_KEY=...
 EVENTBRITE_API_TOKEN=...
+TMDB_API_KEY=...
 ```
 
 Hunts validate their config requirements in `Init()`. If a required key is missing and the hunt is enabled, Init returns an error with a clear message and the hunt is not started.
@@ -758,6 +800,17 @@ opportunity-hunter/
 │   │   ├── cards.go
 │   │   ├── notify.go
 │   │   └── sources/
+│   ├── movies/               # Movies hunt
+│   │   ├── hunt.go           # implements Hunt + Expirer + WebHunt + NotifyHunt
+│   │   ├── evaluator.go
+│   │   ├── prompt.go
+│   │   ├── attrs.go          # MovieAttrs typed struct
+│   │   ├── cards.go
+│   │   ├── notify.go
+│   │   └── sources/
+│   │       ├── tmdb.go       # TMDB API (theatrical + streaming releases)
+│   │       ├── letterboxd.go # Letterboxd scraper (trending/popular)
+│   │       └── ticketmaster.go # Local special screenings
 │   └── powder/               # Powder hunt
 │       ├── hunt.go           # implements Hunt + ReEvaluator + Briefer + WebHunt + NotifyHunt
 │       ├── evaluator.go
@@ -786,15 +839,16 @@ opportunity-hunter/
 1. Build fresh repo with `core/` types + `pipeline/` + `storage/` + `web/` shell + `testutil/`
 2. Implement performing arts hunt (new, validates interfaces without porting baggage)
 3. Port comedy-hunter in (closest to core model, proves Grouper works)
-4. Port powder-hunter in (most complex, proves ReEvaluator + Briefer)
-5. Retire old repos
+4. Implement movies hunt (new, proves Expirer + nullable VenueID + manual feedback)
+5. Port powder-hunter in (most complex, proves ReEvaluator + Briefer)
+6. Retire old repos
 
-Expect at least one interface revision after step 3 before tackling step 4.
+Expect at least one interface revision after step 3 before tackling step 4-5.
 
 ## Open-Source Model
 
 Contributors add a package under `hunts/`, implement the `Hunt` interface (and any optional interfaces they need), and add one import line in `main.go`. Users enable/disable hunts via env vars and provide whatever API keys the hunt needs.
 
-A minimal hunt implements 6 methods (Name, Init, Sources, DedupeKey, Evaluator, DefaultSchedule). A complex hunt like powder implements up to 12, opting in to re-evaluation, briefing, custom cards, and threaded notifications.
+A minimal hunt implements 6 methods (Name, Init, Sources, DedupeKey, Evaluator, DefaultSchedule). A complex hunt like powder implements up to 12, opting in to re-evaluation, briefing, custom cards, and threaded notifications. A medium hunt like movies implements 9, adding custom expiration, cards, and notifications.
 
 See `CONTRIBUTING.md` for a walkthrough of adding a new hunt.
