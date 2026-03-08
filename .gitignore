@@ -1,2 +1,27 @@
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/
+
+# Git worktrees
 .worktrees/
+
+# Go
+*.exe
+*.test
+*.out
+/opportunity-hunter
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Override global gitignore for docs/ in this project
 !docs/
