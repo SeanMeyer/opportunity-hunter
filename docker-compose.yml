@@ -1,0 +1,12 @@
+services:
+  opportunity-hunter:
+    build: .
+    env_file: .env
+    ports:
+      - "${WEB_PORT:-8080}:${WEB_PORT:-8080}"
+    volumes:
+      - data:/data
+    restart: unless-stopped
+
+volumes:
+  data:

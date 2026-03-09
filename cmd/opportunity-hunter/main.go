@@ -15,6 +15,10 @@ import (
 
 	"github.com/seanmeyer/opportunity-hunter/config"
 	"github.com/seanmeyer/opportunity-hunter/core"
+	"github.com/seanmeyer/opportunity-hunter/hunts/comedy"
+	"github.com/seanmeyer/opportunity-hunter/hunts/movies"
+	"github.com/seanmeyer/opportunity-hunter/hunts/performing"
+	"github.com/seanmeyer/opportunity-hunter/hunts/powder"
 	"github.com/seanmeyer/opportunity-hunter/notify"
 	"github.com/seanmeyer/opportunity-hunter/pipeline"
 	"github.com/seanmeyer/opportunity-hunter/storage"
@@ -95,12 +99,12 @@ Commands:
 // registeredHunts returns all hunts. Import hunt packages here.
 // Hunts are registered but only enabled ones are initialized.
 func registeredHunts() []core.Hunt {
-	// TODO: Register hunts as they're implemented:
-	//   &comedy.ComedyHunt{},
-	//   &performing.PerformingHunt{},
-	//   &movies.MoviesHunt{},
-	//   &powder.PowderHunt{},
-	return nil
+	return []core.Hunt{
+		&comedy.ComedyHunt{},
+		&performing.PerformingHunt{},
+		&movies.MoviesHunt{},
+		&powder.PowderHunt{},
+	}
 }
 
 func initHunts(ctx context.Context, cfg config.Config) ([]core.Hunt, error) {
