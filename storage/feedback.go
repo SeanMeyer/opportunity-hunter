@@ -1,0 +1,61 @@
+package storage
+
+import (
+	"context"
+	"database/sql"
+	"time"
+)
+
+// FeedbackRow represents a stored feedback entry.
+type FeedbackRow struct {
+	ID            int64
+	OpportunityID *int64
+	HuntName      string
+	Title         string
+	Rating        string
+	Note          string
+	CreatedAt     time.Time
+}
+
+// SaveFeedback inserts a feedback entry. OpportunityID may be nil (manual feedback).
+func (d *DB) SaveFeedback(ctx context.Context, f FeedbackRow) (int64, error) {
+	result, err := d.db.ExecContext(ctx,
+		`INSERT INTO feedback (opportunity_id, hunt_name, title, rating, note, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?)`,
+		f.OpportunityID, f.HuntName, f.Title, f.Rating, f.Note,
+		f.CreatedAt.Format(time.RFC3339),
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+// GetRecentFeedback returns the most recent feedback for a hunt.
+func (d *DB) GetRecentFeedback(ctx context.Context, huntName string, limit int) ([]FeedbackRow, error) {
+	rows, err := d.db.QueryContext(ctx,
+		`SELECT id, opportunity_id, hunt_name, title, rating, note, created_at
+		 FROM feedback WHERE hunt_name = ?
+		 ORDER BY created_at DESC LIMIT ?`, huntName, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []FeedbackRow
+	for rows.Next() {
+		var f FeedbackRow
+		var oppID sql.NullInt64
+		var createdStr string
+		if err := rows.Scan(&f.ID, &oppID, &f.HuntName, &f.Title, &f.Rating, &f.Note, &createdStr); err != nil {
+			return nil, err
+		}
+		if oppID.Valid {
+			f.OpportunityID = &oppID.Int64
+		}
+		f.CreatedAt, _ = time.Parse(time.RFC3339, createdStr)
+		result = append(result, f)
+	}
+	return result, rows.Err()
+}
