@@ -1,0 +1,114 @@
+package comedy
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/seanmeyer/opportunity-hunter/core"
+	"github.com/seanmeyer/opportunity-hunter/distance"
+	"github.com/seanmeyer/opportunity-hunter/hunts/comedy/sources"
+	"github.com/seanmeyer/opportunity-hunter/llm"
+)
+
+// ComedyHunt discovers and evaluates comedy shows.
+// Implements: Hunt + Grouper + WebHunt + NotifyHunt
+type ComedyHunt struct {
+	tmKey       string
+	ebToken     string
+	llmC        *llm.Client
+	distClient  *distance.Client
+	homeAddress string
+}
+
+func (h *ComedyHunt) Name() string { return "comedy" }
+
+func (h *ComedyHunt) Init(ctx context.Context, lookup func(string) string) error {
+	h.tmKey = lookup("TICKETMASTER_API_KEY")
+	h.ebToken = lookup("EVENTBRITE_API_TOKEN")
+
+	apiKey := lookup("GOOGLE_API_KEY")
+	if apiKey == "" {
+		return fmt.Errorf("comedy: GOOGLE_API_KEY required")
+	}
+
+	client, err := llm.NewClient(ctx, apiKey)
+	if err != nil {
+		return fmt.Errorf("comedy: create LLM client: %w", err)
+	}
+	h.llmC = client
+
+	h.homeAddress = lookup("HOME_ADDRESS")
+	if h.homeAddress != "" {
+		h.distClient = distance.NewClient(apiKey, &http.Client{Timeout: 10 * time.Second})
+	}
+
+	return nil
+}
+
+func (h *ComedyHunt) Sources() []core.Source {
+	var srcs []core.Source
+	if h.tmKey != "" {
+		srcs = append(srcs, sources.NewTicketmaster(h.tmKey, nil))
+	}
+	if h.ebToken != "" {
+		srcs = append(srcs, sources.NewEventbrite(h.ebToken, nil))
+	}
+	srcs = append(srcs, sources.NewComedyWorks()) // always included
+	return srcs
+}
+
+func (h *ComedyHunt) DedupeKey(raw core.RawItem) string {
+	t, _ := time.Parse(time.RFC3339, raw.StartTime)
+	date := t.Format("2006-01-02")
+	return raw.Title + "|" + raw.VenueName + "|" + date
+}
+
+func (h *ComedyHunt) Evaluator() core.Evaluator {
+	return &comedyEvaluator{
+		llm:         h.llmC,
+		distClient:  h.distClient,
+		homeAddress: h.homeAddress,
+	}
+}
+
+func (h *ComedyHunt) DefaultSchedule() core.Schedule {
+	return core.Schedule{
+		ScanInterval: 12 * time.Hour,
+		EvalInterval: 7 * 24 * time.Hour,
+		RemindBefore: []time.Duration{24 * time.Hour},
+	}
+}
+
+// GroupForEval groups opportunities by week.
+func (h *ComedyHunt) GroupForEval(items []core.Opportunity) []core.Group {
+	weeks := make(map[string][]core.Opportunity)
+	for _, opp := range items {
+		year, week := opp.StartTime.ISOWeek()
+		key := fmt.Sprintf("%d-W%02d", year, week)
+		weeks[key] = append(weeks[key], opp)
+	}
+
+	var groups []core.Group
+	for key, opps := range weeks {
+		groups = append(groups, core.Group{
+			Key:           key,
+			Opportunities: opps,
+		})
+	}
+	return groups
+}
+
+// shouldSkipForEval filters recurring house shows.
+func shouldSkipForEval(name string) bool {
+	lower := strings.ToLower(name)
+	skipPatterns := []string{"thick skin", "new talent night", "new faces contest"}
+	for _, pattern := range skipPatterns {
+		if strings.Contains(lower, pattern) {
+			return true
+		}
+	}
+	return false
+}
