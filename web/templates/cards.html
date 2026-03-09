@@ -1,0 +1,74 @@
+{{define "content"}}
+{{if .Status}}
+<div class="status {{if .Status.HasErrors}}status-error{{else}}status-ok{{end}}">
+    Last run: {{.Status.Summary}}
+</div>
+{{end}}
+
+{{if .Cards}}
+<div class="cards">
+    {{range .Cards}}
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">{{.Title}}</div>
+                <div class="card-subtitle">{{.Subtitle}}</div>
+            </div>
+            {{if .Score}}
+            <span class="score score-{{.ScoreTier}}">{{.Score}}</span>
+            {{end}}
+        </div>
+        {{if .Reason}}<div class="card-reason">{{.Reason}}</div>{{end}}
+        {{if .Urgency}}<div class="card-urgency">{{.Urgency}}</div>{{end}}
+        {{if .Fields}}
+        <div class="card-fields">
+            {{range .Fields}}
+            <div class="field">
+                <span class="field-label">{{.Icon}} {{.Label}}:</span> {{.Value}}
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+        {{if .ActionURL}}
+        <div class="card-action">
+            <a href="{{.ActionURL}}" target="_blank">{{.ActionLabel}}</a>
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="empty">No opportunities yet for {{.ActiveHunt}}.</div>
+{{end}}
+
+{{if .FeedbackOptions}}
+<section>
+    <h2>Feedback</h2>
+    {{range .FeedbackItems}}
+    <div class="card">
+        <div class="card-title">{{.Title}}</div>
+        <div class="feedback-buttons">
+            {{range $.FeedbackOptions}}
+            <form method="POST" action="/feedback" style="display:inline">
+                <input type="hidden" name="hunt" value="{{$.ActiveHunt}}">
+                <input type="hidden" name="opportunity_id" value="{{$.CurrentOppID}}">
+                <input type="hidden" name="title" value="{{$.CurrentTitle}}">
+                <input type="hidden" name="rating" value="{{.Value}}">
+                <button type="submit">{{.Label}}</button>
+            </form>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+</section>
+{{end}}
+
+<section>
+    <h2>Preferences</h2>
+    <form method="POST" action="/preferences">
+        <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
+        <textarea name="preferences">{{.Preferences}}</textarea>
+        <button type="submit">Save Preferences</button>
+    </form>
+</section>
+{{end}}
