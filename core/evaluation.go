@@ -6,9 +6,15 @@ import (
 	"time"
 )
 
+// EvalResult bundles an evaluation with its picks.
+type EvalResult struct {
+	Evaluation Evaluation
+	Picks      []Pick
+}
+
 // Evaluator evaluates a group of opportunities and returns an evaluation with picks.
 type Evaluator interface {
-	Evaluate(ctx context.Context, ec EvalContext) (*Evaluation, error)
+	Evaluate(ctx context.Context, ec EvalContext) (*EvalResult, error)
 }
 
 // EvalContext carries everything an evaluator needs.
