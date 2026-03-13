@@ -19,8 +19,9 @@ type Pipeline struct {
 }
 
 // Notifier abstracts Discord notification sending.
+// The hunt name is passed so implementations can route to per-hunt webhooks.
 type Notifier interface {
-	ExecuteActions(actions []core.NotifyAction) error
+	ExecuteActions(huntName string, actions []core.NotifyAction) (map[string]string, error)
 	PostError(message string) error
 }
 
@@ -91,6 +92,8 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 
 	// Step 6 + 7: Evaluate + Store.
 	var evals []core.Evaluation
+	var allPicks []core.Pick
+	var allOpps []core.Opportunity
 	for _, group := range groups {
 		eval, picks, evalErr := p.evaluateGroup(ctx, hunt, group)
 		if evalErr != nil {
@@ -103,6 +106,8 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 		}
 		result.Evaluated++
 		evals = append(evals, eval)
+		allPicks = append(allPicks, picks...)
+		allOpps = append(allOpps, group.Opportunities...)
 
 		// Store evaluation + picks.
 		evalID, storeErr := p.db.SaveEvaluationWithPicks(ctx, eval, picks)
@@ -124,12 +129,25 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 		_ = evalID
 	}
 
-	// Step 8: Brief — if Briefer, synthesize.
-	// (Skipped for now — implemented when powder hunt lands)
+	// Step 8: Brief — if Briefer, synthesize per notify group.
+	var synthesis map[string]string // groupKey → synthesis text
+	if caps.HasBriefer && len(evals) > 0 {
+		briefer := hunt.(core.Briefer)
+		notifyGroups := briefer.GroupForNotify(evals)
+		synthesis = make(map[string]string, len(notifyGroups))
+		for _, ng := range notifyGroups {
+			text, err := briefer.Synthesize(ctx, ng, p.costTracker)
+			if err != nil {
+				slog.Warn("briefing failed", "hunt", name, "group", ng.Key, "err", err)
+				continue
+			}
+			synthesis[ng.Key] = text
+		}
+	}
 
 	// Step 9: Notify.
 	if !p.dryRun && len(evals) > 0 {
-		p.notify(ctx, hunt, caps, evals, &result)
+		p.notifyFull(ctx, hunt, caps, evals, allPicks, allOpps, synthesis, &result)
 	}
 
 	// Step 11: Expire.
@@ -295,13 +313,19 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 			OpportunityTitle: fb.Title,
 			Rating:           fb.Rating,
 			Note:             fb.Note,
+			EvalSummary:      fb.EvalSummary,
+			EvalScore:        fb.EvalScore,
 		})
 	}
+
+	// Load structured profile (hunt-specific with global fallback).
+	profile, _ := p.db.GetProfile(ctx, hunt.Name())
 
 	ec := core.EvalContext{
 		Opportunities: group.Opportunities,
 		Venues:        venues,
 		Preferences:   prefs,
+		Profile:       profile,
 		Feedback:      feedback,
 		CostTracker:   p.costTracker,
 	}
@@ -324,7 +348,7 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 	return result.Evaluation, result.Picks, nil
 }
 
-func (p *Pipeline) notify(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities, evals []core.Evaluation, result *core.HuntResult) {
+func (p *Pipeline) notifyFull(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities, evals []core.Evaluation, picks []core.Pick, opps []core.Opportunity, synthesis map[string]string, result *core.HuntResult) {
 	if !caps.HasNotifyHunt {
 		return
 	}
@@ -334,17 +358,46 @@ func (p *Pipeline) notify(ctx context.Context, hunt core.Hunt, caps core.HuntCap
 		return
 	}
 
-	nCtx := core.NotifyContext{Evaluations: evals}
+	name := hunt.Name()
+
+	// Look up existing thread for this group.
+	groupKey := ""
+	if len(evals) > 0 {
+		groupKey = evals[0].GroupKey
+	}
+	existingThread, _ := p.db.GetThread(ctx, name, groupKey)
+
+	// Get synthesis text for this group.
+	synthText := ""
+	if synthesis != nil {
+		synthText = synthesis[groupKey]
+	}
+
+	nCtx := core.NotifyContext{
+		Evaluations:      evals,
+		Picks:            picks,
+		Opportunities:    opps,
+		Synthesis:        synthText,
+		ExistingThreadID: existingThread,
+	}
 	actions := formatter.FormatPicks(nCtx)
 	if len(actions) == 0 {
 		return
 	}
 
-	if err := p.notifier.ExecuteActions(actions); err != nil {
+	threadIDs, err := p.notifier.ExecuteActions(name, actions)
+	if err != nil {
 		result.Errors = append(result.Errors, core.StepError{Step: "notify", Err: err})
 		return
 	}
 	result.Notified = len(actions)
+
+	// Persist newly created thread IDs.
+	for threadName, threadID := range threadIDs {
+		if saveErr := p.db.SaveThread(ctx, name, groupKey, threadID); saveErr != nil {
+			slog.Warn("failed to save thread", "hunt", name, "thread", threadName, "err", saveErr)
+		}
+	}
 }
 
 func (p *Pipeline) expire(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities) {

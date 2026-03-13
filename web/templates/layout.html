@@ -7,41 +7,87 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; padding: 1rem; }
+        .container { max-width: 960px; margin: 0 auto; padding: 1rem; }
         header { background: #1a1a2e; color: white; padding: 1rem 0; }
         header h1 { font-size: 1.5rem; }
         nav { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
         nav a { color: #ccc; text-decoration: none; padding: 0.5rem 1rem; border-radius: 0.25rem; }
         nav a.active { background: rgba(255,255,255,0.15); color: white; }
         nav a:hover { color: white; }
+
+        .toolbar { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1rem 0 0.5rem; padding: 0.75rem; background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 0.85rem; }
+        .toolbar label { color: #666; font-weight: 500; }
+        .toolbar select { padding: 0.3rem 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem; font-size: 0.85rem; }
+        .toolbar .count { margin-left: auto; color: #888; }
+        .prefs-toggle { background: none; border: 1px solid #e5e7eb; border-radius: 0.25rem; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 1rem; line-height: 1; }
+        .prefs-toggle:hover { background: #f3f4f6; }
+        .prefs-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease, padding 0.25s ease; background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 0; }
+        .prefs-panel.open { max-height: 500px; padding: 1rem; margin-bottom: 0.5rem; }
+        .prefs-header { margin-bottom: 0.5rem; }
+        .prefs-header strong { font-size: 0.9rem; }
+        .prefs-hint { font-size: 0.75rem; color: #888; margin-left: 0.5rem; }
+        .prefs-panel textarea { width: 100%; min-height: 60px; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem; font-family: inherit; font-size: 0.85rem; resize: vertical; }
+        .prefs-panel button[type="submit"] { margin-top: 0.4rem; padding: 0.35rem 0.8rem; background: #2563eb; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.85rem; }
+        .prefs-panel button[type="submit"]:hover { background: #1d4ed8; }
+        .schedule-form { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #eee; }
+        .schedule-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+        .schedule-row select { padding: 0.3rem 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem; font-size: 0.85rem; }
+        .schedule-next { font-size: 0.8rem; color: #666; }
+        .schedule-label { font-size: 0.85rem; color: #666; font-weight: 500; }
+        .schedule-time { padding: 0.3rem 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem; font-size: 0.85rem; font-family: inherit; }
+        .schedule-day-wrap { display: inline-flex; gap: 0.5rem; align-items: center; }
+        .schedule-day-wrap select { padding: 0.3rem 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem; font-size: 0.85rem; }
+
         .cards { display: grid; gap: 1rem; margin: 1rem 0; }
-        .card { background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card { background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #e5e7eb; }
+        .card.tier-high { border-left-color: #ef4444; }
+        .card.tier-medium { border-left-color: #f59e0b; }
+        .card.tier-low { border-left-color: #3b82f6; }
         .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
         .card-title { font-size: 1.1rem; font-weight: 600; }
         .card-subtitle { color: #666; font-size: 0.9rem; }
-        .score { font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.9rem; }
+        .score { font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.8rem; white-space: nowrap; }
         .score-high { background: #dcfce7; color: #166534; }
         .score-medium { background: #fef3c7; color: #92400e; }
-        .score-low { background: #fee2e2; color: #991b1b; }
+        .score-low { background: #dbeafe; color: #1e40af; }
         .score-none { background: #f3f4f6; color: #6b7280; }
-        .card-reason { margin: 0.5rem 0; color: #555; }
+        .card-reason { margin: 0.5rem 0; color: #555; font-size: 0.9rem; line-height: 1.5; }
         .card-urgency { font-size: 0.85rem; color: #b45309; font-weight: 500; }
-        .card-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #eee; }
-        .field { font-size: 0.85rem; }
-        .field-label { color: #888; }
+
+        .card-fields { display: grid; grid-template-columns: 1fr; gap: 0.4rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #eee; }
+        .field { font-size: 0.85rem; line-height: 1.5; }
+        .field-label { color: #888; font-weight: 500; }
+        .field-value { color: #444; }
+        .field-long { grid-column: 1 / -1; }
+
         .card-action { margin-top: 0.75rem; }
         .card-action a { color: #2563eb; text-decoration: none; font-weight: 500; }
-        .feedback-buttons { margin-top: 0.75rem; display: flex; gap: 0.5rem; }
-        .feedback-buttons button { padding: 0.25rem 0.75rem; border: 1px solid #ddd; border-radius: 0.25rem; background: white; cursor: pointer; font-size: 0.85rem; }
-        .feedback-buttons button:hover { background: #f0f0f0; }
+
+        .card-footer { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #eee; display: flex; gap: 0.5rem; align-items: center; }
+        .fb-btn { width: 2rem; height: 2rem; border: 1px solid #e5e7eb; border-radius: 50%; background: white; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .fb-btn:hover { background: #f3f4f6; transform: scale(1.1); }
+        .fb-btn.selected { border-color: #2563eb; background: #eff6ff; }
+        .fb-up.selected { border-color: #22c55e; background: #f0fdf4; }
+        .fb-down.selected { border-color: #ef4444; background: #fef2f2; }
+        .fb-saved { color: #22c55e; font-size: 0.8rem; font-weight: 500; }
+        .fb-form { margin-top: 0.5rem; }
+        .fb-form-row { display: flex; gap: 0.4rem; align-items: center; }
+        .fb-note { flex: 1; padding: 0.4rem 0.6rem; border: 1px solid #ddd; border-radius: 0.25rem; font-size: 0.85rem; font-family: inherit; }
+        .fb-save { padding: 0.4rem 0.8rem; background: #2563eb; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-size: 0.85rem; }
+        .fb-save:hover { background: #1d4ed8; }
+        .fb-cancel { padding: 0.4rem 0.6rem; background: white; border: 1px solid #ddd; border-radius: 0.25rem; cursor: pointer; font-size: 0.85rem; color: #666; }
+        .fb-cancel:hover { background: #f3f4f6; }
+
         section { margin: 1.5rem 0; }
         section h2 { font-size: 1.2rem; margin-bottom: 0.75rem; }
-        textarea { width: 100%; min-height: 100px; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.25rem; font-family: inherit; }
-        button[type="submit"] { margin-top: 0.5rem; padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 0.25rem; cursor: pointer; }
         .status { padding: 0.75rem; background: white; border-radius: 0.5rem; font-size: 0.85rem; margin-bottom: 1rem; }
         .status-error { border-left: 3px solid #ef4444; }
         .status-ok { border-left: 3px solid #22c55e; }
         .empty { text-align: center; padding: 2rem; color: #888; }
+
+        details { margin-top: 0.5rem; }
+        details summary { cursor: pointer; color: #2563eb; font-size: 0.85rem; font-weight: 500; }
+        details[open] summary { margin-bottom: 0.5rem; }
     </style>
 </head>
 <body>

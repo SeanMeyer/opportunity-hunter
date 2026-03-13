@@ -24,6 +24,7 @@ func TestOpen_CreatesTablesSuccessfully(t *testing.T) {
 		"venues", "opportunities", "evaluations", "picks",
 		"feedback", "preferences", "distance_cache",
 		"notification_threads", "eval_costs",
+		"prompt_templates", "user_profiles",
 	}
 	for _, table := range tables {
 		var count int

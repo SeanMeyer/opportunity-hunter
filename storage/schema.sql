@@ -104,6 +104,40 @@ CREATE TABLE IF NOT EXISTS eval_costs (
     success      INTEGER NOT NULL DEFAULT 1
 );
 
+-- Prompt template versioning. Evaluator loads from here, falls back to hardcoded.
+CREATE TABLE IF NOT EXISTS prompt_templates (
+    hunt_name  TEXT NOT NULL,
+    version    TEXT NOT NULL,
+    template   TEXT NOT NULL,
+    active     INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    UNIQUE(hunt_name, version)
+);
+
+-- Structured user profiles. Empty hunt_name = global profile.
+CREATE TABLE IF NOT EXISTS user_profiles (
+    hunt_name      TEXT NOT NULL DEFAULT '',
+    home_base      TEXT NOT NULL DEFAULT '',
+    home_lat       REAL NOT NULL DEFAULT 0,
+    home_lon       REAL NOT NULL DEFAULT 0,
+    passes         TEXT NOT NULL DEFAULT '[]',
+    skill_level    TEXT NOT NULL DEFAULT '',
+    preferences    TEXT NOT NULL DEFAULT '',
+    remote_work    INTEGER NOT NULL DEFAULT 0,
+    pto_days       INTEGER NOT NULL DEFAULT 0,
+    blackout_dates TEXT NOT NULL DEFAULT '[]',
+    extra          TEXT NOT NULL DEFAULT '{}',
+    UNIQUE(hunt_name)
+);
+
+-- Per-hunt scan schedule. Persists next_scan_at across restarts.
+CREATE TABLE IF NOT EXISTS hunt_schedules (
+    hunt_name       TEXT NOT NULL UNIQUE,
+    scan_interval_m INTEGER NOT NULL,
+    next_scan_at    TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+);
+
 -- Indexes for common queries.
 CREATE INDEX IF NOT EXISTS idx_opportunities_hunt_state ON opportunities(hunt_name, state);
 CREATE INDEX IF NOT EXISTS idx_opportunities_start_time ON opportunities(start_time);

@@ -12,17 +12,20 @@ type FeedbackRow struct {
 	OpportunityID *int64
 	HuntName      string
 	Title         string
-	Rating        string
+	Rating        string // "up" or "down"
 	Note          string
+	EvalSummary   string // LLM's one-liner at the time of feedback
+	EvalScore     string // display score (tier) at the time of feedback
 	CreatedAt     time.Time
 }
 
 // SaveFeedback inserts a feedback entry. OpportunityID may be nil (manual feedback).
 func (d *DB) SaveFeedback(ctx context.Context, f FeedbackRow) (int64, error) {
 	result, err := d.db.ExecContext(ctx,
-		`INSERT INTO feedback (opportunity_id, hunt_name, title, rating, note, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO feedback (opportunity_id, hunt_name, title, rating, note, eval_summary, eval_score, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		f.OpportunityID, f.HuntName, f.Title, f.Rating, f.Note,
+		f.EvalSummary, f.EvalScore,
 		f.CreatedAt.Format(time.RFC3339),
 	)
 	if err != nil {
@@ -34,7 +37,8 @@ func (d *DB) SaveFeedback(ctx context.Context, f FeedbackRow) (int64, error) {
 // GetRecentFeedback returns the most recent feedback for a hunt.
 func (d *DB) GetRecentFeedback(ctx context.Context, huntName string, limit int) ([]FeedbackRow, error) {
 	rows, err := d.db.QueryContext(ctx,
-		`SELECT id, opportunity_id, hunt_name, title, rating, note, created_at
+		`SELECT id, opportunity_id, hunt_name, title, rating, note,
+		        COALESCE(eval_summary, ''), COALESCE(eval_score, ''), created_at
 		 FROM feedback WHERE hunt_name = ?
 		 ORDER BY created_at DESC LIMIT ?`, huntName, limit,
 	)
@@ -48,7 +52,8 @@ func (d *DB) GetRecentFeedback(ctx context.Context, huntName string, limit int) 
 		var f FeedbackRow
 		var oppID sql.NullInt64
 		var createdStr string
-		if err := rows.Scan(&f.ID, &oppID, &f.HuntName, &f.Title, &f.Rating, &f.Note, &createdStr); err != nil {
+		if err := rows.Scan(&f.ID, &oppID, &f.HuntName, &f.Title, &f.Rating, &f.Note,
+			&f.EvalSummary, &f.EvalScore, &createdStr); err != nil {
 			return nil, err
 		}
 		if oppID.Valid {

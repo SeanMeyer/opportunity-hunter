@@ -75,6 +75,10 @@ func run(args []string) int {
 		return runEval()
 	case "web":
 		return runWeb()
+	case "profile":
+		return runProfile(args[1:])
+	case "trace":
+		return runTrace(args[1:])
 	case "version":
 		fmt.Println(version)
 		return 0
@@ -93,6 +97,8 @@ Commands:
   scan      Run scan only (no LLM, no Discord)
   eval      Run evaluation only
   web       Start the web UI only
+  profile   View or set user profile
+  trace     Single-region debug (scan + detect + render prompt, no LLM)
   version   Print version and exit`)
 }
 
@@ -131,6 +137,57 @@ func initHunts(ctx context.Context, cfg config.Config) ([]core.Hunt, error) {
 	return enabled, nil
 }
 
+func seedProfileFromEnv(ctx context.Context, db *storage.DB) {
+	homeBase := os.Getenv("HOME_BASE")
+	if homeBase == "" {
+		return
+	}
+
+	homeLat := parseFloatEnv("HOME_LATITUDE", 0)
+	homeLon := parseFloatEnv("HOME_LONGITUDE", 0)
+
+	var passes []string
+	if p := os.Getenv("PASSES"); p != "" {
+		for _, s := range strings.Split(p, ",") {
+			passes = append(passes, strings.TrimSpace(s))
+		}
+	}
+
+	ptoDays := 0
+	if p := os.Getenv("PTO_DAYS"); p != "" {
+		if v, err := strconv.Atoi(p); err == nil {
+			ptoDays = v
+		}
+	}
+
+	profile := &core.UserProfile{
+		HuntName:   "", // global profile
+		HomeBase:   homeBase,
+		HomeLat:    homeLat,
+		HomeLon:    homeLon,
+		Passes:     passes,
+		SkillLevel: os.Getenv("SKILL_LEVEL"),
+		RemoteWork: os.Getenv("REMOTE_WORK") == "true" || os.Getenv("REMOTE_WORK") == "1",
+		PTODays:    ptoDays,
+	}
+
+	if err := db.SaveProfileIfNotExists(ctx, profile); err != nil {
+		slog.Warn("failed to seed profile", "err", err)
+	}
+}
+
+func parseFloatEnv(key string, fallback float64) float64 {
+	s := os.Getenv(key)
+	if s == "" {
+		return fallback
+	}
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return fallback
+	}
+	return v
+}
+
 func runDaemon() int {
 	cfg, err := config.FromEnv(os.Getenv)
 	if err != nil {
@@ -148,6 +205,9 @@ func runDaemon() int {
 	}
 	defer db.Close()
 
+	// Seed global user profile from .env on first run.
+	seedProfileFromEnv(ctx, db)
+
 	hunts, err := initHunts(ctx, cfg)
 	if err != nil {
 		slog.Error("init hunts", "err", err)
@@ -162,9 +222,13 @@ func runDaemon() int {
 	}
 	costTracker := core.NewCostTracker(monthly.Total, monthly.ByHunt)
 
-	// Notifier — use first hunt's webhook for now, error webhook separate.
-	notifier := &noopNotifier{}
-	var pipeNotifier pipeline.Notifier = notifier
+	// Notifier — route to per-hunt Discord webhooks, or noop if dry-run.
+	var pipeNotifier pipeline.Notifier
+	if cfg.DryRun {
+		pipeNotifier = &noopNotifier{}
+	} else {
+		pipeNotifier = newRoutingNotifier(cfg.HuntWebhooks, cfg.ErrorDiscordWebhookURL)
+	}
 
 	// Pipeline.
 	pipe := pipeline.New(db, costTracker, pipeNotifier)
@@ -186,14 +250,35 @@ func runDaemon() int {
 		}
 	}()
 
+	// Seed schedules for all hunts (creates rows for new hunts, preserves existing).
+	huntsByName := make(map[string]core.Hunt, len(hunts))
+	for _, h := range hunts {
+		huntsByName[h.Name()] = h
+		sched := h.DefaultSchedule()
+		intervalM := int(sched.ScanInterval.Minutes())
+		if intervalM <= 0 {
+			intervalM = 720 // default 12h
+		}
+		if err := db.SeedScheduleIfNotExists(ctx, h.Name(), intervalM, time.Now()); err != nil {
+			slog.Warn("seed schedule", "hunt", h.Name(), "err", err)
+		}
+	}
+
 	// Initial scan + eval.
 	slog.Info("running initial pipeline")
 	result := pipe.RunAll(ctx, hunts)
 	logResult(result)
 
-	// Schedule loop.
-	scanTicker := time.NewTicker(12 * time.Hour)
-	defer scanTicker.Stop()
+	// Advance next_scan_at for all hunts after initial run.
+	for _, h := range hunts {
+		if err := db.AdvanceNextScan(ctx, h.Name(), time.Now()); err != nil {
+			slog.Warn("advance schedule after initial run", "hunt", h.Name(), "err", err)
+		}
+	}
+
+	// Per-hunt schedule loop: check every minute for due hunts.
+	checkTicker := time.NewTicker(1 * time.Minute)
+	defer checkTicker.Stop()
 
 	slog.Info("daemon started", "hunts", len(hunts), "web_port", cfg.WebPort)
 
@@ -205,11 +290,26 @@ func runDaemon() int {
 			defer cancel()
 			httpServer.Shutdown(shutdownCtx)
 			return 0
-		case <-scanTicker.C:
-			slog.Info("scheduled pipeline run")
-			result := pipe.RunAll(ctx, hunts)
-			logResult(result)
-			webServer.SetStatus(toStatusInfo(result))
+		case <-checkTicker.C:
+			dueHunts, err := db.GetDueHunts(ctx, time.Now())
+			if err != nil {
+				slog.Error("check due hunts", "err", err)
+				continue
+			}
+			for _, name := range dueHunts {
+				hunt, ok := huntsByName[name]
+				if !ok {
+					slog.Warn("due hunt not found in registry", "hunt", name)
+					continue
+				}
+				slog.Info("scheduled hunt run", "hunt", name)
+				hr := pipe.Run(ctx, hunt)
+				logHuntResult(hr)
+				webServer.SetStatus(toStatusInfo(core.PipelineResult{HuntResults: []core.HuntResult{hr}}))
+				if err := db.AdvanceNextScan(ctx, name, time.Now()); err != nil {
+					slog.Error("advance schedule", "hunt", name, "err", err)
+				}
+			}
 		}
 	}
 }
@@ -236,10 +336,9 @@ func runScan() int {
 	}
 
 	costTracker := core.NewCostTracker(0, nil)
-	notifier := &noopNotifier{}
-	pipe := pipeline.New(db, costTracker, notifier)
+	// Scan uses noop notifier — no notifications for scan-only.
+	pipe := pipeline.New(db, costTracker, &noopNotifier{})
 
-	// Only scan step — set dry run conceptually by using noop notifier.
 	result := pipe.RunAll(ctx, hunts)
 	logResult(result)
 	return 0
@@ -269,9 +368,14 @@ func runEval() int {
 	monthly, _ := db.MonthlySpend(ctx, time.Now())
 	costTracker := core.NewCostTracker(monthly.Total, monthly.ByHunt)
 
-	// Create per-hunt notifiers from config.
-	notifier := &noopNotifier{}
-	pipe := pipeline.New(db, costTracker, notifier)
+	// Eval sends real notifications if webhooks are configured.
+	var pipeNotifier pipeline.Notifier
+	if cfg.DryRun {
+		pipeNotifier = &noopNotifier{}
+	} else {
+		pipeNotifier = newRoutingNotifier(cfg.HuntWebhooks, cfg.ErrorDiscordWebhookURL)
+	}
+	pipe := pipeline.New(db, costTracker, pipeNotifier)
 
 	result := pipe.RunAll(ctx, hunts)
 	logResult(result)
@@ -334,14 +438,18 @@ func buildHuntInfos(hunts []core.Hunt) []web.HuntInfo {
 
 func logResult(result core.PipelineResult) {
 	for _, hr := range result.HuntResults {
-		slog.Info("hunt result",
-			"hunt", hr.HuntName,
-			"scanned", hr.Scanned,
-			"evaluated", hr.Evaluated,
-			"notified", hr.Notified,
-			"errors", len(hr.Errors),
-		)
+		logHuntResult(hr)
 	}
+}
+
+func logHuntResult(hr core.HuntResult) {
+	slog.Info("hunt result",
+		"hunt", hr.HuntName,
+		"scanned", hr.Scanned,
+		"evaluated", hr.Evaluated,
+		"notified", hr.Notified,
+		"errors", len(hr.Errors),
+	)
 }
 
 func toStatusInfo(result core.PipelineResult) *web.StatusInfo {
@@ -359,11 +467,192 @@ func toStatusInfo(result core.PipelineResult) *web.StatusInfo {
 	}
 }
 
-// noopNotifier discards all notifications (for scan-only and dry-run modes).
+func runProfile(args []string) int {
+	cfg, err := config.FromEnv(os.Getenv)
+	if err != nil {
+		slog.Error("config error", "err", err)
+		return 1
+	}
+
+	ctx := context.Background()
+	db, err := storage.Open(cfg.DBPath)
+	if err != nil {
+		slog.Error("open database", "err", err)
+		return 1
+	}
+	defer db.Close()
+
+	if len(args) > 0 && args[0] == "set" {
+		// Set profile from env vars.
+		seedProfileFromEnv(ctx, db)
+		fmt.Println("Profile updated from environment variables.")
+		return 0
+	}
+
+	// View profile.
+	profile, err := db.GetProfile(ctx, "")
+	if err != nil {
+		fmt.Println("No profile found. Set environment variables and run: opportunity-hunter profile set")
+		return 0
+	}
+
+	fmt.Println("User Profile:")
+	fmt.Printf("  Home: %s (%.4f, %.4f)\n", profile.HomeBase, profile.HomeLat, profile.HomeLon)
+	if len(profile.Passes) > 0 {
+		fmt.Printf("  Passes: %s\n", strings.Join(profile.Passes, ", "))
+	}
+	if profile.SkillLevel != "" {
+		fmt.Printf("  Skill: %s\n", profile.SkillLevel)
+	}
+	if profile.RemoteWork {
+		fmt.Println("  Remote work: yes")
+	}
+	if profile.PTODays > 0 {
+		fmt.Printf("  PTO remaining: %d days\n", profile.PTODays)
+	}
+	return 0
+}
+
+func runTrace(args []string) int {
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, "Usage: opportunity-hunter trace <region-name>")
+		fmt.Fprintln(os.Stderr, "  Runs scan + detect + renders prompt for a single region (no LLM call)")
+		return 1
+	}
+	regionFilter := strings.ToLower(strings.Join(args, " "))
+
+	cfg, err := config.FromEnv(os.Getenv)
+	if err != nil {
+		slog.Error("config error", "err", err)
+		return 1
+	}
+
+	ctx := context.Background()
+	db, err := storage.Open(cfg.DBPath)
+	if err != nil {
+		slog.Error("open database", "err", err)
+		return 1
+	}
+	defer db.Close()
+
+	// Init powder hunt.
+	ph := &powder.PowderHunt{}
+	if err := ph.Init(ctx, os.Getenv); err != nil {
+		slog.Error("init powder hunt", "err", err)
+		return 1
+	}
+
+	// Scan.
+	fmt.Printf("Scanning weather for regions matching %q...\n", regionFilter)
+	sources := ph.Sources()
+	var items []core.RawItem
+	for _, src := range sources {
+		scanItems, err := src.Scan(ctx, core.ScanRegion{})
+		if err != nil {
+			slog.Error("scan failed", "source", src.Name(), "err", err)
+			continue
+		}
+		items = append(items, scanItems...)
+	}
+
+	// Filter to matching region.
+	var matched []core.RawItem
+	for _, item := range items {
+		if strings.Contains(strings.ToLower(item.Title), regionFilter) {
+			matched = append(matched, item)
+		}
+	}
+
+	if len(matched) == 0 {
+		fmt.Printf("No weather detections found for %q. Available regions:\n", regionFilter)
+		for _, item := range items {
+			fmt.Printf("  - %s: %s\n", item.Title, item.Subtitle)
+		}
+		return 0
+	}
+
+	fmt.Printf("\nFound %d detection(s):\n", len(matched))
+	for _, item := range matched {
+		fmt.Printf("  %s: %s\n", item.Title, item.Subtitle)
+	}
+
+	// Build a mock EvalContext and render the prompt.
+	opps := make([]core.Opportunity, len(matched))
+	for i, item := range matched {
+		startTime, _ := time.Parse(time.RFC3339, item.StartTime)
+		opps[i] = core.Opportunity{
+			ID:       int64(i + 1),
+			HuntName: "powder",
+			Title:    item.Title,
+			Subtitle: item.Subtitle,
+			StartTime: startTime,
+			Attributes: item.Attributes,
+			RawData:    item.RawJSON,
+		}
+	}
+
+	// Load profile for prompt.
+	profile, _ := db.GetProfile(ctx, "powder")
+	prefs, _ := db.GetPreferences(ctx, "powder")
+
+	ct := core.NewCostTracker(0, nil)
+	ec := core.EvalContext{
+		Opportunities: opps,
+		Venues:        make(map[int64]core.Venue),
+		Preferences:   prefs,
+		Profile:       profile,
+		CostTracker:   ct,
+	}
+
+	// Use the powder evaluator's prompt builder via the exported helper.
+	prompt := powder.BuildPromptForTrace(ec)
+
+	fmt.Printf("\n=== RENDERED PROMPT (%d chars) ===\n\n", len(prompt))
+	fmt.Println(prompt)
+
+	return 0
+}
+
+// routingNotifier routes notifications to per-hunt Discord webhooks.
+// Hunts without a configured webhook silently discard notifications.
+type routingNotifier struct {
+	clients      map[string]*notify.Client // hunt name → client
+	errorClient  *notify.Client
+}
+
+func newRoutingNotifier(webhooks map[string]string, errorWebhook string) *routingNotifier {
+	rn := &routingNotifier{clients: make(map[string]*notify.Client)}
+	for hunt, url := range webhooks {
+		if url != "" {
+			rn.clients[hunt] = notify.NewClient(url)
+		}
+	}
+	if errorWebhook != "" {
+		rn.errorClient = notify.NewClient(errorWebhook)
+	}
+	return rn
+}
+
+func (rn *routingNotifier) ExecuteActions(huntName string, actions []core.NotifyAction) (map[string]string, error) {
+	client, ok := rn.clients[huntName]
+	if !ok {
+		slog.Info("no webhook configured, skipping notifications", "hunt", huntName)
+		return nil, nil
+	}
+	return client.ExecuteActions(context.Background(), actions)
+}
+
+func (rn *routingNotifier) PostError(message string) error {
+	if rn.errorClient == nil {
+		return nil
+	}
+	return rn.errorClient.PostError(context.Background(), message)
+}
+
+// noopNotifier discards all notifications (for dry-run mode).
 type noopNotifier struct{}
 
-func (n *noopNotifier) ExecuteActions(_ []core.NotifyAction) error { return nil }
-func (n *noopNotifier) PostError(_ string) error                   { return nil }
-
-// Ensure notify package is used (will be needed when we wire real notifiers).
-var _ = notify.NewClient
+func (n *noopNotifier) ExecuteActions(_ string, _ []core.NotifyAction) (map[string]string, error) {
+	return nil, nil
+}
+func (n *noopNotifier) PostError(_ string) error                             { return nil }

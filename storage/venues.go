@@ -60,12 +60,12 @@ func (d *DB) UpsertVenue(ctx context.Context, v core.Venue) (int64, error) {
 		if qerr != nil {
 			return 0, qerr
 		}
-		defer rows.Close()
 
 		for rows.Next() {
 			var existingID int64
 			var existingName string
 			if scanErr := rows.Scan(&existingID, &existingName); scanErr != nil {
+				rows.Close()
 				return 0, scanErr
 			}
 			if normalizeVenueName(existingName) == normalized {
@@ -73,7 +73,9 @@ func (d *DB) UpsertVenue(ctx context.Context, v core.Venue) (int64, error) {
 				break
 			}
 		}
-		if closeErr := rows.Err(); closeErr != nil {
+		closeErr := rows.Err()
+		rows.Close() // Must close before any subsequent db calls with MaxOpenConns(1).
+		if closeErr != nil {
 			return 0, closeErr
 		}
 	} else if err != nil {

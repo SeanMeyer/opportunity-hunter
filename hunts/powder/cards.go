@@ -1,55 +1,150 @@
 package powder
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
+	"github.com/seanmeyer/opportunity-hunter/hunts/powder/weather"
 )
 
 type powderCardRenderer struct{}
 
 func (r *powderCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, venue core.Venue) core.CardData {
+	// Use LLM summary as the visible card text (concise one-liner).
+	// Fall back to recommendation if no summary.
+	reason := pick.Reason
+	var rich map[string]any
+	if pick.Attributes != nil {
+		_ = json.Unmarshal(pick.Attributes, &rich)
+	}
+	if rich != nil {
+		if s, ok := rich["summary"].(string); ok && s != "" {
+			reason = s
+		}
+	}
+
 	card := core.CardData{
 		Title:    opp.Title,
 		Subtitle: opp.Subtitle,
 		Score:    pick.DisplayScore,
-		Reason:   pick.Reason,
+		Reason:   reason,
 		Urgency:  pick.Urgency,
 	}
 
-	switch pick.DisplayScore {
-	case string(TierDropEverything):
+	switch weather.Tier(pick.DisplayScore) {
+	case weather.TierDropEverything:
 		card.ScoreTier = core.ScoreHigh
-	case string(TierWorthALook):
+	case weather.TierWorthALook:
 		card.ScoreTier = core.ScoreMedium
 	default:
 		card.ScoreTier = core.ScoreLow
 	}
 
+	// Extract basic attrs.
 	if opp.Attributes != nil {
 		attrs, err := DecodePowderAttrs(opp.Attributes)
 		if err == nil {
+			card.SnowfallIn = attrs.SnowfallIn
 			if attrs.SnowfallIn > 0 {
 				card.Fields = append(card.Fields, core.CardField{
-					Icon: "❄️", Label: "Snowfall", Value: fmt.Sprintf("%.0f inches", attrs.SnowfallIn),
+					Icon: "\xe2\x9d\x84\xef\xb8\x8f", Label: "Snowfall", Value: fmt.Sprintf("%.0f inches", attrs.SnowfallIn),
 				})
 			}
 			if attrs.FrictionTier != "" {
 				card.Fields = append(card.Fields, core.CardField{
-					Icon: "🚗", Label: "Friction", Value: attrs.FrictionTier,
-				})
-			}
-			if attrs.Consensus > 0 {
-				card.Fields = append(card.Fields, core.CardField{
-					Icon: "📊", Label: "Consensus", Value: fmt.Sprintf("%.0f%%", attrs.Consensus*100),
+					Icon: "\xf0\x9f\x9a\x97", Label: "Friction", Value: attrs.FrictionTier,
 				})
 			}
 		}
 	}
 
-	if opp.StartTime.IsZero() == false && opp.EndTime != nil {
+	// rich was already parsed above for summary extraction.
+	if rich != nil {
+		// Full recommendation goes into details (verbose, but available).
+		if s, ok := rich["recommendation"].(string); ok && s != "" {
+			card.Fields = append(card.Fields, core.CardField{
+				Label: "Recommendation", Value: s,
+			})
+		}
+		if s, ok := rich["strategy"].(string); ok && s != "" {
+			card.Fields = append(card.Fields, core.CardField{
+				Icon: "\xf0\x9f\x8e\xaf", Label: "Strategy", Value: s,
+			})
+		}
+		if s, ok := rich["snow_quality"].(string); ok && s != "" {
+			card.Fields = append(card.Fields, core.CardField{
+				Icon: "\xe2\x9d\x84\xef\xb8\x8f", Label: "Snow Quality", Value: s,
+			})
+		}
+		if s, ok := rich["crowd_estimate"].(string); ok && s != "" {
+			card.Fields = append(card.Fields, core.CardField{
+				Icon: "\xf0\x9f\x91\xa5", Label: "Crowds", Value: s,
+			})
+		}
+		if s, ok := rich["best_ski_day"].(string); ok && s != "" {
+			val := s
+			if reason, ok := rich["best_ski_day_reason"].(string); ok && reason != "" {
+				val += " — " + reason
+			}
+			card.Fields = append(card.Fields, core.CardField{
+				Icon: "\xf0\x9f\x93\x85", Label: "Best Day", Value: val,
+			})
+		}
+
+		// Day-by-day summary.
+		if dbd, ok := rich["day_by_day"].([]any); ok {
+			var parts []string
+			for _, item := range dbd {
+				if entry, ok := item.(map[string]any); ok {
+					date, _ := entry["date"].(string)
+					snow, _ := entry["snowfall"].(string)
+					cond, _ := entry["conditions"].(string)
+					if snow != "" && snow != "0" && snow != "Trace" {
+						parts = append(parts, fmt.Sprintf("%s: %s — %s", date, snow, cond))
+					}
+				}
+			}
+			if len(parts) > 0 {
+				card.Fields = append(card.Fields, core.CardField{
+					Icon: "\xf0\x9f\x93\x8a", Label: "Day by Day", Value: strings.Join(parts, "\n"),
+				})
+			}
+		}
+
+		// Resort insights.
+		if insights, ok := rich["resort_insights"].([]any); ok && len(insights) > 0 {
+			var insightParts []string
+			for _, item := range insights {
+				if entry, ok := item.(map[string]any); ok {
+					resort, _ := entry["resort"].(string)
+					insight, _ := entry["insight"].(string)
+					if resort != "" && insight != "" {
+						insightParts = append(insightParts, fmt.Sprintf("%s: %s", resort, insight))
+					}
+				}
+			}
+			if len(insightParts) > 0 {
+				card.Fields = append(card.Fields, core.CardField{
+					Icon: "\xf0\x9f\x8f\x94\xef\xb8\x8f", Label: "Resort Insights", Value: strings.Join(insightParts, "\n"),
+				})
+			}
+		}
+
+		// Logistics cost.
+		if lod, ok := rich["logistics"].(map[string]any); ok {
+			if s, ok := lod["TotalEstimatedCost"].(string); ok && s != "" && s != "N/A" {
+				card.Fields = append(card.Fields, core.CardField{
+					Icon: "\xf0\x9f\x92\xb0", Label: "Est. Cost", Value: s,
+				})
+			}
+		}
+	}
+
+	if !opp.StartTime.IsZero() && opp.EndTime != nil {
 		card.Fields = append(card.Fields, core.CardField{
-			Icon: "📅", Label: "Window",
+			Icon: "\xf0\x9f\x93\x85", Label: "Window",
 			Value: fmt.Sprintf("%s — %s", opp.StartTime.Format("Jan 2"), opp.EndTime.Format("Jan 2")),
 		})
 	}

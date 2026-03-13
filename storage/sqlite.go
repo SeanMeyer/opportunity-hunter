@@ -32,7 +32,33 @@ func Open(path string) (*DB, error) {
 		return nil, fmt.Errorf("apply schema: %w", err)
 	}
 
-	return &DB{db: db}, nil
+	d := &DB{db: db}
+	if err := d.runMigrations(context.Background()); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("run migrations: %w", err)
+	}
+
+	return d, nil
+}
+
+// runMigrations applies idempotent schema migrations.
+// Each migration uses IF NOT EXISTS or similar guards so it's safe to re-run.
+func (d *DB) runMigrations(ctx context.Context) error {
+	migrations := []string{
+		// Add eval_summary and eval_score columns to feedback table.
+		`ALTER TABLE feedback ADD COLUMN eval_summary TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE feedback ADD COLUMN eval_score TEXT NOT NULL DEFAULT ''`,
+		// Add start_hour/start_minute/start_day to hunt_schedules for user-chosen start time.
+		`ALTER TABLE hunt_schedules ADD COLUMN start_hour INTEGER NOT NULL DEFAULT 6`,
+		`ALTER TABLE hunt_schedules ADD COLUMN start_minute INTEGER NOT NULL DEFAULT 0`,
+		`ALTER TABLE hunt_schedules ADD COLUMN start_day INTEGER NOT NULL DEFAULT -1`,
+	}
+
+	for _, m := range migrations {
+		// Ignore errors from already-applied migrations (column already exists).
+		d.db.ExecContext(ctx, m)
+	}
+	return nil
 }
 
 // Close closes the database connection.

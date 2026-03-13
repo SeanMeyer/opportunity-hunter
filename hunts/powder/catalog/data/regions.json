@@ -1,0 +1,4080 @@
+{
+  "regions": [
+    {
+      "id": "co_i70_corridor",
+      "name": "Colorado I-70 Corridor",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_front_range",
+      "coords": {
+        "lat": 39.6042,
+        "lon": -106.1417
+      },
+      "logistics": {
+        "nearest_airport": "DEN",
+        "drive_notes": "I-70 westbound. Traction laws frequently active. Severe weekend traffic bottlenecks at the Eisenhower Tunnel.",
+        "lodging_notes": "Silverthorne, Frisco, and Dillon serve as central budget hubs. On-mountain lodging is premium."
+      },
+      "resorts": [
+        {
+          "id": "winter_park",
+          "name": "Winter Park",
+          "coords": {
+            "lat": 39.8868,
+            "lon": -105.7625
+          },
+          "stats": {
+            "summit_elevation_ft": 12060,
+            "base_elevation_ft": 9000,
+            "vertical_drop_ft": 3060,
+            "skiable_acres": 3081,
+            "lifts": 24,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Denver's local mountain. Famous for endless moguls and great tree skiing.",
+            "terrain_character": "Incredible glades (Mary Jane), heavily bumped out main runs, steep alpine chutes in the Cirque.",
+            "snow_quality_notes": "Consistently good cold snow. Winds can scour the top but fill in the trees nicely.",
+            "best_for": "tree_skiing, moguls, advanced_riders",
+            "crowd_factor": "Very high on weekends, but the Mary Jane side spreads experts out well.",
+            "logistics_notes": "The Winter Park Express train runs directly from Denver Union Station right to the lifts."
+          }
+        },
+        {
+          "id": "arapahoe_basin",
+          "name": "Arapahoe Basin",
+          "coords": {
+            "lat": 39.6425,
+            "lon": -105.8719
+          },
+          "stats": {
+            "summit_elevation_ft": 13050,
+            "base_elevation_ft": 10780,
+            "vertical_drop_ft": 2270,
+            "skiable_acres": 1428,
+            "lifts": 9,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "High-alpine soul mountain with the longest season in Colorado.",
+            "terrain_character": "Legendary steep hike-to chutes (East Wall) and intense high-alpine bowls. Very little beginner terrain.",
+            "snow_quality_notes": "Extremely high base elevation guarantees cold, dry snow when lower resorts get heavy snow or rain.",
+            "best_for": "steeps, alpine_bowls, late_season",
+            "crowd_factor": "Low mid-week, moderate on weekends. Highly favored by locals.",
+            "logistics_notes": "Requires driving over Loveland Pass (US-6) which frequently closes during storms."
+          }
+        },
+        {
+          "id": "loveland",
+          "name": "Loveland",
+          "coords": {
+            "lat": 39.68,
+            "lon": -105.897
+          },
+          "stats": {
+            "summit_elevation_ft": 13010,
+            "base_elevation_ft": 10800,
+            "vertical_drop_ft": 2210,
+            "skiable_acres": 1800,
+            "lifts": 7,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "No-frills, old-school local favorite situated directly on the Continental Divide.",
+            "terrain_character": "Wide open, above-treeline bowls. Lift 9 accesses incredible high-alpine ridges.",
+            "snow_quality_notes": "Catches massive wind-buff. Stays incredibly cold.",
+            "best_for": "bowls, wind_buff, budget_friendly",
+            "crowd_factor": "Generally low. Avoids the worst I-70 crowds.",
+            "logistics_notes": "Located *before* the Eisenhower tunnel, saving 30+ minutes of traffic compared to Summit County."
+          }
+        },
+        {
+          "id": "copper_mountain",
+          "name": "Copper Mountain",
+          "coords": {
+            "lat": 39.5017,
+            "lon": -106.1564
+          },
+          "stats": {
+            "summit_elevation_ft": 12313,
+            "base_elevation_ft": 9712,
+            "vertical_drop_ft": 2738,
+            "skiable_acres": 2507,
+            "lifts": 23,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Perfectly naturally-separated terrain from beginner to expert.",
+            "terrain_character": "Incredible high alpine bowls (Tucker Mountain) and great sustained pitch.",
+            "snow_quality_notes": "Classic Colorado dry powder. High elevation keeps it well preserved.",
+            "best_for": "bowls, parks, cruisers",
+            "crowd_factor": "High on weekends, but the natural separation prevents extreme bottlenecks.",
+            "logistics_notes": "Free parking available in Alpine lot with shuttles."
+          }
+        },
+        {
+          "id": "breckenridge",
+          "name": "Breckenridge",
+          "coords": {
+            "lat": 39.4808,
+            "lon": -106.0667
+          },
+          "stats": {
+            "summit_elevation_ft": 12998,
+            "base_elevation_ft": 9600,
+            "vertical_drop_ft": 3398,
+            "skiable_acres": 2908,
+            "lifts": 35,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Massive resort attached to a historic mining town. Incredible high alpine.",
+            "terrain_character": "High alpine bowls (Imperial Express) are amazing, but the lower mountain acts as a flat bottleneck.",
+            "snow_quality_notes": "High elevation holds snow perfectly, but high winds above treeline can severely scour the bowls.",
+            "best_for": "alpine_bowls, parks, town_access",
+            "crowd_factor": "Extremely crowded. The lower mountain base areas get heavily congested.",
+            "logistics_notes": "Parking in town is expensive; relies heavily on gondola access from the main lots."
+          }
+        },
+        {
+          "id": "keystone",
+          "name": "Keystone",
+          "coords": {
+            "lat": 39.6051,
+            "lon": -105.9447
+          },
+          "stats": {
+            "summit_elevation_ft": 12408,
+            "base_elevation_ft": 9280,
+            "vertical_drop_ft": 3128,
+            "skiable_acres": 3149,
+            "lifts": 20,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Family-heavy frontside with a massive, rugged footprint in the back.",
+            "terrain_character": "Dercum Mountain is all cruisers, but The Outback and North Peak offer incredibly steep, tight tree skiing.",
+            "snow_quality_notes": "The Outback holds powder for days because the frontside crowds rarely venture back that far.",
+            "best_for": "tree_skiing, cruisers, families",
+            "crowd_factor": "Frontside is a zoo; the Outback hides the crowds perfectly.",
+            "logistics_notes": "Offers some of the best night skiing in Colorado."
+          }
+        },
+        {
+          "id": "vail",
+          "name": "Vail",
+          "coords": {
+            "lat": 39.6061,
+            "lon": -106.3549
+          },
+          "stats": {
+            "summit_elevation_ft": 11570,
+            "base_elevation_ft": 8120,
+            "vertical_drop_ft": 3450,
+            "skiable_acres": 5317,
+            "lifts": 32,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Sprawling luxury mega-resort with world-famous Back Bowls.",
+            "terrain_character": "Endless open bowl skiing, deep glades in Blue Sky Basin, and massive front-side groomers.",
+            "snow_quality_notes": "Great snow, but the sheer volume of skiers tracks out the main runs quickly.",
+            "best_for": "bowls, tree_skiing, luxury",
+            "crowd_factor": "Front-side bottlenecks are brutal, but advanced riders can easily escape crowds in the back bowls.",
+            "logistics_notes": "Extremely expensive parking. Best to carpool or use the bus from outer lots."
+          }
+        },
+        {
+          "id": "beaver_creek",
+          "name": "Beaver Creek",
+          "coords": {
+            "lat": 39.6044,
+            "lon": -106.5167
+          },
+          "stats": {
+            "summit_elevation_ft": 11440,
+            "base_elevation_ft": 8100,
+            "vertical_drop_ft": 3340,
+            "skiable_acres": 2082,
+            "lifts": 25,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Luxury grooming and free cookies, often overlooked by powder chasers.",
+            "terrain_character": "Impeccable groomers, but Grouse Mountain hides incredibly steep, demanding tree runs and bump lines.",
+            "snow_quality_notes": "Slightly lower elevation means the base can get warm late season, but the upper trees hold snow well.",
+            "best_for": "steep_trees, groomers, luxury",
+            "crowd_factor": "Consistently less crowded than Vail or Breckenridge on a powder day.",
+            "logistics_notes": "Further down I-70, adding 20+ mins to the drive from Denver."
+          }
+        }
+      ]
+    },
+    {
+      "id": "co_roaring_fork",
+      "name": "Roaring Fork Valley",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_roaring_fork",
+      "coords": {
+        "lat": 39.186,
+        "lon": -106.818
+      },
+      "logistics": {
+        "nearest_airport": "ASE",
+        "drive_notes": "Long drive past Glenwood Canyon. Highway 82 can be treacherous.",
+        "lodging_notes": "Aspen/Snowmass proper is luxury pricing. Budget lodging requires a 40+ minute commute from down-valley (Basalt, Carbondale, or Glenwood Springs)."
+      },
+      "resorts": [
+        {
+          "id": "snowmass",
+          "name": "Snowmass",
+          "coords": {
+            "lat": 39.2066,
+            "lon": -106.945
+          },
+          "stats": {
+            "summit_elevation_ft": 12510,
+            "base_elevation_ft": 8104,
+            "vertical_drop_ft": 4406,
+            "skiable_acres": 3342,
+            "lifts": 20,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "The sprawling giant of the Aspen area. Something for everyone.",
+            "terrain_character": "Massive vertical, incredible hike-to alpine terrain (Hanging Valley), and endless cruisers.",
+            "snow_quality_notes": "Consistently excellent cold, dry powder.",
+            "best_for": "cruisers, hike_to_steeps, families",
+            "crowd_factor": "Moderate. Its massive size absorbs crowds effortlessly.",
+            "logistics_notes": "Free shuttle buses connect all four Aspen mountains."
+          }
+        },
+        {
+          "id": "aspen_mountain",
+          "name": "Aspen Mountain",
+          "coords": {
+            "lat": 39.1867,
+            "lon": -106.8182
+          },
+          "stats": {
+            "summit_elevation_ft": 11212,
+            "base_elevation_ft": 7945,
+            "vertical_drop_ft": 3267,
+            "skiable_acres": 675,
+            "lifts": 8,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "Classic steep skiing dumping right into the heart of downtown Aspen.",
+            "terrain_character": "No green runs. Steep sustained pitches, tight trees, and heavy bumps.",
+            "snow_quality_notes": "Holds snow well on the upper mountain, but the face can get baked in the afternoon.",
+            "best_for": "steeps, bumps, town_access",
+            "crowd_factor": "Low to moderate on powder days. Most people favor Snowmass for sheer acreage.",
+            "logistics_notes": "You can walk to the gondola from downtown Aspen."
+          }
+        },
+        {
+          "id": "aspen_highlands",
+          "name": "Aspen Highlands",
+          "coords": {
+            "lat": 39.1819,
+            "lon": -106.8564
+          },
+          "stats": {
+            "summit_elevation_ft": 11675,
+            "base_elevation_ft": 8040,
+            "vertical_drop_ft": 3635,
+            "skiable_acres": 1040,
+            "lifts": 5,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "The crown jewel of Colorado steep skiing.",
+            "terrain_character": "Highlands Bowl is a legendary 45-minute hike-to powder experience. Insanely steep.",
+            "snow_quality_notes": "Highlands Bowl preserves powder for days after a storm due to its aspect.",
+            "best_for": "extreme_steeps, hiking, expert_powder",
+            "crowd_factor": "Low. The physical effort required keeps the crowds away.",
+            "logistics_notes": "Not a mountain for beginners or casual cruising."
+          }
+        },
+        {
+          "id": "buttermilk",
+          "name": "Buttermilk",
+          "coords": {
+            "lat": 39.2046,
+            "lon": -106.8643
+          },
+          "stats": {
+            "summit_elevation_ft": 9900,
+            "base_elevation_ft": 7870,
+            "vertical_drop_ft": 2030,
+            "skiable_acres": 435,
+            "lifts": 6,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "Home of the X-Games, but primarily known as a beginner mountain.",
+            "terrain_character": "Very flat, rolling groomers and massive terrain parks. Tiehack side has some decent pitched cruisers.",
+            "snow_quality_notes": "Lower elevation means snow quality degrades faster than Highlands or Snowmass.",
+            "best_for": "beginners, terrain_parks, cruising",
+            "crowd_factor": "Virtually empty on powder days since all the experts go to Highlands or Aspen Mountain.",
+            "logistics_notes": "Great option if you want untouched corduroy or massive terrain parks."
+          }
+        },
+        {
+          "id": "sunlight",
+          "name": "Sunlight",
+          "coords": {
+            "lat": 39.4005,
+            "lon": -107.3377
+          },
+          "stats": {
+            "summit_elevation_ft": 9895,
+            "base_elevation_ft": 7885,
+            "vertical_drop_ft": 2010,
+            "skiable_acres": 730,
+            "lifts": 3,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "A hidden, low-cost local gem just outside Glenwood Springs.",
+            "terrain_character": "One of the steepest sustained pitches in the state (The Heathen). Great, tight tree runs.",
+            "snow_quality_notes": "A bit lower in elevation, but heavily protected by trees.",
+            "best_for": "budget_friendly, steeps, trees",
+            "crowd_factor": "Very low. Mostly locals from Glenwood Springs.",
+            "logistics_notes": "Offers a much cheaper alternative to the Aspen mountains while still catching similar storm tracks."
+          }
+        }
+      ]
+    },
+    {
+      "id": "co_steamboat",
+      "name": "The Steamboat Bubble",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_steamboat",
+      "coords": {
+        "lat": 40.457,
+        "lon": -106.804
+      },
+      "logistics": {
+        "nearest_airport": "HDN",
+        "drive_notes": "Rabbit Ears Pass can be highly dangerous during a storm. Bypasses the worst of I-70.",
+        "lodging_notes": "Plenty of lodging in Steamboat Springs, ranging from budget to luxury."
+      },
+      "resorts": [
+        {
+          "id": "steamboat",
+          "name": "Steamboat",
+          "coords": {
+            "lat": 40.4608,
+            "lon": -106.7437
+          },
+          "stats": {
+            "summit_elevation_ft": 10568,
+            "base_elevation_ft": 6900,
+            "vertical_drop_ft": 3668,
+            "skiable_acres": 3741,
+            "lifts": 23,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The 'Champagne Powder' capital of Colorado.",
+            "terrain_character": "Arguably the best perfectly-spaced tree skiing in the state (Shadows and Closets). Very few steep chutes.",
+            "snow_quality_notes": "Catches unique northern storm cells that miss I-70 completely. Snow is incredibly light.",
+            "best_for": "tree_skiing, light_powder, cruising",
+            "crowd_factor": "High on powder days, but massive acreage spreads it out.",
+            "logistics_notes": "Base elevation is very low for Colorado (6,900ft), making the very bottom susceptible to warming."
+          }
+        }
+      ]
+    },
+    {
+      "id": "co_san_juans",
+      "name": "Southwest Colorado (San Juans)",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_southern",
+      "coords": {
+        "lat": 37.937,
+        "lon": -107.812
+      },
+      "logistics": {
+        "nearest_airport": "MTJ",
+        "drive_notes": "Extreme high-friction drive from Denver. Requires a multi-day trip commitment.",
+        "lodging_notes": "Telluride is wildly expensive. Purgatory/Durango offers much more affordable options."
+      },
+      "resorts": [
+        {
+          "id": "telluride",
+          "name": "Telluride",
+          "coords": {
+            "lat": 37.9365,
+            "lon": -107.8463
+          },
+          "stats": {
+            "summit_elevation_ft": 13150,
+            "base_elevation_ft": 8725,
+            "vertical_drop_ft": 4425,
+            "skiable_acres": 2000,
+            "lifts": 19,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "The most beautiful mountain town in America with jaw-dropping extreme terrain.",
+            "terrain_character": "Incredible steep chutes, massive hike-to terrain (Palmyra Peak), and long, gorgeous groomers.",
+            "snow_quality_notes": "Catches southern storms. High elevation preserves the powder perfectly.",
+            "best_for": "steeps, hike_to_powder, scenery",
+            "crowd_factor": "Very low. Its extreme isolation prevents casual weekend crowds.",
+            "logistics_notes": "Free gondola connects the town to the mountain village."
+          }
+        },
+        {
+          "id": "purgatory",
+          "name": "Purgatory",
+          "coords": {
+            "lat": 37.629,
+            "lon": -107.8143
+          },
+          "stats": {
+            "summit_elevation_ft": 10822,
+            "base_elevation_ft": 8793,
+            "vertical_drop_ft": 2029,
+            "skiable_acres": 1635,
+            "lifts": 11,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Laid back, family-friendly resort near Durango.",
+            "terrain_character": "Cruisy, undulating terrain. Great, widely-spaced trees. Lacks extreme steeps.",
+            "snow_quality_notes": "Needs a good southern storm track, but holds snow well.",
+            "best_for": "tree_skiing, cruising, families",
+            "crowd_factor": "Extremely low. Walk-on lifts are common even on powder days.",
+            "logistics_notes": "30-minute drive north of Durango."
+          }
+        },
+        {
+          "id": "silverton",
+          "name": "Silverton",
+          "coords": {
+            "lat": 37.8845,
+            "lon": -107.6657
+          },
+          "stats": {
+            "summit_elevation_ft": 13487,
+            "base_elevation_ft": 10400,
+            "vertical_drop_ft": 3087,
+            "skiable_acres": 1819,
+            "lifts": 1,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Hardcore, experts-only freeride mecca.",
+            "terrain_character": "Un-groomed, intense avalanche terrain. Only one lift; heavily reliant on hiking or heli-drops.",
+            "snow_quality_notes": "Extremely high elevation. Deep, untouched powder.",
+            "best_for": "expert_freeride, hiking, guided_skiing",
+            "crowd_factor": "Capped daily capacity. Zero crowds.",
+            "logistics_notes": "Requires avalanche gear (beacon, shovel, probe). Guided-only for most of the primary powder season."
+          }
+        }
+      ]
+    },
+    {
+      "id": "co_wolf_creek",
+      "name": "Wolf Creek",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_southern",
+      "coords": {
+        "lat": 37.472,
+        "lon": -106.793
+      },
+      "logistics": {
+        "nearest_airport": "DRO",
+        "drive_notes": "Wolf Creek Pass is notoriously treacherous during snowstorms.",
+        "lodging_notes": "No on-mountain lodging. Stay in Pagosa Springs (30 mins west) or South Fork (30 mins east)."
+      },
+      "resorts": [
+        {
+          "id": "wolf_creek",
+          "name": "Wolf Creek",
+          "coords": {
+            "lat": 37.472,
+            "lon": -106.7934
+          },
+          "stats": {
+            "summit_elevation_ft": 11904,
+            "base_elevation_ft": 10300,
+            "vertical_drop_ft": 1604,
+            "skiable_acres": 1600,
+            "lifts": 11,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The undisputed snow magnet of Colorado.",
+            "terrain_character": "Consistently gets the most snow in the state. Short but fun, steep pitches and hike-to ridges.",
+            "snow_quality_notes": "High base elevation guarantees deep, cold powder.",
+            "best_for": "deep_powder, trees, budget_friendly",
+            "crowd_factor": "Very low. Remote location keeps lift lines to a minimum.",
+            "logistics_notes": "Incredibly affordable lift tickets compared to mega-resorts."
+          }
+        }
+      ]
+    },
+    {
+      "id": "co_route_50",
+      "name": "Route 50 Corridor",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_western_slope",
+      "coords": {
+        "lat": 38.899,
+        "lon": -106.965
+      },
+      "logistics": {
+        "nearest_airport": "GUC",
+        "drive_notes": "Route 50 over Monarch pass can be difficult, but typically avoids I-70 gridlock.",
+        "lodging_notes": "Gunnison and Salida offer cheap lodging. Mt. Crested Butte is more premium."
+      },
+      "resorts": [
+        {
+          "id": "crested_butte",
+          "name": "Crested Butte",
+          "coords": {
+            "lat": 38.8997,
+            "lon": -106.9658
+          },
+          "stats": {
+            "summit_elevation_ft": 12162,
+            "base_elevation_ft": 9375,
+            "vertical_drop_ft": 2787,
+            "skiable_acres": 1547,
+            "lifts": 15,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Extreme, rocky steeps and a fiercely independent town culture.",
+            "terrain_character": "The Extremes (North Face, Headwall) are some of the steepest lift-accessed terrain in North America.",
+            "snow_quality_notes": "Incredibly rocky. Needs a massive base to safely open the best terrain.",
+            "best_for": "extreme_steeps, advanced_riders",
+            "crowd_factor": "Low. The drive distance keeps casual Denver weekenders away.",
+            "logistics_notes": "About a 4 to 4.5 hour drive from Denver depending on weather."
+          }
+        },
+        {
+          "id": "monarch",
+          "name": "Monarch",
+          "coords": {
+            "lat": 38.5379,
+            "lon": -106.3314
+          },
+          "stats": {
+            "summit_elevation_ft": 11952,
+            "base_elevation_ft": 10790,
+            "vertical_drop_ft": 1162,
+            "skiable_acres": 800,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "100% all-natural snow. A true local's gem straddling the Continental Divide.",
+            "terrain_character": "Mirkwood basin offers incredible hike-to powder. Very fun, rolling natural terrain.",
+            "snow_quality_notes": "Incredible snow preservation due to high base elevation and zero snowmaking.",
+            "best_for": "all_natural_snow, hiking, budget_friendly",
+            "crowd_factor": "Low midweek, but tiny base area creates severe bottlenecks on powder weekends when locals flock there.",
+            "logistics_notes": "About a 3 to 3.5 hour drive from Denver."
+          }
+        }
+      ]
+    },
+    {
+      "id": "co_powderhorn",
+      "name": "Grand Mesa (Powderhorn)",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_western_slope",
+      "coords": {
+        "lat": 39.069,
+        "lon": -108.15
+      },
+      "logistics": {
+        "nearest_airport": "GJT",
+        "drive_notes": "Requires driving all the way past Glenwood Springs to the Grand Mesa.",
+        "lodging_notes": "Grand Junction or Palisade are the closest major towns, about 45 mins away."
+      },
+      "resorts": [
+        {
+          "id": "powderhorn",
+          "name": "Powderhorn",
+          "coords": {
+            "lat": 39.0693,
+            "lon": -108.15
+          },
+          "stats": {
+            "summit_elevation_ft": 9850,
+            "base_elevation_ft": 8200,
+            "vertical_drop_ft": 1650,
+            "skiable_acres": 1600,
+            "lifts": 5,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "Unique, flat-topped mountain riding on the edge of the desert.",
+            "terrain_character": "Incredible glade skiing and boulder drops. Very flat on top, but steeper at the bottom.",
+            "snow_quality_notes": "Catches unique western flow storms that miss the rest of Colorado.",
+            "best_for": "tree_skiing, boulder_drops, solitude",
+            "crowd_factor": "Extremely low. Very isolated from the I-70 corridor crowds.",
+            "logistics_notes": "Great option if a massive storm hits the far western edge of the state."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ut_little_cottonwood",
+      "name": "Little Cottonwood Canyon, UT",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "wasatch",
+      "coords": {
+        "lat": 40.584,
+        "lon": -111.637
+      },
+      "logistics": {
+        "nearest_airport": "SLC",
+        "drive_notes": "Highway 210 is a notorious avalanche corridor. The 'Red Snake' morning traffic is brutal. Strict traction laws.",
+        "lodging_notes": "Stay in SLC or Sandy for budget options. On-mountain at Alta/Bird is extremely limited and expensive."
+      },
+      "resorts": [
+        {
+          "id": "snowbird",
+          "name": "Snowbird",
+          "coords": {
+            "lat": 40.581,
+            "lon": -111.656
+          },
+          "stats": {
+            "summit_elevation_ft": 11000,
+            "base_elevation_ft": 7760,
+            "vertical_drop_ft": 3240,
+            "skiable_acres": 2500,
+            "lifts": 14,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "The king of Utah freeride. Massive, steep, and aggressive.",
+            "terrain_character": "Incredible sustained steeps, huge bowls (Mineral Basin), and legendary tram laps.",
+            "snow_quality_notes": "Catches massive lake-effect dumps. Light snow, but gets tracked out quickly by expert crowds.",
+            "best_for": "steeps, bowls, advanced_riders",
+            "crowd_factor": "Extreme on powder days. Tram lines can be massive.",
+            "logistics_notes": "Interlodge (being locked inside due to avalanche danger) is a real risk during massive dumps."
+          }
+        },
+        {
+          "id": "alta",
+          "name": "Alta",
+          "coords": {
+            "lat": 40.588,
+            "lon": -111.638
+          },
+          "stats": {
+            "summit_elevation_ft": 11068,
+            "base_elevation_ft": 8530,
+            "vertical_drop_ft": 2538,
+            "skiable_acres": 2614,
+            "lifts": 11,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "Old school, skiers-only legendary traverse-accessed powder.",
+            "terrain_character": "Unbelievable micro-terrain, natural features, and steep tree shots.",
+            "snow_quality_notes": "Historically the highest snowfall in Utah. Perfect cold smoke.",
+            "best_for": "powder, steeps, trees",
+            "crowd_factor": "High on powder days, but traverses organically spread people out.",
+            "logistics_notes": "NO SNOWBOARDING ALLOWED."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ut_big_cottonwood",
+      "name": "Big Cottonwood Canyon, UT",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "wasatch",
+      "coords": {
+        "lat": 40.603,
+        "lon": -111.583
+      },
+      "logistics": {
+        "nearest_airport": "SLC",
+        "drive_notes": "Highway 190 traffic is awful on weekends. Required winter tires/chains.",
+        "lodging_notes": "Cottonwood Heights offers great access and cheaper lodging."
+      },
+      "resorts": [
+        {
+          "id": "brighton",
+          "name": "Brighton",
+          "coords": {
+            "lat": 40.598,
+            "lon": -111.581
+          },
+          "stats": {
+            "summit_elevation_ft": 10500,
+            "base_elevation_ft": 8755,
+            "vertical_drop_ft": 1745,
+            "skiable_acres": 1050,
+            "lifts": 7,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Local's favorite, massive snowboard culture, playful terrain.",
+            "terrain_character": "Perfectly gladed trees, natural side-hits everywhere, great terrain parks.",
+            "snow_quality_notes": "Very high base elevation means it stays incredibly cold and light.",
+            "best_for": "tree_skiing, sidehits, parks",
+            "crowd_factor": "Very high, attracts a younger, aggressive local crowd.",
+            "logistics_notes": "Parking reservations strictly enforced. Great night skiing."
+          }
+        },
+        {
+          "id": "solitude",
+          "name": "Solitude",
+          "coords": {
+            "lat": 40.619,
+            "lon": -111.591
+          },
+          "stats": {
+            "summit_elevation_ft": 10488,
+            "base_elevation_ft": 7988,
+            "vertical_drop_ft": 2500,
+            "skiable_acres": 1200,
+            "lifts": 9,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The 'quiet' Cottonwood resort, though less quiet since joining Ikon.",
+            "terrain_character": "Honeycomb Canyon offers incredible steep, open powder runs and hike-to terrain.",
+            "snow_quality_notes": "Great snow, but lower mountain can get sun-baked faster than Brighton.",
+            "best_for": "bowls, trees, intermediate_powder",
+            "crowd_factor": "Slightly lower than Brighton/Snowbird, but still busy on powder days.",
+            "logistics_notes": "Paid parking requires reservations."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ut_park_city",
+      "name": "Park City Area, UT",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "wasatch",
+      "coords": {
+        "lat": 40.651,
+        "lon": -111.508
+      },
+      "logistics": {
+        "nearest_airport": "SLC",
+        "drive_notes": "I-80 route is a massive multi-lane highway, much easier and less prone to closure than the Cottonwood Canyons.",
+        "lodging_notes": "Park City is expensive luxury lodging. Kimball Junction is slightly cheaper."
+      },
+      "resorts": [
+        {
+          "id": "park_city_mountain",
+          "name": "Park City",
+          "coords": {
+            "lat": 40.651,
+            "lon": -111.508
+          },
+          "stats": {
+            "summit_elevation_ft": 10026,
+            "base_elevation_ft": 6800,
+            "vertical_drop_ft": 3226,
+            "skiable_acres": 7300,
+            "lifts": 41,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Sprawling, luxury mega-resort attached to an incredible town.",
+            "terrain_character": "Endless cruisers. The Canyons side (Ninety-Nine 90) hides excellent steep tree skiing.",
+            "snow_quality_notes": "Lower base elevation can mean heavier snow or rain risks during warmer storms.",
+            "best_for": "cruisers, trees, apres_ski",
+            "crowd_factor": "Extremely high. Lift lines at bases can be brutal, but the acreage absorbs people.",
+            "logistics_notes": "Town lift goes right into Main Street for unparalleled apres access."
+          }
+        },
+        {
+          "id": "deer_valley",
+          "name": "Deer Valley",
+          "coords": {
+            "lat": 40.623,
+            "lon": -111.482
+          },
+          "stats": {
+            "summit_elevation_ft": 9570,
+            "base_elevation_ft": 6570,
+            "vertical_drop_ft": 3000,
+            "skiable_acres": 2026,
+            "lifts": 21,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Ultra-luxury, impeccable grooming, and a skiers-only strict policy.",
+            "terrain_character": "Mostly pristine groomers, but the Empire area offers excellent steep tree skiing.",
+            "snow_quality_notes": "Similar to Park City, the lower elevation requires monitoring for rain/mixed precip.",
+            "best_for": "groomers, luxury, tree_skiing",
+            "crowd_factor": "Capped daily ticket sales keep crowds manageable.",
+            "logistics_notes": "NO SNOWBOARDING ALLOWED."
+          }
+        },
+        {
+          "id": "sundance",
+          "name": "Sundance",
+          "coords": {
+            "lat": 40.393,
+            "lon": -111.588
+          },
+          "stats": {
+            "summit_elevation_ft": 8250,
+            "base_elevation_ft": 6100,
+            "vertical_drop_ft": 2150,
+            "skiable_acres": 520,
+            "lifts": 5,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Quiet, scenic resort founded by Robert Redford. Low acreage but steep vertical.",
+            "terrain_character": "Steep, heavily treed, and rugged. Beautiful views of Mt. Timpanogos.",
+            "snow_quality_notes": "Very low base elevation makes it highly susceptible to rain/warm weather.",
+            "best_for": "scenery, couples, steep_trees",
+            "crowd_factor": "Low. Ignored by the mega-pass crowds.",
+            "logistics_notes": "Located south of the Cottonwoods in Provo Canyon."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ut_northern",
+      "name": "Northern Utah (Ogden / Logan)",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "wasatch",
+      "coords": {
+        "lat": 41.25,
+        "lon": -111.833
+      },
+      "logistics": {
+        "nearest_airport": "SLC",
+        "drive_notes": "Easy drive north of SLC on I-15. Avoids all canyon gridlock of LCC/BCC.",
+        "lodging_notes": "Ogden offers affordable city lodging. Huntsville has quiet, local options."
+      },
+      "resorts": [
+        {
+          "id": "snowbasin",
+          "name": "Snowbasin",
+          "coords": {
+            "lat": 41.216,
+            "lon": -111.856
+          },
+          "stats": {
+            "summit_elevation_ft": 9390,
+            "base_elevation_ft": 6391,
+            "vertical_drop_ft": 3002,
+            "skiable_acres": 3000,
+            "lifts": 13,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "Olympic downhill runs and incredibly opulent day lodges.",
+            "terrain_character": "Massive vertical drop, wide open bowls, and long, fast steep cruisers.",
+            "snow_quality_notes": "Lower base elevation (6,391 ft) means rain is a threat on the bottom half.",
+            "best_for": "cruisers, bowls, luxury_lodges",
+            "crowd_factor": "Noticeably less crowded than the Cottonwood or Park City resorts.",
+            "logistics_notes": "Massive free parking lots with shuttles."
+          }
+        },
+        {
+          "id": "powder_mountain",
+          "name": "Powder Mountain",
+          "coords": {
+            "lat": 41.379,
+            "lon": -111.78
+          },
+          "stats": {
+            "summit_elevation_ft": 8900,
+            "base_elevation_ft": 6900,
+            "vertical_drop_ft": 1995,
+            "skiable_acres": 5000,
+            "lifts": 13,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Massive sprawling acreage, very old-school, no artificial snowmaking.",
+            "terrain_character": "Very flat in spots. Endless mellow tree glades. Highly reliant on snowcat or bus access for certain zones.",
+            "snow_quality_notes": "100% natural snow. Excellent preservation due to low skier density.",
+            "best_for": "powder_cruising, trees, solitude",
+            "crowd_factor": "Extremely low. Capped daily lift tickets ensure powder lasts for days.",
+            "logistics_notes": "Recently went semi-private, restricting some terrain for real estate owners only."
+          }
+        },
+        {
+          "id": "beaver_mountain",
+          "name": "Beaver Mountain",
+          "coords": {
+            "lat": 41.965,
+            "lon": -111.54
+          },
+          "stats": {
+            "summit_elevation_ft": 8860,
+            "base_elevation_ft": 7200,
+            "vertical_drop_ft": 1700,
+            "skiable_acres": 880,
+            "lifts": 6,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "Family-owned, deeply local mountain near the Idaho border.",
+            "terrain_character": "Great mix of rolling groomers and fun tree stashes.",
+            "snow_quality_notes": "Far north location catches great cold storms.",
+            "best_for": "budget_friendly, families, locals",
+            "crowd_factor": "Very low. Mostly college students from Logan.",
+            "logistics_notes": "Very remote from SLC."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ut_southern",
+      "name": "Southern Utah",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "ut_southern",
+      "coords": {
+        "lat": 38.3,
+        "lon": -112.35
+      },
+      "logistics": {
+        "nearest_airport": "SLC",
+        "drive_notes": "Long drive through the desert, but highly scenic and avoids SLC canyon traffic.",
+        "lodging_notes": "Beaver, UT provides access. Very remote."
+      },
+      "resorts": [
+        {
+          "id": "eagle_point",
+          "name": "Eagle Point",
+          "coords": {
+            "lat": 38.319,
+            "lon": -112.384
+          },
+          "stats": {
+            "summit_elevation_ft": 10600,
+            "base_elevation_ft": 9100,
+            "vertical_drop_ft": 1500,
+            "skiable_acres": 650,
+            "lifts": 5,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "Tiny, isolated gem that only opens Friday-Monday.",
+            "terrain_character": "Steep trees on the backside, mellow cruisers on the front.",
+            "snow_quality_notes": "Very high elevation guarantees cold, dry snow. Untracked Tuesday-Thursday powder sits waiting for Friday opening.",
+            "best_for": "solitude, powder_stashes",
+            "crowd_factor": "Practically a private mountain.",
+            "logistics_notes": "Only operates 4 days a week. Plan accordingly."
+          }
+        },
+        {
+          "id": "brian_head",
+          "name": "Brian Head",
+          "coords": {
+            "lat": 37.696,
+            "lon": -112.849
+          },
+          "stats": {
+            "summit_elevation_ft": 10920,
+            "base_elevation_ft": 9600,
+            "vertical_drop_ft": 1320,
+            "skiable_acres": 650,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Highest base elevation in Utah. A weird, wonderful southern anomaly.",
+            "terrain_character": "Mellow pitch across two peaks. Famous for skiing past red-rock hoodoos (like Bryce Canyon).",
+            "snow_quality_notes": "Very high elevation keeps the snow incredibly dry.",
+            "best_for": "red_rock_scenery, dry_powder, avoiding_slc",
+            "crowd_factor": "Moderate. Gets weekend traffic from Las Vegas.",
+            "logistics_notes": "Only 3 hours from Vegas, but catches huge southern storm tracks that completely miss the Cottonwood Canyons."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ca_tahoe_north",
+      "name": "North Lake Tahoe",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "sierra_nevada",
+      "coords": {
+        "lat": 39.25,
+        "lon": -120.15
+      },
+      "logistics": {
+        "nearest_airport": "RNO",
+        "drive_notes": "Flight to RNO is mandatory from Denver. I-80 (Donner Pass) frequently closes during storms. Turo with 3PMSF tires is essential.",
+        "lodging_notes": "Truckee is the hub. Staying north of the lake is mandatory to avoid Highway 89 avalanche closures."
+      },
+      "resorts": [
+        {
+          "id": "palisades_tahoe",
+          "name": "Palisades Tahoe",
+          "coords": {
+            "lat": 39.196,
+            "lon": -120.235
+          },
+          "stats": {
+            "summit_elevation_ft": 9050,
+            "base_elevation_ft": 6200,
+            "vertical_drop_ft": 2850,
+            "skiable_acres": 3600,
+            "lifts": 29,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The mecca of extreme freeride and cliff drops. Home of 'Squallywood'.",
+            "terrain_character": "KT-22 is arguably the best chairlift in North America. Insane steeps, chutes, and huckable cliffs on the Olympic side. Alpine Meadows adds incredible wide-open bowls, gullies, and hike-to terrain.",
+            "snow_quality_notes": "Base elevation is 6,200ft. 'Sierra Cement' is real, and the base frequently sees rain while the summit dumps. Alpine Meadows side sits slightly higher.",
+            "best_for": "extreme_steeps, cliffs, expert_freeride, bowls",
+            "crowd_factor": "Extreme. Bay Area weekend traffic creates massive lift lines and gridlock.",
+            "logistics_notes": "Connected via Base-to-Base Gondola between Olympic Valley and Alpine Meadows. Alpine Meadows side can close heavily for avalanche control."
+          }
+        },
+        {
+          "id": "northstar",
+          "name": "Northstar",
+          "coords": {
+            "lat": 39.274,
+            "lon": -120.121
+          },
+          "stats": {
+            "summit_elevation_ft": 8610,
+            "base_elevation_ft": 6330,
+            "vertical_drop_ft": 2280,
+            "skiable_acres": 3170,
+            "lifts": 20,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Family-friendly, luxury groomers, and world-class terrain parks. Nicknamed 'Flatstar'.",
+            "terrain_character": "Very cruisy. Excellent tree skiing (Martis Camp) that is highly protected from the wind during major storms.",
+            "snow_quality_notes": "Lower base. Snow is often heavier.",
+            "best_for": "parks, trees, storm_riding",
+            "crowd_factor": "High on weekends.",
+            "logistics_notes": "Great fallback option when high winds close Palisades lifts."
+          }
+        },
+        {
+          "id": "sugar_bowl",
+          "name": "Sugar Bowl",
+          "coords": {
+            "lat": 39.303,
+            "lon": -120.334
+          },
+          "stats": {
+            "summit_elevation_ft": 8383,
+            "base_elevation_ft": 6883,
+            "vertical_drop_ft": 1500,
+            "skiable_acres": 1650,
+            "lifts": 12,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Old-school vibe. Consistently records the highest snow totals in North Tahoe.",
+            "terrain_character": "Steep, rugged, and fun. Great tree skiing off Mt. Judah.",
+            "snow_quality_notes": "Sits directly on Donner Pass, catching the absolute brunt of Pacific storms.",
+            "best_for": "steeps, deep_powder, avoiding_mega_resorts",
+            "crowd_factor": "Lower than Palisades/Northstar, but still busy on powder days.",
+            "logistics_notes": "Because it's on Donner Pass, you are highly likely to get snowed-in or out during major events."
+          }
+        },
+        {
+          "id": "mt_rose",
+          "name": "Mt. Rose",
+          "coords": {
+            "lat": 39.314,
+            "lon": -119.886
+          },
+          "stats": {
+            "summit_elevation_ft": 9700,
+            "base_elevation_ft": 8260,
+            "vertical_drop_ft": 1800,
+            "skiable_acres": 1200,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The highest base elevation in Tahoe. The ultimate insurance policy against rain.",
+            "terrain_character": "The Chutes offer 1,000+ vertical feet of sustained, incredibly steep pitch (40-55 degrees).",
+            "snow_quality_notes": "When the rest of Tahoe is getting rained on, Mt. Rose is getting cold, dry snow.",
+            "best_for": "steeps, chutes, rain_avoidance",
+            "crowd_factor": "Moderate. A local favorite for Reno residents.",
+            "logistics_notes": "Only 25 minutes from Reno Airport (RNO)."
+          }
+        },
+        {
+          "id": "homewood",
+          "name": "Homewood",
+          "coords": {
+            "lat": 39.083,
+            "lon": -120.161
+          },
+          "stats": {
+            "summit_elevation_ft": 7880,
+            "base_elevation_ft": 6230,
+            "vertical_drop_ft": 1650,
+            "skiable_acres": 1260,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Incredible, uninterrupted views of Lake Tahoe directly from the runs.",
+            "terrain_character": "Phenomenal, widely-spaced tree skiing. Great sustained fall lines.",
+            "snow_quality_notes": "Very low elevation right on the lake. Highly susceptible to heavy snow and rain.",
+            "best_for": "tree_skiing, lake_views, storm_riding",
+            "crowd_factor": "Very low. Overshadowed by Palisades.",
+            "logistics_notes": "Highway 89 access can be difficult during storms."
+          }
+        },
+        {
+          "id": "diamond_peak",
+          "name": "Diamond Peak",
+          "coords": {
+            "lat": 39.243,
+            "lon": -119.923
+          },
+          "stats": {
+            "summit_elevation_ft": 8540,
+            "base_elevation_ft": 6700,
+            "vertical_drop_ft": 1840,
+            "skiable_acres": 655,
+            "lifts": 6,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Community-owned resort in Incline Village. Small but steep.",
+            "terrain_character": "Great glades and steep cruisers.",
+            "snow_quality_notes": "Protected from the heaviest winds. Snow preserves well.",
+            "best_for": "families, lake_views",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Technically in Nevada. Great backup option when I-80 is a mess."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ca_tahoe_south",
+      "name": "South Lake Tahoe",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "sierra_nevada",
+      "coords": {
+        "lat": 38.866,
+        "lon": -120.016
+      },
+      "logistics": {
+        "nearest_airport": "RNO",
+        "drive_notes": "Highway 50 (from Sacramento) or NV-207 (Kingsbury Grade) from Reno. Do NOT expect to travel between North and South Tahoe during a storm due to Hwy 89 Emerald Bay closures.",
+        "lodging_notes": "Stateline NV offers massive casino-hotel options. South Lake Tahoe has endless budget motels."
+      },
+      "resorts": [
+        {
+          "id": "heavenly",
+          "name": "Heavenly",
+          "coords": {
+            "lat": 38.935,
+            "lon": -119.94
+          },
+          "stats": {
+            "summit_elevation_ft": 10067,
+            "base_elevation_ft": 6540,
+            "vertical_drop_ft": 3475,
+            "skiable_acres": 4800,
+            "lifts": 28,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Massive footprint straddling the CA/NV border. Unbeatable lake views.",
+            "terrain_character": "World-class tree skiing (Mott Canyon, Killebrew Canyon) and endless rolling cruisers.",
+            "snow_quality_notes": "Massive elevation split. The base will often be pouring rain while the upper mountain receives 2 feet of snow.",
+            "best_for": "tree_skiing, views, apres_ski",
+            "crowd_factor": "Very high, but spreads out decently due to sheer size.",
+            "logistics_notes": "High winds constantly close the main gondola and upper lifts."
+          }
+        },
+        {
+          "id": "kirkwood",
+          "name": "Kirkwood",
+          "coords": {
+            "lat": 38.684,
+            "lon": -120.068
+          },
+          "stats": {
+            "summit_elevation_ft": 9800,
+            "base_elevation_ft": 7800,
+            "vertical_drop_ft": 2000,
+            "skiable_acres": 2300,
+            "lifts": 15,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "The undisputed hardcore freeride mountain of South Tahoe.",
+            "terrain_character": "Insanely steep gullies, massive natural cliff drops (The Wall), and perfect cornices.",
+            "snow_quality_notes": "High base elevation (7,800ft) and unique geography means it catches drastically more snow than Heavenly, and keeps it colder.",
+            "best_for": "extreme_steeps, deep_powder, expert_freeride",
+            "crowd_factor": "High on powder days, full of aggressive locals.",
+            "logistics_notes": "Located 45 mins south of Lake Tahoe. Highway 88 closures (Spur) happen almost every major storm. You must stay in Kirkwood to guarantee access on a powder day."
+          }
+        },
+        {
+          "id": "sierra_at_tahoe",
+          "name": "Sierra-at-Tahoe",
+          "coords": {
+            "lat": 38.8,
+            "lon": -120.08
+          },
+          "stats": {
+            "summit_elevation_ft": 8852,
+            "base_elevation_ft": 6640,
+            "vertical_drop_ft": 2212,
+            "skiable_acres": 2000,
+            "lifts": 14,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Massive local snowboard culture. Playful, fun terrain.",
+            "terrain_character": "Historically famous for tree skiing, though heavily impacted by the recent Caldor Fire. Incredible parks.",
+            "snow_quality_notes": "Classic heavy Sierra snow.",
+            "best_for": "parks, sidehits, trees",
+            "crowd_factor": "Moderate. Heavy Sacramento day-tripper crowds.",
+            "logistics_notes": "Located on Highway 50."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ca_eastern_sierra",
+      "name": "Eastern Sierra",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "sierra_nevada",
+      "coords": {
+        "lat": 37.63,
+        "lon": -119.032
+      },
+      "logistics": {
+        "nearest_airport": "MMH",
+        "drive_notes": "Flight to Mammoth (MMH) or Reno (RNO) + 3hr drive south. Highway 395 is gorgeous but exposed to extreme winds.",
+        "lodging_notes": "Mammoth Lakes offers everything from hostels to luxury condos."
+      },
+      "resorts": [
+        {
+          "id": "mammoth",
+          "name": "Mammoth",
+          "coords": {
+            "lat": 37.63,
+            "lon": -119.032
+          },
+          "stats": {
+            "summit_elevation_ft": 11053,
+            "base_elevation_ft": 7953,
+            "vertical_drop_ft": 3100,
+            "skiable_acres": 3500,
+            "lifts": 25,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "A massive, high-alpine volcano with a season that frequently stretches into July or August.",
+            "terrain_character": "Incredible steep drops off the top (Cornice Bowl, Climax), massive parks, and great glades on the lower half.",
+            "snow_quality_notes": "High elevation preserves snow incredibly well. The wind-buff off the summit is world famous.",
+            "best_for": "wind_buff, steeps, parks, spring_skiing",
+            "crowd_factor": "Very high. The primary destination for millions of Southern California skiers.",
+            "logistics_notes": "Top gondola closes frequently due to extreme summit winds (100+ mph)."
+          }
+        },
+        {
+          "id": "june_mountain",
+          "name": "June Mountain",
+          "coords": {
+            "lat": 37.763,
+            "lon": -119.091
+          },
+          "stats": {
+            "summit_elevation_ft": 10090,
+            "base_elevation_ft": 7545,
+            "vertical_drop_ft": 2545,
+            "skiable_acres": 1500,
+            "lifts": 7,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Mammoth's quiet, family-friendly little sister.",
+            "terrain_character": "Wide, rolling groomers. Great, perfectly spaced trees (especially off J7).",
+            "snow_quality_notes": "Excellent snow, completely protected from the brutal winds that blast Mammoth.",
+            "best_for": "families, trees, storm_riding",
+            "crowd_factor": "Extremely low. Empty even when Mammoth is packed.",
+            "logistics_notes": "Only 25 minutes north of Mammoth. The perfect audible call if Mammoth's lifts are on wind hold."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ca_central_sierra",
+      "name": "Central Sierra",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "sierra_nevada",
+      "coords": {
+        "lat": 38.0,
+        "lon": -119.5
+      },
+      "logistics": {
+        "nearest_airport": "FAT",
+        "drive_notes": "Requires driving up winding, low-elevation Sierra foothills. Chain control is absolute.",
+        "lodging_notes": "Lodging is localized and limited compared to Tahoe."
+      },
+      "resorts": [
+        {
+          "id": "bear_valley",
+          "name": "Bear Valley",
+          "coords": {
+            "lat": 38.498,
+            "lon": -120.04
+          },
+          "stats": {
+            "summit_elevation_ft": 8500,
+            "base_elevation_ft": 6600,
+            "vertical_drop_ft": 1900,
+            "skiable_acres": 1680,
+            "lifts": 10,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Quiet, mid-Sierra gem on Highway 4.",
+            "terrain_character": "Grizzly Bowl offers surprisingly rugged, steep freeride drops.",
+            "snow_quality_notes": "Classic heavy Sierra snow.",
+            "best_for": "steeps, solitude",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Hwy 4 closes east of the resort in winter."
+          }
+        },
+        {
+          "id": "dodge_ridge",
+          "name": "Dodge Ridge",
+          "coords": {
+            "lat": 38.188,
+            "lon": -119.986
+          },
+          "stats": {
+            "summit_elevation_ft": 8200,
+            "base_elevation_ft": 6600,
+            "vertical_drop_ft": 1600,
+            "skiable_acres": 862,
+            "lifts": 12,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Family resort for the Central Valley.",
+            "terrain_character": "Great glades and natural rolling terrain.",
+            "snow_quality_notes": "Lower elevation, highly dependent on storm temps.",
+            "best_for": "families, trees",
+            "crowd_factor": "Moderate to low.",
+            "logistics_notes": "Closest skiing to the Bay Area/Central Valley via Hwy 108."
+          }
+        },
+        {
+          "id": "china_peak",
+          "name": "China Peak",
+          "coords": {
+            "lat": 37.23,
+            "lon": -119.155
+          },
+          "stats": {
+            "summit_elevation_ft": 8709,
+            "base_elevation_ft": 7030,
+            "vertical_drop_ft": 1679,
+            "skiable_acres": 1200,
+            "lifts": 11,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Fresno's local mountain, incredibly fun terrain.",
+            "terrain_character": "Steep rocky drops, great glades, very playful.",
+            "snow_quality_notes": "Can get rained out, but holds snow well on north-facing aspects.",
+            "best_for": "steeps, locals_vibe",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Hwy 168 access."
+          }
+        }
+      ]
+    },
+    {
+      "id": "wa_cascades_central",
+      "name": "Central Washington Cascades",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "pnw_cascades",
+      "coords": {
+        "lat": 47.422,
+        "lon": -121.413
+      },
+      "logistics": {
+        "nearest_airport": "SEA",
+        "drive_notes": "Flight to SEA required. I-90 and US-2 are notorious for severe winter closures. 3PMSF winter tires are mandatory.",
+        "lodging_notes": "Staying 'on pass' is highly recommended to avoid being locked out behind highway avalanche gates during a major storm."
+      },
+      "resorts": [
+        {
+          "id": "stevens_pass",
+          "name": "Stevens Pass",
+          "coords": {
+            "lat": 47.745,
+            "lon": -121.089
+          },
+          "stats": {
+            "summit_elevation_ft": 5845,
+            "base_elevation_ft": 4061,
+            "vertical_drop_ft": 1784,
+            "skiable_acres": 1125,
+            "lifts": 10,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Playful, heavily-featured terrain with a massive night skiing culture.",
+            "terrain_character": "Incredible natural side-hits, steep tree glades on the backside (Mill Valley), and heavy, wet 'Cascade Concrete' snow.",
+            "snow_quality_notes": "Low elevation means rain is a constant threat at the base. Snow is dense and heavy.",
+            "best_for": "night_skiing, tree_skiing, sidehits",
+            "crowd_factor": "Extreme. US-2 is a two-lane highway that suffers from severe gridlock on powder weekends.",
+            "logistics_notes": "Parking fills up incredibly early. Night riding is often the best way to avoid crowds."
+          }
+        },
+        {
+          "id": "alpental",
+          "name": "Snoqualmie: Alpental",
+          "coords": {
+            "lat": 47.443,
+            "lon": -121.423
+          },
+          "stats": {
+            "summit_elevation_ft": 5420,
+            "base_elevation_ft": 3140,
+            "vertical_drop_ft": 2280,
+            "skiable_acres": 875,
+            "lifts": 4,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "A tiny, fiercely steep micro-resort famous for its rugged backcountry gates.",
+            "terrain_character": "Incredibly steep, sustained fall lines and extreme cliff drops in the backcountry.",
+            "snow_quality_notes": "Extremely low base elevation (3,140 ft). Rain and heavy, wet snow are common.",
+            "best_for": "extreme_steeps, backcountry_gates, advanced_riders",
+            "crowd_factor": "High. The small footprint means it gets tracked out almost instantly.",
+            "logistics_notes": "Right off I-90, making it very accessible but highly vulnerable to pass closures."
+          }
+        },
+        {
+          "id": "summit_at_snoqualmie",
+          "name": "Snoqualmie: Summit",
+          "coords": {
+            "lat": 47.423,
+            "lon": -121.414
+          },
+          "stats": {
+            "summit_elevation_ft": 3865,
+            "base_elevation_ft": 2610,
+            "vertical_drop_ft": 1255,
+            "skiable_acres": 1119,
+            "lifts": 15,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Seattle's closest local hill. Very flat, heavily beginner-focused.",
+            "terrain_character": "Mostly rolling groomers and massive terrain parks.",
+            "snow_quality_notes": "Base is under 3,000 ft. Freezing levels are the biggest issue here.",
+            "best_for": "parks, beginners, night_skiing",
+            "crowd_factor": "High due to Seattle proximity.",
+            "logistics_notes": "Directly adjacent to I-90."
+          }
+        }
+      ]
+    },
+    {
+      "id": "wa_cascades_south",
+      "name": "South Washington Cascades (Mt. Rainier Area)",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "pnw_cascades",
+      "coords": {
+        "lat": 46.935,
+        "lon": -121.474
+      },
+      "logistics": {
+        "nearest_airport": "SEA",
+        "drive_notes": "Highway 410 (to Crystal) can experience severe delays or closures due to avalanches.",
+        "lodging_notes": "Greenwater offers cabin rentals; staying near the resort is highly advised during active storms."
+      },
+      "resorts": [
+        {
+          "id": "crystal_mountain",
+          "name": "Crystal Mountain WA",
+          "coords": {
+            "lat": 46.935,
+            "lon": -121.474
+          },
+          "stats": {
+            "summit_elevation_ft": 7012,
+            "base_elevation_ft": 4400,
+            "vertical_drop_ft": 2602,
+            "skiable_acres": 2300,
+            "lifts": 10,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The premier big-mountain resort in Washington. Massive alpine terrain.",
+            "terrain_character": "Incredible alpine bowls, steep chutes (Silver King), and excellent lower-mountain tree glades.",
+            "snow_quality_notes": "Slightly higher base than Stevens/Snoqualmie, meaning it holds colder snow better.",
+            "best_for": "alpine_bowls, steep_trees, expert_freeride",
+            "crowd_factor": "Very high on weekends.",
+            "logistics_notes": "The upper mountain gondola and high-alpine chairs are frequently closed during active storms due to avalanche danger."
+          }
+        },
+        {
+          "id": "white_pass",
+          "name": "White Pass",
+          "coords": {
+            "lat": 46.638,
+            "lon": -121.391
+          },
+          "stats": {
+            "summit_elevation_ft": 6500,
+            "base_elevation_ft": 4500,
+            "vertical_drop_ft": 2000,
+            "skiable_acres": 1402,
+            "lifts": 6,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Quiet, family-friendly resort south of Mt. Rainier.",
+            "terrain_character": "Great tree skiing in the Paradise Basin area. Mellow pitch overall.",
+            "snow_quality_notes": "Good elevation helps preserve snow quality.",
+            "best_for": "tree_skiing, families, avoiding_crowds",
+            "crowd_factor": "Low. Ignored by the Seattle mega-pass crowds.",
+            "logistics_notes": "Much more relaxed vibe than Crystal or Stevens."
+          }
+        }
+      ]
+    },
+    {
+      "id": "wa_cascades_north",
+      "name": "North Cascades",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "pnw_cascades",
+      "coords": {
+        "lat": 48.861,
+        "lon": -121.66
+      },
+      "logistics": {
+        "nearest_airport": "BLI",
+        "drive_notes": "Flight to Bellingham (BLI) or Seattle (SEA) + long drive north. Highway 542 is the only way in.",
+        "lodging_notes": "No on-mountain lodging. Stay in Glacier or Bellingham."
+      },
+      "resorts": [
+        {
+          "id": "mt_baker",
+          "name": "Mt. Baker",
+          "coords": {
+            "lat": 48.861,
+            "lon": -121.66
+          },
+          "stats": {
+            "summit_elevation_ft": 5089,
+            "base_elevation_ft": 3600,
+            "vertical_drop_ft": 1489,
+            "skiable_acres": 1000,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "World record holder for most snowfall in a season (1,140 inches). Hardcore, ungroomed freeride.",
+            "terrain_character": "Extremely rugged, steep natural terrain. Incredible backcountry access.",
+            "snow_quality_notes": "Very low elevation. Rain is a constant threat, but when it dumps cold snow, it's bottomless.",
+            "best_for": "deep_powder, backcountry, hardcore_freeride",
+            "crowd_factor": "Moderate. Attracts purists from all over the PNW.",
+            "logistics_notes": "Zero luxury. Old lifts, rustic lodges. A true snowboarder's paradise."
+          }
+        }
+      ]
+    },
+    {
+      "id": "wa_eastern",
+      "name": "Eastern Washington",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "pnw_interior",
+      "coords": {
+        "lat": 47.954,
+        "lon": -117.563
+      },
+      "logistics": {
+        "nearest_airport": "GEG",
+        "drive_notes": "Flight to Spokane (GEG). Much drier climate than the Cascades.",
+        "lodging_notes": "Spokane or Wenatchee serve as great hubs."
+      },
+      "resorts": [
+        {
+          "id": "49_degrees_north",
+          "name": "49 Degrees North",
+          "coords": {
+            "lat": 48.3,
+            "lon": -117.563
+          },
+          "stats": {
+            "summit_elevation_ft": 5774,
+            "base_elevation_ft": 3923,
+            "vertical_drop_ft": 1851,
+            "skiable_acres": 2325,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Huge acreage, incredibly quiet, old-school vibe.",
+            "terrain_character": "Wide open cruisers and excellent glades.",
+            "snow_quality_notes": "Drier, lighter snow than the coastal Cascades.",
+            "best_for": "trees, cruisers, solitude",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Located just north of Spokane."
+          }
+        },
+        {
+          "id": "mission_ridge",
+          "name": "Mission Ridge",
+          "coords": {
+            "lat": 47.292,
+            "lon": -120.399
+          },
+          "stats": {
+            "summit_elevation_ft": 6820,
+            "base_elevation_ft": 4570,
+            "vertical_drop_ft": 2250,
+            "skiable_acres": 2000,
+            "lifts": 6,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Famous for sunshine and drier snow on the eastern side of the Cascades.",
+            "terrain_character": "Great off-piste bowls and widely spaced trees.",
+            "snow_quality_notes": "Lighter, fluffier snow than the west side, but lower overall totals.",
+            "best_for": "sunshine, dry_snow, off_piste",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Near Wenatchee, WA."
+          }
+        },
+        {
+          "id": "mt_spokane",
+          "name": "Mt. Spokane",
+          "coords": {
+            "lat": 47.921,
+            "lon": -117.098
+          },
+          "stats": {
+            "summit_elevation_ft": 5889,
+            "base_elevation_ft": 3818,
+            "vertical_drop_ft": 2071,
+            "skiable_acres": 1704,
+            "lifts": 6,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Spokane's local mountain, great night skiing.",
+            "terrain_character": "Rolling terrain, solid tree skiing.",
+            "snow_quality_notes": "Good interior snow quality, heavily protected by trees.",
+            "best_for": "locals_vibe, night_skiing",
+            "crowd_factor": "Low to moderate.",
+            "logistics_notes": "Very easy drive from Spokane airport."
+          }
+        }
+      ]
+    },
+    {
+      "id": "or_mt_hood",
+      "name": "Mount Hood Area, OR",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "pnw_cascades",
+      "coords": {
+        "lat": 45.33,
+        "lon": -121.71
+      },
+      "logistics": {
+        "nearest_airport": "PDX",
+        "drive_notes": "Flight to Portland (PDX). Highway 26 can get nasty during storms.",
+        "lodging_notes": "Government Camp provides great local access. Portland is only 1.5 hours away."
+      },
+      "resorts": [
+        {
+          "id": "mt_hood_meadows",
+          "name": "Mount Hood Meadows",
+          "coords": {
+            "lat": 45.33,
+            "lon": -121.666
+          },
+          "stats": {
+            "summit_elevation_ft": 7300,
+            "base_elevation_ft": 4523,
+            "vertical_drop_ft": 2777,
+            "skiable_acres": 2150,
+            "lifts": 11,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The premier big-mountain freeride destination on Mt. Hood.",
+            "terrain_character": "Heather Canyon offers incredibly steep, natural halfpipes and extreme gullies.",
+            "snow_quality_notes": "Dense coastal snow. High winds frequently scour the upper mountain.",
+            "best_for": "freeride, gullies, advanced_riders",
+            "crowd_factor": "High on weekends due to Portland day-trippers.",
+            "logistics_notes": "Upper lifts close frequently due to severe weather and rime ice."
+          }
+        },
+        {
+          "id": "timberline",
+          "name": "Timberline Lodge",
+          "coords": {
+            "lat": 45.331,
+            "lon": -121.71
+          },
+          "stats": {
+            "summit_elevation_ft": 8540,
+            "base_elevation_ft": 4000,
+            "vertical_drop_ft": 4540,
+            "skiable_acres": 1685,
+            "lifts": 9,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Famous historic lodge and the longest ski season in North America (summer glacier skiing).",
+            "terrain_character": "Very flat, cruisy terrain. The Palmer snowfield offers high alpine riding when open.",
+            "snow_quality_notes": "Great upper elevation, but the terrain lacks pitch.",
+            "best_for": "spring_skiing, cruisers, parks",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "Merged with Summit pass area to dramatically increase overall vertical drop."
+          }
+        },
+        {
+          "id": "mt_hood_skibowl",
+          "name": "Mount Hood Skibowl",
+          "coords": {
+            "lat": 45.302,
+            "lon": -121.772
+          },
+          "stats": {
+            "summit_elevation_ft": 5100,
+            "base_elevation_ft": 3723,
+            "vertical_drop_ft": 1377,
+            "skiable_acres": 960,
+            "lifts": 4,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The steepest night skiing in America.",
+            "terrain_character": "Surprisingly steep and rugged terrain for its size. The Upper Bowl is legendary.",
+            "snow_quality_notes": "Extremely low elevation makes it highly susceptible to rain.",
+            "best_for": "night_skiing, steeps, storm_riding",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "The ultimate fallback option when the higher Mt. Hood resorts are closed for wind."
+          }
+        }
+      ]
+    },
+    {
+      "id": "or_central",
+      "name": "Central Oregon",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "pnw_interior",
+      "coords": {
+        "lat": 43.979,
+        "lon": -121.688
+      },
+      "logistics": {
+        "nearest_airport": "RDM",
+        "drive_notes": "Flight to Redmond (RDM) or PDX + 3.5 hour drive.",
+        "lodging_notes": "Bend, OR is an incredible ski town with great breweries and lodging."
+      },
+      "resorts": [
+        {
+          "id": "mt_bachelor",
+          "name": "Mount Bachelor",
+          "coords": {
+            "lat": 43.979,
+            "lon": -121.688
+          },
+          "stats": {
+            "summit_elevation_ft": 9065,
+            "base_elevation_ft": 5700,
+            "vertical_drop_ft": 3365,
+            "skiable_acres": 4323,
+            "lifts": 12,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "A massive, perfectly conical volcano. A snowboarder's paradise.",
+            "terrain_character": "Endless wind-lips, natural quarterpipes, and surfy, 360-degree rideable terrain.",
+            "snow_quality_notes": "Drier snow than Mt. Hood. Rime ice at the summit is brutal.",
+            "best_for": "surfy_terrain, wind_lips, spring_skiing",
+            "crowd_factor": "Moderate. High acreage swallows crowds easily.",
+            "logistics_notes": "The Summit chair is the best terrain on the mountain but is closed roughly 50% of the winter due to extreme winds."
+          }
+        },
+        {
+          "id": "hoodoo",
+          "name": "Hoodoo",
+          "coords": {
+            "lat": 44.406,
+            "lon": -121.874
+          },
+          "stats": {
+            "summit_elevation_ft": 5703,
+            "base_elevation_ft": 4668,
+            "vertical_drop_ft": 1035,
+            "skiable_acres": 800,
+            "lifts": 5,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Deep local gem with cheap tickets and a massive RV parking culture.",
+            "terrain_character": "Fun, rolling bowls and great trees.",
+            "snow_quality_notes": "Classic heavy PNW snow.",
+            "best_for": "budget_friendly, locals_vibe, rv_camping",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Great spot if Bachelor is completely winded out."
+          }
+        },
+        {
+          "id": "willamette_pass",
+          "name": "Willamette Pass",
+          "coords": {
+            "lat": 43.595,
+            "lon": -122.036
+          },
+          "stats": {
+            "summit_elevation_ft": 6683,
+            "base_elevation_ft": 5120,
+            "vertical_drop_ft": 1563,
+            "skiable_acres": 555,
+            "lifts": 5,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Steep, aggressive local mountain.",
+            "terrain_character": "RTS is one of the steepest lift-accessed runs in Oregon.",
+            "snow_quality_notes": "Decent elevation keeps snow fairly protected.",
+            "best_for": "steeps, avoiding_crowds",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Located further south, catching different storm flows."
+          }
+        }
+      ]
+    },
+    {
+      "id": "or_eastern",
+      "name": "Eastern Oregon",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "pnw_interior",
+      "coords": {
+        "lat": 44.962,
+        "lon": -118.239
+      },
+      "logistics": {
+        "nearest_airport": "BOI",
+        "drive_notes": "Highly remote. Driving from Boise (BOI) is the easiest access point.",
+        "lodging_notes": "Baker City is the nearest civilization."
+      },
+      "resorts": [
+        {
+          "id": "anthony_lakes",
+          "name": "Anthony Lakes",
+          "coords": {
+            "lat": 44.962,
+            "lon": -118.239
+          },
+          "stats": {
+            "summit_elevation_ft": 8000,
+            "base_elevation_ft": 7100,
+            "vertical_drop_ft": 900,
+            "skiable_acres": 1000,
+            "lifts": 1,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Highest base elevation in Oregon. A pure, untracked powder oasis.",
+            "terrain_character": "Only one chairlift, but massive acreage of perfectly gladed powder bowls.",
+            "snow_quality_notes": "The snow here is incredibly light and dry compared to the Cascades.",
+            "best_for": "solitude, deep_powder, dry_snow",
+            "crowd_factor": "Non-existent.",
+            "logistics_notes": "Only open Thursday through Sunday."
+          }
+        }
+      ]
+    },
+    {
+      "id": "wy_tetons",
+      "name": "The Tetons (WY/ID)",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "snake_river_tetons",
+      "coords": {
+        "lat": 43.587,
+        "lon": -110.827
+      },
+      "logistics": {
+        "nearest_airport": "JAC",
+        "drive_notes": "An 8.5 hour extreme drive from Denver, or a flight into JAC. Winter driving over Teton Pass or through the Snake River Canyon is extremely hazardous.",
+        "lodging_notes": "Jackson is luxury pricing. Driggs/Victor (Idaho side) is much more affordable but requires driving Teton Pass."
+      },
+      "resorts": [
+        {
+          "id": "jackson_hole",
+          "name": "Jackson Hole",
+          "coords": {
+            "lat": 43.587,
+            "lon": -110.827
+          },
+          "stats": {
+            "summit_elevation_ft": 10450,
+            "base_elevation_ft": 6311,
+            "vertical_drop_ft": 4139,
+            "skiable_acres": 2500,
+            "lifts": 13,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "One of the most legendary extreme freeride mountains on earth.",
+            "terrain_character": "Incredible sustained steeps, massive vertical drop, and world-class backcountry gates.",
+            "snow_quality_notes": "Upper mountain is incredible; lower mountain can suffer from rain/melt due to the 6,300ft base.",
+            "best_for": "extreme_steeps, backcountry_gates, tram_laps",
+            "crowd_factor": "Very high. The tram line gets massive on powder days.",
+            "logistics_notes": "Avalanche gear (beacon, shovel, probe) is strictly required to exit the backcountry gates."
+          }
+        },
+        {
+          "id": "grand_targhee",
+          "name": "Grand Targhee",
+          "coords": {
+            "lat": 43.788,
+            "lon": -110.957
+          },
+          "stats": {
+            "summit_elevation_ft": 9862,
+            "base_elevation_ft": 7851,
+            "vertical_drop_ft": 2011,
+            "skiable_acres": 2602,
+            "lifts": 6,
+            "pass_affiliations": [
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "The 'back side' of the Tetons. Flat, but catches unbelievable amounts of snow.",
+            "terrain_character": "Very mellow pitch. Open powder fields and widely spaced trees. Perfect for low-stress cruising.",
+            "snow_quality_notes": "Consistently gets vastly more snow than Jackson Hole due to its western-facing aspect.",
+            "best_for": "deep_powder, low_stress_cruising, solitude",
+            "crowd_factor": "Very low. Overshadowed by Jackson Hole.",
+            "logistics_notes": "Accessed from the Idaho side (Driggs). Often completely fogged in (nicknamed 'Grand Foggee')."
+          }
+        },
+        {
+          "id": "snow_king",
+          "name": "Snow King",
+          "coords": {
+            "lat": 43.472,
+            "lon": -110.76
+          },
+          "stats": {
+            "summit_elevation_ft": 7808,
+            "base_elevation_ft": 6237,
+            "vertical_drop_ft": 1571,
+            "skiable_acres": 500,
+            "lifts": 4,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The 'Town Hill' of Jackson.",
+            "terrain_character": "Very steep, straight fall lines dropping right into town.",
+            "snow_quality_notes": "Same base elevation issues as Jackson Hole.",
+            "best_for": "steeps, quick_laps, night_skiing",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Literally blocks from the town square in Jackson."
+          }
+        }
+      ]
+    },
+    {
+      "id": "mt_southwest",
+      "name": "Southwest Montana (Bozeman Area)",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "northern_rockies",
+      "coords": {
+        "lat": 45.28,
+        "lon": -111.4
+      },
+      "logistics": {
+        "nearest_airport": "BZN",
+        "drive_notes": "Flight to Bozeman (BZN).",
+        "lodging_notes": "Bozeman is a great hub. Big Sky resort lodging is extremely expensive."
+      },
+      "resorts": [
+        {
+          "id": "big_sky",
+          "name": "Big Sky",
+          "coords": {
+            "lat": 45.28,
+            "lon": -111.4
+          },
+          "stats": {
+            "summit_elevation_ft": 11166,
+            "base_elevation_ft": 6800,
+            "vertical_drop_ft": 4366,
+            "skiable_acres": 5850,
+            "lifts": 38,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "The sprawling giant of American skiing. Massive, rugged, and rocky.",
+            "terrain_character": "Lone Peak Tram offers European-style extreme alpine skiing. The rest of the mountain is endless cruisers and glades.",
+            "snow_quality_notes": "Very rocky terrain that requires a massive base depth to ski safely off-piste.",
+            "best_for": "extreme_alpine, massive_acreage, cruisers",
+            "crowd_factor": "Moderate. It is getting busier, but 5,850 acres absorbs a lot of people.",
+            "logistics_notes": "Tram access now requires an expensive add-on fee, even for pass holders."
+          }
+        },
+        {
+          "id": "bridger_bowl",
+          "name": "Bridger Bowl",
+          "coords": {
+            "lat": 45.816,
+            "lon": -110.938
+          },
+          "stats": {
+            "summit_elevation_ft": 8700,
+            "base_elevation_ft": 6100,
+            "vertical_drop_ft": 2600,
+            "skiable_acres": 2000,
+            "lifts": 11,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "A fiercely guarded local non-profit mountain with insane expert terrain.",
+            "terrain_character": "The Ridge offers some of the steepest, most technical inbounds hike-to chutes in North America.",
+            "snow_quality_notes": "Catches unique cold-smoke powder ('Bozeman Cold Smoke').",
+            "best_for": "extreme_steeps, hike_to_powder, locals_vibe",
+            "crowd_factor": "Moderate. Very heavy local college crowd (MSU).",
+            "logistics_notes": "Avalanche transceiver is strictly required to ride the Schlasman's lift or hike The Ridge."
+          }
+        },
+        {
+          "id": "yellowstone_club",
+          "name": "Yellowstone Club",
+          "coords": {
+            "lat": 45.234,
+            "lon": -111.439
+          },
+          "stats": {
+            "summit_elevation_ft": 9860,
+            "base_elevation_ft": 7160,
+            "vertical_drop_ft": 2700,
+            "skiable_acres": 2700,
+            "lifts": 19,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The world's only private ski and golf community.",
+            "terrain_character": "Groomers and powder fields groomed to perfection.",
+            "snow_quality_notes": "Pristine.",
+            "best_for": "billionaires, solitude",
+            "crowd_factor": "Non-existent.",
+            "logistics_notes": "PRIVATE RESORT. Do not alert unless the user owns a $10M home here."
+          }
+        }
+      ]
+    },
+    {
+      "id": "mt_western",
+      "name": "Western & Northern Montana",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "northern_rockies",
+      "coords": {
+        "lat": 48.48,
+        "lon": -114.35
+      },
+      "logistics": {
+        "nearest_airport": "FCA",
+        "drive_notes": "Flight into Kalispell (FCA) or Missoula (MSO).",
+        "lodging_notes": "Whitefish is an excellent ski town. Missoula offers great access to the smaller gems."
+      },
+      "resorts": [
+        {
+          "id": "whitefish",
+          "name": "Whitefish",
+          "coords": {
+            "lat": 48.48,
+            "lon": -114.35
+          },
+          "stats": {
+            "summit_elevation_ft": 6817,
+            "base_elevation_ft": 4464,
+            "vertical_drop_ft": 2353,
+            "skiable_acres": 3000,
+            "lifts": 11,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Massive resort famous for its 'Snow Ghosts' (heavily rime-encrusted trees).",
+            "terrain_character": "Incredible, massive tree glades. Very little extreme alpine, but endless rolling deep powder.",
+            "snow_quality_notes": "Plagued by heavy fog inversions (nicknamed 'White-out-fish').",
+            "best_for": "tree_skiing, deep_powder, families",
+            "crowd_factor": "Moderate. Highly popular but very large.",
+            "logistics_notes": "Riding here on a powder day often requires navigating by the trees due to zero visibility."
+          }
+        },
+        {
+          "id": "montana_snowbowl",
+          "name": "Montana Snowbowl",
+          "coords": {
+            "lat": 47.014,
+            "lon": -114.004
+          },
+          "stats": {
+            "summit_elevation_ft": 7600,
+            "base_elevation_ft": 5000,
+            "vertical_drop_ft": 2600,
+            "skiable_acres": 2000,
+            "lifts": 6,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Missoula's steep, rugged local mountain.",
+            "terrain_character": "Famous for long, continuous steep pitches and incredible glades.",
+            "snow_quality_notes": "Often catches very dry inland snow.",
+            "best_for": "steeps, continuous_vert, budget_friendly",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Only 20 minutes from downtown Missoula."
+          }
+        },
+        {
+          "id": "discovery",
+          "name": "Discovery",
+          "coords": {
+            "lat": 46.261,
+            "lon": -113.242
+          },
+          "stats": {
+            "summit_elevation_ft": 8158,
+            "base_elevation_ft": 6488,
+            "vertical_drop_ft": 1670,
+            "skiable_acres": 2200,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The hidden gem of Montana.",
+            "terrain_character": "The backside of this mountain features some of the best, uncrowded steep lift-accessed trees in the state.",
+            "snow_quality_notes": "High base elevation holds snow wonderfully.",
+            "best_for": "steep_trees, solitude, budget_friendly",
+            "crowd_factor": "Extremely low.",
+            "logistics_notes": "Near Philipsburg, MT."
+          }
+        },
+        {
+          "id": "lost_trail",
+          "name": "Lost Trail",
+          "coords": {
+            "lat": 45.694,
+            "lon": -113.948
+          },
+          "stats": {
+            "summit_elevation_ft": 8200,
+            "base_elevation_ft": 6400,
+            "vertical_drop_ft": 1800,
+            "skiable_acres": 1800,
+            "lifts": 6,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Old school powder haven on the MT/ID border.",
+            "terrain_character": "Incredible glades and rolling powder fields.",
+            "snow_quality_notes": "Catches massive storms funneling up the Bitterroot Valley.",
+            "best_for": "deep_powder, trees, locals_vibe",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Open Thursday through Sunday only. Thursday 'powder days' here are legendary."
+          }
+        },
+        {
+          "id": "red_lodge",
+          "name": "Red Lodge",
+          "coords": {
+            "lat": 45.18,
+            "lon": -109.288
+          },
+          "stats": {
+            "summit_elevation_ft": 9416,
+            "base_elevation_ft": 7016,
+            "vertical_drop_ft": 2400,
+            "skiable_acres": 1635,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Eastern Montana's big mountain.",
+            "terrain_character": "Great sustained pitches, beautiful views, and good trees.",
+            "snow_quality_notes": "Vulnerable to wind, but holds cold snow well.",
+            "best_for": "cruising, steeps, scenery",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Located south of Billings."
+          }
+        },
+        {
+          "id": "great_divide",
+          "name": "Great Divide",
+          "coords": {
+            "lat": 46.75,
+            "lon": -112.3
+          },
+          "stats": {
+            "summit_elevation_ft": 7330,
+            "base_elevation_ft": 5830,
+            "vertical_drop_ft": 1500,
+            "skiable_acres": 1600,
+            "lifts": 6,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Helena's local hill. Fiercely independent.",
+            "terrain_character": "Massive acreage for a local hill. Endless glades and hidden stashes.",
+            "snow_quality_notes": "Great cold, dry interior snow.",
+            "best_for": "locals_vibe, trees, budget_friendly",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Often the first ski area in Montana to open each year."
+          }
+        },
+        {
+          "id": "blacktail",
+          "name": "Blacktail",
+          "coords": {
+            "lat": 48.016,
+            "lon": -114.368
+          },
+          "stats": {
+            "summit_elevation_ft": 6780,
+            "base_elevation_ft": 5340,
+            "vertical_drop_ft": 1440,
+            "skiable_acres": 1000,
+            "lifts": 4,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "An 'upside-down' mountain with stunning views of Flathead Lake.",
+            "terrain_character": "You park at the top and ski down to the lifts. Great glades and cruisers.",
+            "snow_quality_notes": "Excellent natural snow.",
+            "best_for": "scenery, quiet_woods, upside_down_layout",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Located just south of Whitefish, MT."
+          }
+        }
+      ]
+    },
+    {
+      "id": "id_panhandle",
+      "name": "Idaho Panhandle",
+      "country": "US",
+      "timezone": "America/Boise",
+      "macro_region": "northern_rockies",
+      "coords": {
+        "lat": 48.367,
+        "lon": -116.623
+      },
+      "logistics": {
+        "nearest_airport": "GEG",
+        "drive_notes": "Fly into Spokane, WA (GEG) and drive east into Idaho.",
+        "lodging_notes": "Sandpoint, ID is a gorgeous lake town with access to Schweitzer."
+      },
+      "resorts": [
+        {
+          "id": "schweitzer",
+          "name": "Schweitzer",
+          "coords": {
+            "lat": 48.367,
+            "lon": -116.623
+          },
+          "stats": {
+            "summit_elevation_ft": 6400,
+            "base_elevation_ft": 3960,
+            "vertical_drop_ft": 2440,
+            "skiable_acres": 2900,
+            "lifts": 10,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Massive, highly underrated resort with views of Lake Pend Oreille.",
+            "terrain_character": "Incredible sustained fall line tree skiing and massive open bowls.",
+            "snow_quality_notes": "Prone to the same heavy fog inversions as Whitefish. Snow is slightly heavier than the Rockies but lighter than the Cascades.",
+            "best_for": "tree_skiing, bowls, low_crowds",
+            "crowd_factor": "Low to moderate.",
+            "logistics_notes": "Very isolated from major population centers, making it a great strike mission."
+          }
+        },
+        {
+          "id": "silver_mountain",
+          "name": "Silver Mountain",
+          "coords": {
+            "lat": 47.5,
+            "lon": -116.136
+          },
+          "stats": {
+            "summit_elevation_ft": 6300,
+            "base_elevation_ft": 4100,
+            "vertical_drop_ft": 2200,
+            "skiable_acres": 1600,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Gondola-accessed resort right over I-90.",
+            "terrain_character": "Great glades and fun, rolling cruisers.",
+            "snow_quality_notes": "Excellent snow preservation.",
+            "best_for": "cruising, trees, budget_friendly",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Requires taking the longest single-stage gondola in North America just to reach the base area."
+          }
+        },
+        {
+          "id": "lookout_pass",
+          "name": "Lookout Pass",
+          "coords": {
+            "lat": 47.456,
+            "lon": -115.698
+          },
+          "stats": {
+            "summit_elevation_ft": 6160,
+            "base_elevation_ft": 4510,
+            "vertical_drop_ft": 1650,
+            "skiable_acres": 1023,
+            "lifts": 4,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Tiny footprint, massive snowfall.",
+            "terrain_character": "Very heavily gladed.",
+            "snow_quality_notes": "Catches over 400 inches of snow annually, making it one of the most reliable powder spots in Idaho.",
+            "best_for": "deep_powder, tree_skiing, storm_riding",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Straddles the ID/MT border directly on I-90."
+          }
+        }
+      ]
+    },
+    {
+      "id": "id_central_southern",
+      "name": "Central & Southern Idaho",
+      "country": "US",
+      "timezone": "America/Boise",
+      "macro_region": "snake_river_tetons",
+      "coords": {
+        "lat": 43.766,
+        "lon": -116.1
+      },
+      "logistics": {
+        "nearest_airport": "BOI",
+        "drive_notes": "Fly into Boise (BOI) or Sun Valley (SUN).",
+        "lodging_notes": "Boise offers city convenience, while McCall and Ketchum offer true ski-town vibes."
+      },
+      "resorts": [
+        {
+          "id": "sun_valley",
+          "name": "Sun Valley",
+          "coords": {
+            "lat": 43.654,
+            "lon": -114.351
+          },
+          "stats": {
+            "summit_elevation_ft": 9150,
+            "base_elevation_ft": 5750,
+            "vertical_drop_ft": 3400,
+            "skiable_acres": 2533,
+            "lifts": 18,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "America's first destination ski resort. Pure luxury and perfectly pitched cruisers.",
+            "terrain_character": "Relentless, perfectly pitched, steep cruisers. Very little flat terrain on Bald Mountain.",
+            "snow_quality_notes": "Relies very heavily on the world's largest automated snowmaking system, as natural snowfall is lower here.",
+            "best_for": "steep_cruisers, luxury, groomers",
+            "crowd_factor": "Moderate. High-speed lift network keeps lines very short.",
+            "logistics_notes": "Not a primary target for deep powder chasing compared to the Panhandle."
+          }
+        },
+        {
+          "id": "bogus_basin",
+          "name": "Bogus Basin",
+          "coords": {
+            "lat": 43.766,
+            "lon": -116.1
+          },
+          "stats": {
+            "summit_elevation_ft": 7582,
+            "base_elevation_ft": 5782,
+            "vertical_drop_ft": 1800,
+            "skiable_acres": 2600,
+            "lifts": 10,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Boise's massive non-profit local mountain.",
+            "terrain_character": "Incredible 360-degree riding off the summit. Fantastic glades.",
+            "snow_quality_notes": "Relies entirely on natural snow. Very vulnerable during dry/warm years.",
+            "best_for": "locals_vibe, night_skiing, trees",
+            "crowd_factor": "High on weekends due to Boise proximity.",
+            "logistics_notes": "Winding, 45-minute drive up the mountain from downtown Boise."
+          }
+        },
+        {
+          "id": "brundage",
+          "name": "Brundage",
+          "coords": {
+            "lat": 45.004,
+            "lon": -116.158
+          },
+          "stats": {
+            "summit_elevation_ft": 7640,
+            "base_elevation_ft": 5719,
+            "vertical_drop_ft": 1921,
+            "skiable_acres": 1920,
+            "lifts": 6,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "Hidden powder gem in central Idaho.",
+            "terrain_character": "Famous for its perfectly spaced tree skiing and rolling powder fields.",
+            "snow_quality_notes": "Catches massive amounts of light, dry snow.",
+            "best_for": "powder, trees, solitude",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Located near McCall, ID."
+          }
+        },
+        {
+          "id": "tamarack",
+          "name": "Tamarack",
+          "coords": {
+            "lat": 44.542,
+            "lon": -116.113
+          },
+          "stats": {
+            "summit_elevation_ft": 7700,
+            "base_elevation_ft": 4900,
+            "vertical_drop_ft": 2800,
+            "skiable_acres": 1100,
+            "lifts": 7,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "A reborn luxury resort with fantastic fall lines.",
+            "terrain_character": "Incredible, sustained steep groomers and great glades.",
+            "snow_quality_notes": "Good snow, but lower base elevation than Brundage.",
+            "best_for": "cruisers, steeps, luxury",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Also located near McCall, ID."
+          }
+        },
+        {
+          "id": "pebble_creek",
+          "name": "Pebble Creek",
+          "coords": {
+            "lat": 42.784,
+            "lon": -112.155
+          },
+          "stats": {
+            "summit_elevation_ft": 8560,
+            "base_elevation_ft": 6360,
+            "vertical_drop_ft": 2200,
+            "skiable_acres": 1100,
+            "lifts": 3,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "A shockingly steep local mountain in southern Idaho.",
+            "terrain_character": "Incredible, sustained steep fall lines right off the summit.",
+            "snow_quality_notes": "High elevation keeps it cold, but highly reliant on natural dumps.",
+            "best_for": "steeps, hidden_gems, locals",
+            "crowd_factor": "Almost zero.",
+            "logistics_notes": "Just outside Pocatello, ID."
+          }
+        },
+        {
+          "id": "soldier_mountain",
+          "name": "Soldier Mountain",
+          "coords": {
+            "lat": 43.486,
+            "lon": -114.831
+          },
+          "stats": {
+            "summit_elevation_ft": 7177,
+            "base_elevation_ft": 5756,
+            "vertical_drop_ft": 1421,
+            "skiable_acres": 1142,
+            "lifts": 3,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "Tiny, beloved local hill (once owned by Bruce Willis).",
+            "terrain_character": "Incredible, uncrowded glades and rolling natural powder fields.",
+            "snow_quality_notes": "Great interior Idaho snow.",
+            "best_for": "solitude, trees, locals_vibe",
+            "crowd_factor": "Virtually empty.",
+            "logistics_notes": "Also offers highly affordable cat-skiing operations right next to the resort."
+          }
+        }
+      ]
+    },
+    {
+      "id": "nm_northern",
+      "name": "Northern New Mexico",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "nm_northern",
+      "coords": {
+        "lat": 36.596,
+        "lon": -105.454
+      },
+      "logistics": {
+        "nearest_airport": "ABQ",
+        "drive_notes": "A relatively easy drive south from Denver on I-25. Generally avoids the brutal gridlock of I-70.",
+        "lodging_notes": "Taos has limited on-mountain lodging; the town of Taos (30 mins away) is the primary budget hub. Santa Fe offers great city lodging."
+      },
+      "resorts": [
+        {
+          "id": "taos_ski_valley",
+          "name": "Taos Ski Valley",
+          "coords": {
+            "lat": 36.596,
+            "lon": -105.454
+          },
+          "stats": {
+            "summit_elevation_ft": 12481,
+            "base_elevation_ft": 9200,
+            "vertical_drop_ft": 3100,
+            "skiable_acres": 1294,
+            "lifts": 14,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "A fiercely steep, expert-focused mountain with European alpine vibes.",
+            "terrain_character": "Kachina Peak (now lift-accessed) and the surrounding ridge hikes offer some of the most technical, steep chutes in North America.",
+            "snow_quality_notes": "Very high base elevation preserves snow perfectly. Catches incredible southern storm wrapping.",
+            "best_for": "extreme_steeps, hike_to_chutes, expert_riders",
+            "crowd_factor": "Low. Very isolated compared to major Colorado resorts.",
+            "logistics_notes": "Recently lifted its ban on snowboarding (2008). Requires a massive base to cover the sharp rocks."
+          }
+        },
+        {
+          "id": "ski_santa_fe",
+          "name": "Ski Santa Fe",
+          "coords": {
+            "lat": 35.795,
+            "lon": -105.794
+          },
+          "stats": {
+            "summit_elevation_ft": 12075,
+            "base_elevation_ft": 10350,
+            "vertical_drop_ft": 1725,
+            "skiable_acres": 660,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "One of the highest ski areas in the country.",
+            "terrain_character": "Great tree glades (Big Tesuque) and fun rolling cruisers. Lacks extreme steeps.",
+            "snow_quality_notes": "Incredibly high base elevation (10,350ft) ensures pristine, dry cold-smoke powder.",
+            "best_for": "tree_skiing, cruisers, dry_powder",
+            "crowd_factor": "Low. Mostly locals from Santa Fe and Albuquerque.",
+            "logistics_notes": "The winding 16-mile mountain road up from Santa Fe can be treacherous during storms."
+          }
+        },
+        {
+          "id": "angel_fire",
+          "name": "Angel Fire Resort",
+          "coords": {
+            "lat": 36.388,
+            "lon": -105.274
+          },
+          "stats": {
+            "summit_elevation_ft": 10677,
+            "base_elevation_ft": 8600,
+            "vertical_drop_ft": 2077,
+            "skiable_acres": 560,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Family-friendly alternative to Taos.",
+            "terrain_character": "Mostly intermediate cruisers and great glades.",
+            "snow_quality_notes": "Does not catch the extreme totals that Taos does, but holds what it gets well.",
+            "best_for": "families, cruisers, relaxed_vibes",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Located on the 'back side' of the mountains from Taos."
+          }
+        },
+        {
+          "id": "red_river",
+          "name": "Red River",
+          "coords": {
+            "lat": 36.697,
+            "lon": -105.405
+          },
+          "stats": {
+            "summit_elevation_ft": 10350,
+            "base_elevation_ft": 8750,
+            "vertical_drop_ft": 1600,
+            "skiable_acres": 285,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "A tiny ski-in/ski-out resort literally dropping right into main street.",
+            "terrain_character": "Short, surprisingly steep fall lines.",
+            "snow_quality_notes": "Relies heavily on snowmaking during dry spells, but great during a big dump.",
+            "best_for": "town_access, short_steeps",
+            "crowd_factor": "Low.",
+            "logistics_notes": "You can walk from your hotel to the lift."
+          }
+        }
+      ]
+    },
+    {
+      "id": "nm_southern",
+      "name": "Central & Southern New Mexico",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "nm_southern",
+      "coords": {
+        "lat": 33.397,
+        "lon": -105.792
+      },
+      "logistics": {
+        "nearest_airport": "ABQ",
+        "drive_notes": "Long drive south down I-25. Very desolate stretches of highway.",
+        "lodging_notes": "Ruidoso serves as the main hub for Ski Apache."
+      },
+      "resorts": [
+        {
+          "id": "ski_apache",
+          "name": "Ski Apache",
+          "coords": {
+            "lat": 33.397,
+            "lon": -105.792
+          },
+          "stats": {
+            "summit_elevation_ft": 11500,
+            "base_elevation_ft": 9600,
+            "vertical_drop_ft": 1900,
+            "skiable_acres": 750,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Owned and operated by the Mescalero Apache Tribe.",
+            "terrain_character": "Surprising massive bowl skiing and good tree spacing.",
+            "snow_quality_notes": "Highly volatile. Either catches huge southern dumps or suffers terrible dry spells.",
+            "best_for": "bowls, scenery, unique_culture",
+            "crowd_factor": "Low.",
+            "logistics_notes": "The southernmost major ski area in the U.S."
+          }
+        },
+        {
+          "id": "sandia_peak",
+          "name": "Sandia Peak",
+          "coords": {
+            "lat": 35.198,
+            "lon": -106.416
+          },
+          "stats": {
+            "summit_elevation_ft": 10378,
+            "base_elevation_ft": 8678,
+            "vertical_drop_ft": 1700,
+            "skiable_acres": 300,
+            "lifts": 4,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Albuquerque's local backdrop.",
+            "terrain_character": "Mellow cruisers. Accessed via an incredible tramway.",
+            "snow_quality_notes": "Extremely volatile. Needs a massive storm to open.",
+            "best_for": "locals, cruisers, tram_access",
+            "crowd_factor": "Low to moderate.",
+            "logistics_notes": "Great novelty if an unusual southern storm pounds ABQ."
+          }
+        }
+      ]
+    },
+    {
+      "id": "az_flagstaff",
+      "name": "Arizona",
+      "country": "US",
+      "timezone": "America/Phoenix",
+      "macro_region": "az_flagstaff",
+      "coords": {
+        "lat": 35.33,
+        "lon": -111.708
+      },
+      "logistics": {
+        "nearest_airport": "PHX",
+        "drive_notes": "Drive is over 11 hours. Flying into PHX and driving 2.5 hours north is preferred.",
+        "lodging_notes": "Flagstaff is an incredible mountain town with endless lodging options."
+      },
+      "resorts": [
+        {
+          "id": "arizona_snowbowl",
+          "name": "Arizona Snowbowl",
+          "coords": {
+            "lat": 35.33,
+            "lon": -111.708
+          },
+          "stats": {
+            "summit_elevation_ft": 11500,
+            "base_elevation_ft": 9200,
+            "vertical_drop_ft": 2300,
+            "skiable_acres": 777,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Massive alpine riding in the desert.",
+            "terrain_character": "Sits on the flanks of the highest peak in AZ. Incredible open bowl skiing above treeline and tight glades below.",
+            "snow_quality_notes": "Catches unbelievable, massive dumps when El Nino storm tracks dip south.",
+            "best_for": "alpine_bowls, deep_powder, novelty",
+            "crowd_factor": "High on weekends when Phoenix locals drive up.",
+            "logistics_notes": "The access road is incredibly winding and heavily policed during storms."
+          }
+        },
+        {
+          "id": "sunrise_park",
+          "name": "Sunrise Park",
+          "coords": {
+            "lat": 33.984,
+            "lon": -109.56
+          },
+          "stats": {
+            "summit_elevation_ft": 11100,
+            "base_elevation_ft": 9200,
+            "vertical_drop_ft": 1800,
+            "skiable_acres": 1200,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Arizona's largest ski area, owned by the White Mountain Apache Tribe.",
+            "terrain_character": "Spread across three peaks. Excellent, mellow tree skiing.",
+            "snow_quality_notes": "Great snow preservation due to high elevation.",
+            "best_for": "tree_skiing, cruisers, low_crowds",
+            "crowd_factor": "Very low compared to Snowbowl.",
+            "logistics_notes": "Highly remote, located near the NM border in eastern AZ."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ak_chugach",
+      "name": "Alaska (Chugach Range)",
+      "country": "US",
+      "timezone": "America/Anchorage",
+      "macro_region": "ak_chugach",
+      "coords": {
+        "lat": 60.96,
+        "lon": -149.098
+      },
+      "logistics": {
+        "nearest_airport": "ANC",
+        "drive_notes": "Flight to Anchorage (ANC) is absolute necessity. 45-minute drive south to Alyeska on the Seward Highway.",
+        "lodging_notes": "Alyeska Resort has a luxury hotel at the base, or you can stay in Girdwood."
+      },
+      "resorts": [
+        {
+          "id": "alyeska",
+          "name": "Alyeska",
+          "coords": {
+            "lat": 60.96,
+            "lon": -149.098
+          },
+          "stats": {
+            "summit_elevation_ft": 2750,
+            "base_elevation_ft": 250,
+            "vertical_drop_ft": 2487,
+            "skiable_acres": 1610,
+            "lifts": 7,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Incredible maritime snow totals and true Alaskan big-mountain riding.",
+            "terrain_character": "Massive, steep alpine bowls, heavy cliff features, and incredibly rugged terrain on the North Face.",
+            "snow_quality_notes": "True maritime snow. The base is practically at sea level (250 ft), so rain is common at the bottom while it dumps 4 feet up top.",
+            "best_for": "extreme_steeps, massive_snowfalls, tram_laps",
+            "crowd_factor": "Low to moderate.",
+            "logistics_notes": "Very dark mid-winter; late February/March is the premier strike window."
+          }
+        },
+        {
+          "id": "eaglecrest",
+          "name": "Eaglecrest",
+          "coords": {
+            "lat": 58.261,
+            "lon": -134.522
+          },
+          "stats": {
+            "summit_elevation_ft": 2600,
+            "base_elevation_ft": 1200,
+            "vertical_drop_ft": 1620,
+            "skiable_acres": 640,
+            "lifts": 4,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "Juneau's community-owned, no-frills powder gem.",
+            "terrain_character": "Steep, heavily gladed, and completely uncrowded.",
+            "snow_quality_notes": "Incredible coastal dumps, but highly susceptible to rain.",
+            "best_for": "locals_vibe, deep_powder, backcountry_access",
+            "crowd_factor": "Almost zero.",
+            "logistics_notes": "Requires flying into Juneau (JNU), which is inaccessible by car from the mainland."
+          }
+        }
+      ]
+    },
+    {
+      "id": "mi_upper_peninsula",
+      "name": "Midwest (Upper Peninsula)",
+      "country": "US",
+      "timezone": "America/Detroit",
+      "macro_region": "mi_upper_peninsula",
+      "coords": {
+        "lat": 47.388,
+        "lon": -88.015
+      },
+      "logistics": {
+        "nearest_airport": "CMX",
+        "drive_notes": "Flight to Houghton (CMX) or massive drive through the Midwest.",
+        "lodging_notes": "On-site yurts and a hostel. Very rustic."
+      },
+      "resorts": [
+        {
+          "id": "mount_bohemia",
+          "name": "Mount Bohemia",
+          "coords": {
+            "lat": 47.388,
+            "lon": -88.015
+          },
+          "stats": {
+            "summit_elevation_ft": 1465,
+            "base_elevation_ft": 567,
+            "vertical_drop_ft": 898,
+            "skiable_acres": 585,
+            "lifts": 2,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "The Midwest anomaly. No grooming, no beginners allowed, extreme lake-effect powder.",
+            "terrain_character": "Entirely natural, tight tree glades and steep boulder drops. Completely un-groomed.",
+            "snow_quality_notes": "Catches nearly 300 inches of pure Lake Superior lake-effect snow.",
+            "best_for": "tree_skiing, extreme_lake_effect, rustic_vibes",
+            "crowd_factor": "Low. The extreme location keeps casuals away.",
+            "logistics_notes": "There are zero beginner runs. A shuttle bus picks you up at the bottom of the runs along the lake road and drives you back to the lift."
+          }
+        }
+      ]
+    },
+    {
+      "id": "vt_northern",
+      "name": "Northern Vermont (The Snow Pocket)",
+      "country": "US",
+      "timezone": "America/New_York",
+      "macro_region": "northeast",
+      "coords": {
+        "lat": 44.924,
+        "lon": -72.454
+      },
+      "logistics": {
+        "nearest_airport": "BTV",
+        "drive_notes": "Flight to Burlington (BTV). Only trigger this trip if the Western U.S. is completely dry and a massive Nor'easter stalls over New England.",
+        "lodging_notes": "Burlington, Waterbury, or Stowe offer great hubs. Driving between resorts in winter can be slow going."
+      },
+      "resorts": [
+        {
+          "id": "jay_peak",
+          "name": "Jay Peak",
+          "coords": {
+            "lat": 44.924,
+            "lon": -72.454
+          },
+          "stats": {
+            "summit_elevation_ft": 3968,
+            "base_elevation_ft": 1815,
+            "vertical_drop_ft": 2112,
+            "skiable_acres": 485,
+            "lifts": 9,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "The undisputed powder king of the East Coast.",
+            "terrain_character": "Incredibly steep, tight tree glades. Some of the best glade skiing in North America.",
+            "snow_quality_notes": "Catches the 'Jay Cloud' anomaly, dropping 350+ inches of snow annually (massive for the East).",
+            "best_for": "tree_skiing, deep_powder, steep_glades",
+            "crowd_factor": "Moderate. Its extreme northern location (right on the Canadian border) keeps casuals away.",
+            "logistics_notes": "High winds frequently shut down the iconic aerial tram."
+          }
+        },
+        {
+          "id": "stowe",
+          "name": "Stowe",
+          "coords": {
+            "lat": 44.53,
+            "lon": -72.78
+          },
+          "stats": {
+            "summit_elevation_ft": 3625,
+            "base_elevation_ft": 1280,
+            "vertical_drop_ft": 2360,
+            "skiable_acres": 485,
+            "lifts": 12,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "The luxury capital of East Coast skiing.",
+            "terrain_character": "The 'Front Four' runs are legendary, steep, double-fall-line plunges. Great tree skiing.",
+            "snow_quality_notes": "Relies heavily on snowmaking, but catches great natural snow during Nor'easters.",
+            "best_for": "steeps, luxury, groomers",
+            "crowd_factor": "Extremely high on weekends. Heavy Boston/NY traffic.",
+            "logistics_notes": "The mountain road from the town of Stowe is notorious for traffic backups."
+          }
+        },
+        {
+          "id": "smugglers_notch",
+          "name": "Smugglers' Notch",
+          "coords": {
+            "lat": 44.588,
+            "lon": -72.79
+          },
+          "stats": {
+            "summit_elevation_ft": 3640,
+            "base_elevation_ft": 1030,
+            "vertical_drop_ft": 2610,
+            "skiable_acres": 1060,
+            "lifts": 8,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Rugged, old-school, family-friendly resort.",
+            "terrain_character": "Madonna Mountain offers incredibly steep, narrow, natural terrain.",
+            "snow_quality_notes": "Great snow preservation. Very rustic.",
+            "best_for": "families, steeps, old_school_vibes",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "The road connecting Stowe to Smugglers' Notch closes in winter. You must drive around."
+          }
+        },
+        {
+          "id": "sugarbush",
+          "name": "Sugarbush",
+          "coords": {
+            "lat": 44.135,
+            "lon": -72.894
+          },
+          "stats": {
+            "summit_elevation_ft": 4083,
+            "base_elevation_ft": 1483,
+            "vertical_drop_ft": 2600,
+            "skiable_acres": 581,
+            "lifts": 16,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Classic Vermont skiing with massive vertical and beautiful terrain.",
+            "terrain_character": "Castlerock Peak is legendary for steep, narrow, natural-snow-only runs.",
+            "snow_quality_notes": "Great natural snow, highly susceptible to freeze/thaw cycles.",
+            "best_for": "steeps, natural_snow, cruisers",
+            "crowd_factor": "High on weekends.",
+            "logistics_notes": "Divided into two separate base areas (Lincoln Peak and Mt. Ellen) connected by a chairlift."
+          }
+        },
+        {
+          "id": "killington",
+          "name": "Killington",
+          "coords": {
+            "lat": 43.626,
+            "lon": -72.797
+          },
+          "stats": {
+            "summit_elevation_ft": 4241,
+            "base_elevation_ft": 1165,
+            "vertical_drop_ft": 2977,
+            "skiable_acres": 1509,
+            "lifts": 22,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The 'Beast of the East'. Sprawling, massive, and aggressive.",
+            "terrain_character": "Endless runs across multiple peaks. Steep bump runs on Bear Mountain.",
+            "snow_quality_notes": "The most aggressive snowmaking in the world. Season often lasts until June.",
+            "best_for": "spring_skiing, moguls, apres_ski",
+            "crowd_factor": "Massive. The busiest resort on the East Coast.",
+            "logistics_notes": "A massive party town. Great for an East Coast strike mission if a storm hits central VT."
+          }
+        },
+        {
+          "id": "pico",
+          "name": "Pico",
+          "coords": {
+            "lat": 43.662,
+            "lon": -72.842
+          },
+          "stats": {
+            "summit_elevation_ft": 3967,
+            "base_elevation_ft": 2000,
+            "vertical_drop_ft": 1967,
+            "skiable_acres": 468,
+            "lifts": 7,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Killington's quiet, old-school little sister.",
+            "terrain_character": "Classic, narrow, winding New England trails.",
+            "snow_quality_notes": "Holds natural snow well due to fewer skiers scraping it off.",
+            "best_for": "old_school_vibes, avoiding_crowds",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "A great bailout option when Killington is too crowded."
+          }
+        },
+        {
+          "id": "mad_river_glen",
+          "name": "Mad River Glen",
+          "coords": {
+            "lat": 44.202,
+            "lon": -72.917
+          },
+          "stats": {
+            "summit_elevation_ft": 3637,
+            "base_elevation_ft": 1600,
+            "vertical_drop_ft": 2037,
+            "skiable_acres": 915,
+            "lifts": 5,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Ski it if you can. A fierce, all-natural, independent cooperative.",
+            "terrain_character": "Incredibly steep, narrow, rocky, and completely un-groomed. The single chair is legendary.",
+            "snow_quality_notes": "Relies 100% on natural snow.",
+            "best_for": "extreme_steeps, natural_snow, skiing_purists",
+            "crowd_factor": "Low.",
+            "logistics_notes": "NO SNOWBOARDING ALLOWED."
+          }
+        }
+      ]
+    },
+    {
+      "id": "me_ny_rugged",
+      "name": "Maine & The Adirondacks",
+      "country": "US",
+      "timezone": "America/New_York",
+      "macro_region": "northeast",
+      "coords": {
+        "lat": 44.302,
+        "lon": -70.313
+      },
+      "logistics": {
+        "nearest_airport": "PWM",
+        "drive_notes": "Fly into Portland, ME (PWM) or Albany, NY (ALB). Very remote driving.",
+        "lodging_notes": "Lodging is highly isolated near the specific mountains."
+      },
+      "resorts": [
+        {
+          "id": "sugarloaf",
+          "name": "Sugarloaf",
+          "coords": {
+            "lat": 45.031,
+            "lon": -70.313
+          },
+          "stats": {
+            "summit_elevation_ft": 4237,
+            "base_elevation_ft": 1417,
+            "vertical_drop_ft": 2748,
+            "skiable_acres": 1360,
+            "lifts": 13,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "The only true above-treeline snowfields in the East.",
+            "terrain_character": "Massive, continuous pitch. The snowfields at the summit offer Rocky Mountain style open bowls.",
+            "snow_quality_notes": "Incredibly cold. High winds frequently scour the top.",
+            "best_for": "alpine_bowls, continuous_steeps, cold_weather",
+            "crowd_factor": "Moderate. Its remote location filters out the casual Boston crowds.",
+            "logistics_notes": "Requires a massive natural snow base to open the summit snowfields."
+          }
+        },
+        {
+          "id": "saddleback",
+          "name": "Saddleback",
+          "coords": {
+            "lat": 44.936,
+            "lon": -70.503
+          },
+          "stats": {
+            "summit_elevation_ft": 4120,
+            "base_elevation_ft": 2120,
+            "vertical_drop_ft": 1850,
+            "skiable_acres": 600,
+            "lifts": 6,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "A reborn independent legend. Raw, rugged, and completely uncrowded.",
+            "terrain_character": "The Kennebago Steeps offer some of the best, most sustained expert terrain in New England.",
+            "snow_quality_notes": "High base elevation means excellent natural snow preservation.",
+            "best_for": "steeps, solitude, independent_vibe",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Located in Rangeley, ME. Deep in the wilderness."
+          }
+        },
+        {
+          "id": "sunday_river",
+          "name": "Sunday River",
+          "coords": {
+            "lat": 44.473,
+            "lon": -70.856
+          },
+          "stats": {
+            "summit_elevation_ft": 3140,
+            "base_elevation_ft": 800,
+            "vertical_drop_ft": 2350,
+            "skiable_acres": 1184,
+            "lifts": 18,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "Sprawling, interconnected peaks with legendary snowmaking.",
+            "terrain_character": "Endless rolling cruisers. White Heat is famous as a massive, steep, double-fall-line bump run.",
+            "snow_quality_notes": "Highly volatile natural snow, but the snowmaking is world-class.",
+            "best_for": "cruisers, moguls, families",
+            "crowd_factor": "High.",
+            "logistics_notes": "A massive resort that requires planning to navigate across its 8 peaks."
+          }
+        },
+        {
+          "id": "whiteface",
+          "name": "Whiteface",
+          "coords": {
+            "lat": 44.365,
+            "lon": -73.858
+          },
+          "stats": {
+            "summit_elevation_ft": 4386,
+            "base_elevation_ft": 1220,
+            "vertical_drop_ft": 3166,
+            "skiable_acres": 299,
+            "lifts": 11,
+            "pass_affiliations": [
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "Host of the 1980 Olympics. Nicknamed 'Iceface'.",
+            "terrain_character": "Incredibly steep, sustained pitch. The Slides are out-of-bounds style extreme chutes.",
+            "snow_quality_notes": "When it's cold, it's a sheer sheet of ice. When it dumps 3 feet of powder, it is unmatched.",
+            "best_for": "extreme_steeps, vertical_drop, olympic_history",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "Located in the Adirondacks (NY). The Slides are rarely open due to strict base depth requirements."
+          }
+        }
+      ]
+    },
+    {
+      "id": "bc_coast",
+      "name": "British Columbia (Coast Mountains)",
+      "country": "CA",
+      "timezone": "America/Vancouver",
+      "macro_region": "bc_coast",
+      "coords": {
+        "lat": 50.115,
+        "lon": -122.948
+      },
+      "logistics": {
+        "nearest_airport": "YVR",
+        "drive_notes": "Fly into Vancouver (YVR). Beautiful, easy 2-hour drive up the Sea-to-Sky Highway. Passports required.",
+        "lodging_notes": "Whistler Village is sprawling and very expensive."
+      },
+      "resorts": [
+        {
+          "id": "whistler_blackcomb",
+          "name": "Whistler Blackcomb",
+          "coords": {
+            "lat": 50.115,
+            "lon": -122.948
+          },
+          "stats": {
+            "summit_elevation_ft": 7494,
+            "base_elevation_ft": 2140,
+            "vertical_drop_ft": 5280,
+            "skiable_acres": 8171,
+            "lifts": 35,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "The largest resort in North America. An absolute giant.",
+            "terrain_character": "Incredible high-alpine glaciers, massive bowls, and deep coastal tree glades.",
+            "snow_quality_notes": "Base elevation is incredibly low (2,140 ft). It is very common for it to rain in the village while dumping 2 feet of snow in the alpine.",
+            "best_for": "alpine_bowls, massive_acreage, village_apres",
+            "crowd_factor": "Extreme. Massive international crowds.",
+            "logistics_notes": "Connected by the incredible Peak 2 Peak Gondola."
+          }
+        }
+      ]
+    },
+    {
+      "id": "bc_interior_powder_highway",
+      "name": "British Columbia (The Powder Highway)",
+      "country": "CA",
+      "timezone": "America/Vancouver",
+      "macro_region": "bc_interior",
+      "coords": {
+        "lat": 51.0,
+        "lon": -118.2
+      },
+      "logistics": {
+        "nearest_airport": "YLW",
+        "drive_notes": "Fly into Kelowna (YLW), Calgary (YYC), or Spokane (GEG). Driving the Powder Highway in winter requires absolute confidence in severe winter driving.",
+        "lodging_notes": "Towns like Revelstoke, Golden, and Fernie offer amazing, rustic ski-town lodging."
+      },
+      "resorts": [
+        {
+          "id": "revelstoke",
+          "name": "Revelstoke",
+          "coords": {
+            "lat": 50.958,
+            "lon": -118.158
+          },
+          "stats": {
+            "summit_elevation_ft": 7300,
+            "base_elevation_ft": 1680,
+            "vertical_drop_ft": 5620,
+            "skiable_acres": 3121,
+            "lifts": 7,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "The most vertical drop in North America. Hardcore, steep, and deep.",
+            "terrain_character": "Relentless, incredibly steep, perfectly spaced tree glades and massive high-alpine bowls.",
+            "snow_quality_notes": "Catches massive interior BC dumps. The massive vertical means you can ski from deep dry powder down into heavy wet snow.",
+            "best_for": "extreme_vertical, tree_skiing, deep_powder",
+            "crowd_factor": "Moderate. Highly advanced crowd.",
+            "logistics_notes": "Lifts are laid out in a massive vertical stack. Very little beginner terrain."
+          }
+        },
+        {
+          "id": "kicking_horse",
+          "name": "Kicking Horse",
+          "coords": {
+            "lat": 51.282,
+            "lon": -117.045
+          },
+          "stats": {
+            "summit_elevation_ft": 8218,
+            "base_elevation_ft": 3904,
+            "vertical_drop_ft": 4314,
+            "skiable_acres": 3486,
+            "lifts": 5,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "The 'Champagne Powder Capital of Canada'.",
+            "terrain_character": "Four massive, incredibly rugged alpine bowls that funnel down into steep chutes.",
+            "snow_quality_notes": "Very dry, light snow. Highly susceptible to wind scour on the ridges.",
+            "best_for": "chutes, alpine_bowls, extreme_steeps",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Almost entirely accessed by a single base-to-summit gondola, which can create morning bottlenecks."
+          }
+        },
+        {
+          "id": "fernie",
+          "name": "Fernie",
+          "coords": {
+            "lat": 49.462,
+            "lon": -115.068
+          },
+          "stats": {
+            "summit_elevation_ft": 7000,
+            "base_elevation_ft": 3450,
+            "vertical_drop_ft": 3550,
+            "skiable_acres": 2504,
+            "lifts": 10,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Famous for its five massive, sprawling alpine bowls.",
+            "terrain_character": "Endless ridges, saddles, and drops spread across the bowls.",
+            "snow_quality_notes": "Prone to the 'Fernie Factor' \u2014 unpredictable weather that can drop 3 feet of powder or unexpected rain.",
+            "best_for": "alpine_bowls, tree_skiing, powder",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Located far to the south, making it a viable (but long) drive from Montana/Idaho."
+          }
+        },
+        {
+          "id": "red_mountain",
+          "name": "Red Mountain",
+          "coords": {
+            "lat": 49.105,
+            "lon": -117.806
+          },
+          "stats": {
+            "summit_elevation_ft": 6807,
+            "base_elevation_ft": 3888,
+            "vertical_drop_ft": 2919,
+            "skiable_acres": 3850,
+            "lifts": 8,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The purest soul-skiing tree destination in Canada.",
+            "terrain_character": "360-degree fall lines off multiple peaks. Incredible glades.",
+            "snow_quality_notes": "Deep, reliable interior snow.",
+            "best_for": "tree_skiing, solitude, authentic_vibes",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "Near Rossland, BC. A hidden gem that recently joined Ikon."
+          }
+        },
+        {
+          "id": "panorama",
+          "name": "Panorama",
+          "coords": {
+            "lat": 50.46,
+            "lon": -116.23
+          },
+          "stats": {
+            "summit_elevation_ft": 8038,
+            "base_elevation_ft": 3773,
+            "vertical_drop_ft": 4265,
+            "skiable_acres": 2975,
+            "lifts": 10,
+            "pass_affiliations": [
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "A Powder Highway staple with massive vertical drop.",
+            "terrain_character": "Taynton Bowl offers 1,000+ acres of ex-heli-skiing terrain. Incredibly steep and deep.",
+            "snow_quality_notes": "Excellent dry snow, but the lower mountain can occasionally get icy due to the sheer vertical drop.",
+            "best_for": "vertical_drop, extreme_bowls, heli_style_terrain",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Very remote. Often grouped into a multi-resort Powder Highway road trip."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ab_banff",
+      "name": "Alberta (Banff & Lake Louise)",
+      "country": "CA",
+      "timezone": "America/Edmonton",
+      "macro_region": "alberta_rockies",
+      "coords": {
+        "lat": 51.411,
+        "lon": -116.155
+      },
+      "logistics": {
+        "nearest_airport": "YYC",
+        "drive_notes": "Fly into Calgary (YYC). Very easy, flat 1.5-hour drive on the Trans-Canada Highway.",
+        "lodging_notes": "Banff is a bustling, gorgeous national park town. Very strict development laws keep it pristine."
+      },
+      "resorts": [
+        {
+          "id": "lake_louise",
+          "name": "Lake Louise",
+          "coords": {
+            "lat": 51.411,
+            "lon": -116.155
+          },
+          "stats": {
+            "summit_elevation_ft": 8650,
+            "base_elevation_ft": 5400,
+            "vertical_drop_ft": 3250,
+            "skiable_acres": 4200,
+            "lifts": 11,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "Jaw-dropping scenery and incredible, rugged back bowls.",
+            "terrain_character": "The front side is massive rolling cruisers; the back bowls are extreme, steep, and rocky.",
+            "snow_quality_notes": "The coldest region on this list. Snow is incredibly dry, but total volume is lower than interior BC.",
+            "best_for": "scenery, back_bowls, extreme_cold",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "Temperatures can easily hit -20F in January."
+          }
+        },
+        {
+          "id": "banff_sunshine",
+          "name": "Banff Sunshine",
+          "coords": {
+            "lat": 51.116,
+            "lon": -115.76
+          },
+          "stats": {
+            "summit_elevation_ft": 8954,
+            "base_elevation_ft": 5440,
+            "vertical_drop_ft": 3514,
+            "skiable_acres": 3358,
+            "lifts": 12,
+            "pass_affiliations": [
+              "ikon",
+              "mountain_collective"
+            ]
+          },
+          "metadata": {
+            "reputation": "High alpine plateau with incredible freeride zones.",
+            "terrain_character": "Rolling alpine above-treeline. 'Delirium Dive' is a gated, insanely steep, rocky extreme freeride zone.",
+            "snow_quality_notes": "100% natural snow. Catches more volume than Lake Louise due to its location on the Continental Divide.",
+            "best_for": "alpine_cruising, extreme_freeride_gates, natural_snow",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "Requires taking a 20-minute gondola just to reach the base village. Avalanche gear strictly required for Delirium Dive."
+          }
+        }
+      ]
+    },
+    {
+      "id": "vt_nh_southern",
+      "name": "Southern Vermont & New Hampshire",
+      "country": "US",
+      "timezone": "America/New_York",
+      "macro_region": "northeast",
+      "coords": {
+        "lat": 43.113,
+        "lon": -72.826
+      },
+      "logistics": {
+        "nearest_airport": "BOS",
+        "drive_notes": "Fly to Boston (BOS) or Albany (ALB). Major winter Nor'easters make I-89 and I-91 very treacherous.",
+        "lodging_notes": "Southern Vermont is heavily populated with resort lodging, but books up instantly during storms."
+      },
+      "resorts": [
+        {
+          "id": "stratton",
+          "name": "Stratton",
+          "coords": {
+            "lat": 43.113,
+            "lon": -72.906
+          },
+          "stats": {
+            "summit_elevation_ft": 3875,
+            "base_elevation_ft": 1872,
+            "vertical_drop_ft": 2003,
+            "skiable_acres": 670,
+            "lifts": 11,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Luxury resort with a massive village. Heavily favored by New York City weekenders.",
+            "terrain_character": "Wide, heavily groomed cruisers. Decent tree glades when natural snow allows.",
+            "snow_quality_notes": "Incredible snowmaking, but highly reliant on natural dumps for the trees to open.",
+            "best_for": "groomers, luxury, snowboarding_history",
+            "crowd_factor": "Extremely high on weekends.",
+            "logistics_notes": "Birthplace of the modern snowboard (Jake Burton Carpenter)."
+          }
+        },
+        {
+          "id": "mount_snow",
+          "name": "Mount Snow",
+          "coords": {
+            "lat": 42.96,
+            "lon": -72.92
+          },
+          "stats": {
+            "summit_elevation_ft": 3600,
+            "base_elevation_ft": 1900,
+            "vertical_drop_ft": 1700,
+            "skiable_acres": 601,
+            "lifts": 20,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "The closest major Vermont resort to the major East Coast cities.",
+            "terrain_character": "Carinthia face is an entirely separate mountain dedicated to massive terrain parks.",
+            "snow_quality_notes": "Southern location means it occasionally gets rain when Northern VT gets snow.",
+            "best_for": "terrain_parks, cruisers",
+            "crowd_factor": "Extreme.",
+            "logistics_notes": "Easy drive from Boston or NYC."
+          }
+        },
+        {
+          "id": "okemo",
+          "name": "Okemo",
+          "coords": {
+            "lat": 43.401,
+            "lon": -72.717
+          },
+          "stats": {
+            "summit_elevation_ft": 3344,
+            "base_elevation_ft": 1144,
+            "vertical_drop_ft": 2200,
+            "skiable_acres": 667,
+            "lifts": 20,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Impeccable grooming and family-focused luxury.",
+            "terrain_character": "Endless rolling intermediate terrain.",
+            "snow_quality_notes": "Known for the best grooming in the East.",
+            "best_for": "families, groomers, relaxed_cruising",
+            "crowd_factor": "High.",
+            "logistics_notes": "Lacks the extreme steeps of Stowe or Jay Peak."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ca_socal",
+      "name": "Southern California",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "ca_socal",
+      "coords": {
+        "lat": 34.236,
+        "lon": -116.889
+      },
+      "logistics": {
+        "nearest_airport": "ONT",
+        "drive_notes": "Fly into Ontario (ONT) or LAX. Driving up the mountain roads from LA during a snowstorm is a true nightmare of gridlock and unprepared drivers.",
+        "lodging_notes": "Big Bear Lake has plenty of cabins, but books up instantly when snow hits."
+      },
+      "resorts": [
+        {
+          "id": "bear_mountain",
+          "name": "Bear Mountain",
+          "coords": {
+            "lat": 34.226,
+            "lon": -116.84
+          },
+          "stats": {
+            "summit_elevation_ft": 8805,
+            "base_elevation_ft": 7140,
+            "vertical_drop_ft": 1665,
+            "skiable_acres": 198,
+            "lifts": 8,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The park capital of Southern California.",
+            "terrain_character": "Very small footprint, almost entirely dedicated to massive terrain parks and halfpipes.",
+            "snow_quality_notes": "Usually man-made slush, but occasionally gets 5+ foot dumps from atmospheric rivers.",
+            "best_for": "terrain_parks, novelty",
+            "crowd_factor": "Extreme. LA weekend traffic is brutal.",
+            "logistics_notes": "A fun novelty if you want to surf in Malibu and snowboard in the same day."
+          }
+        },
+        {
+          "id": "mt_baldy",
+          "name": "Mt. Baldy",
+          "coords": {
+            "lat": 34.276,
+            "lon": -117.636
+          },
+          "stats": {
+            "summit_elevation_ft": 8600,
+            "base_elevation_ft": 6500,
+            "vertical_drop_ft": 2100,
+            "skiable_acres": 800,
+            "lifts": 4,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "A shockingly steep, rugged, old-school mountain looming right over Los Angeles.",
+            "terrain_character": "Incredibly steep chutes, tight trees, and un-groomed natural terrain.",
+            "snow_quality_notes": "Highly volatile. It often sits closed for weeks waiting for a massive storm, then opens with epic natural powder.",
+            "best_for": "steeps, old_school_vibes, natural_snow",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "If it actually dumps snow here, the steep terrain is legitimately world-class, but the access road gets treacherous."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ca_norcal_volcano",
+      "name": "Northern California (Shasta)",
+      "country": "US",
+      "timezone": "America/Los_Angeles",
+      "macro_region": "ca_norcal",
+      "coords": {
+        "lat": 41.319,
+        "lon": -122.194
+      },
+      "logistics": {
+        "nearest_airport": "RDD",
+        "drive_notes": "Fly into Redding (RDD) or Medford, OR (MFR). Very remote section of I-5.",
+        "lodging_notes": "The town of Mt. Shasta offers affordable, quiet lodging."
+      },
+      "resorts": [
+        {
+          "id": "mt_shasta",
+          "name": "Mt. Shasta",
+          "coords": {
+            "lat": 41.319,
+            "lon": -122.194
+          },
+          "stats": {
+            "summit_elevation_ft": 6890,
+            "base_elevation_ft": 4854,
+            "vertical_drop_ft": 2036,
+            "skiable_acres": 635,
+            "lifts": 4,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "A quiet, spectacular volcano isolated from the Tahoe and Cascades crowds.",
+            "terrain_character": "Great rolling cruisers and excellent backcountry access off the summit.",
+            "snow_quality_notes": "Catches massive, wet Pacific storms.",
+            "best_for": "volcano_riding, avoiding_crowds, scenery",
+            "crowd_factor": "Very low.",
+            "logistics_notes": "An incredible alternative when Tahoe is suffering from massive traffic gridlock."
+          }
+        }
+      ]
+    },
+    {
+      "id": "co_front_range",
+      "name": "Colorado Front Range",
+      "country": "US",
+      "timezone": "America/Denver",
+      "macro_region": "co_front_range",
+      "coords": {
+        "lat": 39.938,
+        "lon": -105.582
+      },
+      "logistics": {
+        "nearest_airport": "DEN",
+        "drive_notes": "Avoids I-70 entirely! Take Highway 119 through Boulder/Nederland.",
+        "lodging_notes": "Boulder or Nederland offer immediate access."
+      },
+      "resorts": [
+        {
+          "id": "eldora",
+          "name": "Eldora",
+          "coords": {
+            "lat": 39.938,
+            "lon": -105.582
+          },
+          "stats": {
+            "summit_elevation_ft": 10600,
+            "base_elevation_ft": 9200,
+            "vertical_drop_ft": 1400,
+            "skiable_acres": 680,
+            "lifts": 10,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Boulder's fiercely windy local hill that catches freak upslope blizzards.",
+            "terrain_character": "Great, steep tree skiing in the Corona Bowl area when the wind hasn't scoured it.",
+            "snow_quality_notes": "Extremely vulnerable to wind. Only target this mountain during 'Upslope' storms that blow from east to west.",
+            "best_for": "upslope_storms, avoiding_i70, tree_skiing",
+            "crowd_factor": "Very high on weekends due to Boulder college crowds.",
+            "logistics_notes": "Parking frequently hits capacity by 8:00 AM. Taking the RTD bus from Boulder is highly recommended."
+          }
+        }
+      ]
+    },
+    {
+      "id": "bc_okanagan",
+      "name": "British Columbia (Okanagan & Interior)",
+      "country": "CA",
+      "timezone": "America/Vancouver",
+      "macro_region": "bc_interior",
+      "coords": {
+        "lat": 50.45,
+        "lon": -119.23
+      },
+      "logistics": {
+        "nearest_airport": "YLW",
+        "drive_notes": "Fly into Kelowna (YLW) or Kamloops (YKA). Extremely remote winter driving.",
+        "lodging_notes": "Big White and SilverStar have incredible, massive ski-in/ski-out villages."
+      },
+      "resorts": [
+        {
+          "id": "sun_peaks",
+          "name": "Sun Peaks",
+          "coords": {
+            "lat": 50.884,
+            "lon": -119.882
+          },
+          "stats": {
+            "summit_elevation_ft": 6824,
+            "base_elevation_ft": 3930,
+            "vertical_drop_ft": 2894,
+            "skiable_acres": 3678,
+            "lifts": 13,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Canada's second-largest ski area. Massive, quiet, and family-friendly.",
+            "terrain_character": "Three separate mountains. Incredible glades (Gil's) and endless rolling cruisers.",
+            "snow_quality_notes": "Deep, dry interior BC powder. Lighter than the coast, warmer than Banff.",
+            "best_for": "massive_acreage, tree_skiing, low_crowds",
+            "crowd_factor": "Very low compared to Whistler.",
+            "logistics_notes": "45 minutes from Kamloops airport."
+          }
+        },
+        {
+          "id": "big_white",
+          "name": "Big White",
+          "coords": {
+            "lat": 49.722,
+            "lon": -118.928
+          },
+          "stats": {
+            "summit_elevation_ft": 7606,
+            "base_elevation_ft": 4950,
+            "vertical_drop_ft": 2550,
+            "skiable_acres": 2765,
+            "lifts": 16,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Famous for its massive 'Snow Ghost' trees and ski-in/ski-out village.",
+            "terrain_character": "Heavy focus on intermediate cruisers and excellent, perfectly spaced tree glades.",
+            "snow_quality_notes": "Reliable, light, fluffy Okanagan powder. Frequent fog and flat light.",
+            "best_for": "snow_ghosts, cruisers, families",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "Less than an hour from Kelowna (YLW)."
+          }
+        },
+        {
+          "id": "silverstar",
+          "name": "SilverStar",
+          "coords": {
+            "lat": 50.258,
+            "lon": -119.058
+          },
+          "stats": {
+            "summit_elevation_ft": 6280,
+            "base_elevation_ft": 3780,
+            "vertical_drop_ft": 2500,
+            "skiable_acres": 3282,
+            "lifts": 10,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "Colorful, quiet village with a surprisingly aggressive backside.",
+            "terrain_character": "The front side is cruisy, but the 'Dark Side' offers incredibly steep, long, un-groomed black diamond runs.",
+            "snow_quality_notes": "100% natural snow. Excellent preservation.",
+            "best_for": "steeps, deep_powder, colorful_village",
+            "crowd_factor": "Low.",
+            "logistics_notes": "Located just outside Vernon, BC."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ab_jasper",
+      "name": "Alberta (Jasper National Park)",
+      "country": "CA",
+      "timezone": "America/Edmonton",
+      "macro_region": "alberta_rockies",
+      "coords": {
+        "lat": 52.793,
+        "lon": -118.093
+      },
+      "logistics": {
+        "nearest_airport": "YEG",
+        "drive_notes": "Fly into Edmonton (YEG) and drive 4 hours west, or drive the Icefields Parkway from Banff (treacherous in winter).",
+        "lodging_notes": "Jasper is an incredibly authentic, rustic national park town."
+      },
+      "resorts": [
+        {
+          "id": "marmot_basin",
+          "name": "Marmot Basin",
+          "coords": {
+            "lat": 52.793,
+            "lon": -118.093
+          },
+          "stats": {
+            "summit_elevation_ft": 8570,
+            "base_elevation_ft": 5570,
+            "vertical_drop_ft": 3000,
+            "skiable_acres": 1720,
+            "lifts": 7,
+            "pass_affiliations": []
+          },
+          "metadata": {
+            "reputation": "Far-north Alberta skiing with virtually zero crowds.",
+            "terrain_character": "Incredible high alpine bowls (Tres Hombres) and great, long glades.",
+            "snow_quality_notes": "Unbelievably dry, cold snow. One of the most northern major resorts in North America.",
+            "best_for": "extreme_cold, dry_powder, solitude",
+            "crowd_factor": "Extremely low.",
+            "logistics_notes": "Very remote. Jasper is much quieter and less developed than Banff."
+          }
+        }
+      ]
+    },
+    {
+      "id": "nh_white_mountains",
+      "name": "New Hampshire (White Mountains)",
+      "country": "US",
+      "timezone": "America/New_York",
+      "macro_region": "northeast",
+      "coords": {
+        "lat": 44.03,
+        "lon": -71.63
+      },
+      "logistics": {
+        "nearest_airport": "BOS",
+        "drive_notes": "Fly into Boston (BOS) and drive 2-3 hours north on I-93.",
+        "lodging_notes": "Lincoln and North Conway offer massive bed bases and great mountain-town vibes."
+      },
+      "resorts": [
+        {
+          "id": "cannon_mountain",
+          "name": "Cannon Mountain",
+          "coords": {
+            "lat": 44.156,
+            "lon": -71.698
+          },
+          "stats": {
+            "summit_elevation_ft": 4080,
+            "base_elevation_ft": 1900,
+            "vertical_drop_ft": 2180,
+            "skiable_acres": 287,
+            "lifts": 10,
+            "pass_affiliations": [
+              "indy"
+            ]
+          },
+          "metadata": {
+            "reputation": "State-owned, no-frills, fiercely rugged and steep.",
+            "terrain_character": "Narrow, winding, relentlessly steep fall lines. DJ's Tramline is legendary.",
+            "snow_quality_notes": "Notoriously icy and windswept, but phenomenal during a heavy Nor'easter dump.",
+            "best_for": "steeps, rugged_terrain, old_school_vibes",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "Sits right in Franconia Notch, meaning weather funnels through here with extreme force."
+          }
+        },
+        {
+          "id": "loon_mountain",
+          "name": "Loon Mountain",
+          "coords": {
+            "lat": 44.035,
+            "lon": -71.638
+          },
+          "stats": {
+            "summit_elevation_ft": 3050,
+            "base_elevation_ft": 950,
+            "vertical_drop_ft": 2100,
+            "skiable_acres": 403,
+            "lifts": 13,
+            "pass_affiliations": [
+              "ikon"
+            ]
+          },
+          "metadata": {
+            "reputation": "The premier, modern mega-resort of New Hampshire.",
+            "terrain_character": "Excellent terrain parks, wide cruisers, and great glades when natural snow is deep.",
+            "snow_quality_notes": "Massive snowmaking operation. Lower base elevation than Cannon.",
+            "best_for": "parks, cruisers, modern_lifts",
+            "crowd_factor": "Extremely high on weekends due to direct I-93 access from Boston.",
+            "logistics_notes": "Features some of the most advanced lift infrastructure in the East (8-pack bubble chairs)."
+          }
+        },
+        {
+          "id": "wildcat",
+          "name": "Wildcat",
+          "coords": {
+            "lat": 44.264,
+            "lon": -71.239
+          },
+          "stats": {
+            "summit_elevation_ft": 4062,
+            "base_elevation_ft": 1950,
+            "vertical_drop_ft": 2112,
+            "skiable_acres": 225,
+            "lifts": 5,
+            "pass_affiliations": [
+              "epic"
+            ]
+          },
+          "metadata": {
+            "reputation": "Rugged, cold, and steep. Staring directly at Mount Washington.",
+            "terrain_character": "Sustained steep fall lines. Excellent, challenging tree skiing.",
+            "snow_quality_notes": "Notoriously cold and windy, but preserves natural snow beautifully.",
+            "best_for": "steeps, views, rugged_terrain",
+            "crowd_factor": "Moderate.",
+            "logistics_notes": "Located in Pinkham Notch, NH. Very isolated."
+          }
+        }
+      ]
+    }
+  ]
+}

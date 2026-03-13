@@ -22,10 +22,11 @@ type NotifyFormatter interface {
 
 // NotifyContext carries everything a formatter needs.
 type NotifyContext struct {
-	Evaluations   []Evaluation
-	Picks         []Pick
-	Opportunities []Opportunity
-	Synthesis     string // from Briefer, empty if not implemented
+	Evaluations      []Evaluation
+	Picks            []Pick
+	Opportunities    []Opportunity
+	Synthesis        string // from Briefer, empty if not implemented
+	ExistingThreadID string // from thread storage, empty for first notification
 }
 
 // NotifyAction is a single notification operation.

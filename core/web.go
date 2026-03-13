@@ -12,15 +12,17 @@ const (
 
 // CardData is the universal display format for the web UI.
 type CardData struct {
-	Title       string
-	Subtitle    string
-	Score       string
-	ScoreTier   ScoreTier
-	Reason      string
-	Urgency     string
-	Fields      []CardField
-	ActionURL   string
-	ActionLabel string
+	OpportunityID int64
+	Title         string
+	Subtitle      string
+	Score         string
+	ScoreTier     ScoreTier
+	Reason        string
+	Urgency       string
+	Fields        []CardField
+	ActionURL     string
+	ActionLabel   string
+	SnowfallIn    float64 // for sorting; 0 if not applicable
 }
 
 // CardField is a hunt-specific detail row on a card.

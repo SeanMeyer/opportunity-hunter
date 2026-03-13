@@ -8,5 +8,7 @@ RUN CGO_ENABLED=0 go build -o opportunity-hunter ./cmd/opportunity-hunter/
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates tzdata
 COPY --from=builder /app/opportunity-hunter /usr/local/bin/
+ENV DB_PATH=/data/opportunity-hunter.db
+VOLUME ["/data"]
 ENTRYPOINT ["opportunity-hunter"]
 CMD ["run"]

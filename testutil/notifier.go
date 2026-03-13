@@ -10,9 +10,9 @@ type FakeNotifier struct {
 }
 
 // ExecuteActions records the actions.
-func (n *FakeNotifier) ExecuteActions(actions []core.NotifyAction) error {
+func (n *FakeNotifier) ExecuteActions(_ string, actions []core.NotifyAction) (map[string]string, error) {
 	n.Actions = append(n.Actions, actions...)
-	return n.Err
+	return nil, n.Err
 }
 
 // PostError records error messages.

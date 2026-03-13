@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
+	"github.com/seanmeyer/opportunity-hunter/hunts/powder/weather"
 )
 
-// PowderAttrs holds powder-specific attributes.
+// PowderAttrs holds powder-specific attributes stored on each opportunity.
 type PowderAttrs struct {
 	SnowfallIn    float64 `json:"snowfall_in"`
-	Consensus     float64 `json:"consensus"` // 0-1 model agreement
+	Consensus     float64 `json:"consensus"`
 	FrictionTier  string  `json:"friction_tier"`
-	ChangeClass   string  `json:"change_class"` // new, material, minor, downgrade
-	WeatherWindow string  `json:"weather_window"` // "near" or "extended"
+	ChangeClass   string  `json:"change_class"`
+	WeatherWindow string  `json:"weather_window"`
 	StormGroup    string  `json:"storm_group"`
 }
 
@@ -26,13 +27,13 @@ func DecodePowderAttrs(raw core.Attributes) (PowderAttrs, error) {
 	return a, json.Unmarshal(raw, &a)
 }
 
-// Tier represents the excitement/priority level.
-type Tier string
+// Re-export tier constants from weather package for backward compatibility with tests.
+type Tier = weather.Tier
 
 const (
-	TierDropEverything Tier = "DROP EVERYTHING"
-	TierWorthALook     Tier = "WORTH A LOOK"
-	TierOnTheRadar     Tier = "ON THE RADAR"
+	TierDropEverything = weather.TierDropEverything
+	TierWorthALook     = weather.TierWorthALook
+	TierOnTheRadar     = weather.TierOnTheRadar
 )
 
 // FrictionTier represents geographic distance from home.
@@ -47,16 +48,5 @@ const (
 
 // Thresholds returns near and extended snowfall thresholds in inches for a friction tier.
 func (ft FrictionTier) Thresholds() (nearIn, extendedIn float64) {
-	switch ft {
-	case FrictionLocal:
-		return 6, 12
-	case FrictionRegional:
-		return 14, 20
-	case FrictionHigh:
-		return 18, 24
-	case FrictionFlight:
-		return 24, 36
-	default:
-		return 14, 20
-	}
+	return weather.FrictionThresholds(string(ft))
 }

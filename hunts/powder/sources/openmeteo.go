@@ -4,55 +4,119 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
 	"github.com/seanmeyer/opportunity-hunter/hunts/powder/catalog"
+	"github.com/seanmeyer/opportunity-hunter/hunts/powder/weather"
 )
 
-// OpenMeteo fetches weather forecasts from the Open-Meteo API.
-type OpenMeteo struct {
-	regions []catalog.Region
+// WeatherSource fetches real weather data from Open-Meteo and NWS,
+// runs detection against friction-tier thresholds, and produces
+// RawItems for each detected snowfall window.
+type WeatherSource struct {
+	service *weather.Service
+	catalog []catalog.RegionWithResorts
 }
 
-func NewOpenMeteo(regions []catalog.Region) *OpenMeteo {
-	return &OpenMeteo{regions: regions}
+func NewWeatherSource(service *weather.Service, cat []catalog.RegionWithResorts) *WeatherSource {
+	return &WeatherSource{service: service, catalog: cat}
 }
 
-func (s *OpenMeteo) Name() string { return "open-meteo" }
+func (s *WeatherSource) Name() string { return "weather" }
 
-func (s *OpenMeteo) Scan(ctx context.Context, _ core.ScanRegion) ([]core.RawItem, error) {
+func (s *WeatherSource) Scan(ctx context.Context, _ core.ScanRegion) ([]core.RawItem, error) {
 	var items []core.RawItem
+	now := time.Now().UTC()
 
-	for _, region := range s.regions {
-		// In production, this fetches from api.open-meteo.com with the region's coordinates.
-		// For now, returns an empty item per region so the framework can process it.
-		// Real weather data will populate snowfall windows.
+	for _, rr := range s.catalog {
+		region := rr.Region
+		resorts := rr.Resorts
 
-		windowStart := time.Now().Add(2 * 24 * time.Hour)
-		windowEnd := windowStart.Add(3 * 24 * time.Hour)
+		// Fetch weather from all sources (Open-Meteo + NWS for US).
+		result, err := s.service.FetchAll(ctx, region, resorts)
+		if err != nil {
+			slog.Warn("weather fetch failed for region", "region_id", region.ID, "error", err)
+			continue
+		}
+		if len(result.Forecasts) == 0 {
+			continue
+		}
 
-		attrs, _ := json.Marshal(map[string]any{
-			"snowfall_in":    0, // placeholder — real data comes from API
-			"friction_tier":  region.FrictionTier,
-			"storm_group":    region.StormGroup,
-			"weather_window": "near",
-		})
+		// Run detection against thresholds.
+		detection := weather.Detect(region, result.Forecasts, now)
+		if !detection.Detected {
+			continue
+		}
 
-		items = append(items, core.RawItem{
-			SourceID:       fmt.Sprintf("om-%s-%s", region.ID, windowStart.Format("2006-01-02")),
-			Source:         "open-meteo",
-			Title:          region.Name,
-			Subtitle:       fmt.Sprintf("%s — %s", windowStart.Format("Jan 2"), windowEnd.Format("Jan 2")),
-			VenueName:      region.Name,
-			VenueLatitude:  region.Latitude,
-			VenueLongitude: region.Longitude,
-			StartTime:      windowStart.Format(time.RFC3339),
-			EndTime:        windowEnd.Format(time.RFC3339),
-			Attributes:     attrs,
-			RawJSON:        "{}",
-		})
+		// Compute consensus for the region.
+		var omForecasts []weather.Forecast
+		for _, f := range result.Forecasts {
+			if f.Source == "open_meteo" {
+				omForecasts = append(omForecasts, f)
+			}
+		}
+		consensus := weather.ComputeConsensus(omForecasts)
+
+		// Build snapshot with full weather context.
+		snapshot := weather.ScanSnapshot{
+			Forecasts:  result.Forecasts,
+			Discussion: result.Discussion,
+			Consensus:  consensus,
+			Resorts:    resorts,
+			Detection:  detection,
+			ScannedAt:  now,
+		}
+		snapshotJSON, _ := json.Marshal(snapshot)
+
+		// Create one opportunity per detected window.
+		for _, window := range detection.Windows {
+			windowType := "near"
+			if !window.IsNearRange {
+				windowType = "extended"
+			}
+
+			attrs, _ := json.Marshal(map[string]any{
+				"snowfall_in":    window.TotalIn,
+				"friction_tier":  region.FrictionTier,
+				"storm_group":    region.StormGroup,
+				"weather_window": windowType,
+				"consensus":      consensusAgreement(consensus),
+			})
+
+			startStr := window.StartDate.Format(time.RFC3339)
+			endStr := window.EndDate.Format(time.RFC3339)
+
+			items = append(items, core.RawItem{
+				SourceID:       fmt.Sprintf("wx-%s-%s-%s", region.ID, windowType, window.StartDate.Format("2006-01-02")),
+				Source:         "weather",
+				Title:          region.Name,
+				Subtitle:       fmt.Sprintf("%.0f\" %s — %s", window.TotalIn, window.StartDate.Format("Jan 2"), window.EndDate.Format("Jan 2")),
+				VenueName:      region.Name,
+				VenueLatitude:  region.Latitude,
+				VenueLongitude: region.Longitude,
+				StartTime:      startStr,
+				EndTime:        endStr,
+				Attributes:     attrs,
+				RawJSON:        string(snapshotJSON),
+			})
+		}
 	}
 
 	return items, nil
+}
+
+// consensusAgreement returns a 0-1 value representing overall model agreement.
+func consensusAgreement(consensus weather.ModelConsensus) float64 {
+	if len(consensus.DailyConsensus) == 0 {
+		return 0
+	}
+	var highCount int
+	for _, dc := range consensus.DailyConsensus {
+		if dc.Confidence == "high" {
+			highCount++
+		}
+	}
+	return float64(highCount) / float64(len(consensus.DailyConsensus))
 }

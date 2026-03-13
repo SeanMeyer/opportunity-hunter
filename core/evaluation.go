@@ -22,9 +22,25 @@ type EvalContext struct {
 	Opportunities []Opportunity
 	Venues        map[int64]Venue
 	Preferences   string
+	Profile       *UserProfile
 	Feedback      []FeedbackEntry
 	CostTracker   *CostTracker
 	PriorEval     *Evaluation
+}
+
+// UserProfile holds structured subscriber profile data (hunt-agnostic).
+type UserProfile struct {
+	HuntName      string    `json:"hunt_name"`
+	HomeBase      string    `json:"home_base"`
+	HomeLat       float64   `json:"home_lat"`
+	HomeLon       float64   `json:"home_lon"`
+	Passes        []string  `json:"passes"`
+	SkillLevel    string    `json:"skill_level"`
+	Preferences   string    `json:"preferences"`
+	RemoteWork    bool      `json:"remote_work"`
+	PTODays       int       `json:"pto_days"`
+	BlackoutDates []time.Time `json:"blackout_dates"`
+	Extra         map[string]any `json:"extra,omitempty"`
 }
 
 // Validate checks that the EvalContext has required fields.
@@ -72,8 +88,10 @@ type Pick struct {
 // FeedbackEntry is a single piece of user feedback, used in eval prompts.
 type FeedbackEntry struct {
 	OpportunityTitle string
-	Rating           string
+	Rating           string // "up" or "down"
 	Note             string
+	EvalSummary      string // LLM's summary at the time of feedback
+	EvalScore        string // tier/display score at the time of feedback
 }
 
 // Group is a batch of opportunities evaluated together.

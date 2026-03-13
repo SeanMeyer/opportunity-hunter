@@ -3,10 +3,12 @@ package web
 import (
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -33,11 +35,11 @@ type StatusInfo struct {
 
 // Server is the web UI server.
 type Server struct {
-	db          *storage.DB
-	tmpl        *template.Template
-	hunts       []HuntInfo
-	huntNames   []string
-	lastStatus  *StatusInfo
+	db         *storage.DB
+	tmpl       *template.Template
+	hunts      []HuntInfo
+	huntNames  []string
+	lastStatus *StatusInfo
 }
 
 // New creates a web server.
@@ -66,24 +68,37 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /", s.handleIndex)
 	mux.HandleFunc("POST /preferences", s.handleSavePreferences)
 	mux.HandleFunc("POST /feedback", s.handleSaveFeedback)
+	mux.HandleFunc("POST /schedule", s.handleSaveSchedule)
 	return mux
+}
+
+// cardItem wraps a card with its opportunity ID for feedback forms.
+type cardItem struct {
+	Card  core.CardData
+	OppID int64
+}
+
+// ScheduleInfo holds schedule data for template rendering.
+type ScheduleInfo struct {
+	IntervalMinutes int
+	NextScan        string // formatted for display
+	StartHour       int
+	StartMinute     int
+	StartTime       string // "HH:MM" for the time input
+	StartDay        int    // 0=Sunday..6=Saturday, -1=N/A
 }
 
 type pageData struct {
 	Hunts           []string
 	ActiveHunt      string
-	Cards           []core.CardData
+	Cards           []cardItem
+	TotalCards      int // before filtering — used to keep toolbar visible
 	Preferences     string
 	FeedbackOptions []core.FeedbackOption
-	FeedbackItems   []feedbackItem
 	Status          *StatusInfo
-	CurrentOppID    int64
-	CurrentTitle    string
-}
-
-type feedbackItem struct {
-	ID    int64
-	Title string
+	SortBy          string
+	FilterTier      string
+	Schedule        *ScheduleInfo
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -92,16 +107,36 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		activeHunt = s.huntNames[0]
 	}
 
+	sortBy := r.URL.Query().Get("sort")
+	if sortBy == "" {
+		sortBy = "snowfall"
+	}
+	filterTier := r.URL.Query().Get("tier")
+
 	ctx := r.Context()
 	data := pageData{
 		Hunts:      s.huntNames,
 		ActiveHunt: activeHunt,
 		Status:     s.lastStatus,
+		SortBy:     sortBy,
+		FilterTier: filterTier,
 	}
 
 	// Load preferences.
 	prefs, _ := s.db.GetPreferences(ctx, activeHunt)
 	data.Preferences = prefs
+
+	// Load schedule.
+	if sched, err := s.db.GetSchedule(ctx, activeHunt); err == nil {
+		data.Schedule = &ScheduleInfo{
+			IntervalMinutes: sched.ScanIntervalM,
+			NextScan:        sched.NextScanAt.Local().Format("Mon Jan 2, 3:04 PM"),
+			StartHour:       sched.StartHour,
+			StartMinute:     sched.StartMinute,
+			StartTime:       fmt.Sprintf("%02d:%02d", sched.StartHour, sched.StartMinute),
+			StartDay:        sched.StartDay,
+		}
+	}
 
 	// Load feedback options for active hunt.
 	for _, h := range s.hunts {
@@ -111,8 +146,30 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Load cards: get evaluated/notified opportunities with their latest picks.
-	data.Cards = s.loadCards(ctx, activeHunt)
+	// Load cards.
+	rawCards := s.loadCards(ctx, activeHunt)
+	data.TotalCards = len(rawCards)
+
+	// Filter by tier.
+	if filterTier != "" {
+		var filtered []core.CardData
+		for _, c := range rawCards {
+			if c.Score == filterTier {
+				filtered = append(filtered, c)
+			}
+		}
+		rawCards = filtered
+	}
+
+	// Sort cards.
+	sortCards(rawCards, sortBy)
+
+	// Wrap with opportunity IDs for feedback forms.
+	items := make([]cardItem, len(rawCards))
+	for i, c := range rawCards {
+		items[i] = cardItem{Card: c, OppID: c.OpportunityID}
+	}
+	data.Cards = items
 
 	if err := s.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
 		slog.Error("render template", "err", err)
@@ -120,8 +177,41 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func sortCards(cards []core.CardData, sortBy string) {
+	switch sortBy {
+	case "snowfall":
+		sort.Slice(cards, func(i, j int) bool {
+			return cards[i].SnowfallIn > cards[j].SnowfallIn
+		})
+	case "tier":
+		sort.Slice(cards, func(i, j int) bool {
+			return tierSortOrder(cards[i].Score) < tierSortOrder(cards[j].Score)
+		})
+	case "region":
+		sort.Slice(cards, func(i, j int) bool {
+			return cards[i].Title < cards[j].Title
+		})
+	default:
+		sort.Slice(cards, func(i, j int) bool {
+			return cards[i].SnowfallIn > cards[j].SnowfallIn
+		})
+	}
+}
+
+func tierSortOrder(score string) int {
+	switch score {
+	case "DROP_EVERYTHING":
+		return 0
+	case "WORTH_A_LOOK":
+		return 1
+	case "ON_THE_RADAR":
+		return 2
+	default:
+		return 3
+	}
+}
+
 func (s *Server) loadCards(ctx context.Context, huntName string) []core.CardData {
-	// Get opportunities in evaluated or notified state.
 	var cards []core.CardData
 	for _, state := range []core.State{core.Notified, core.Evaluated, core.Reminded} {
 		opps, err := s.db.GetByState(ctx, huntName, state)
@@ -134,14 +224,13 @@ func (s *Server) loadCards(ctx context.Context, huntName string) []core.CardData
 			if err != nil || len(picks) == 0 {
 				continue
 			}
-			pick := picks[0] // latest pick
+			pick := picks[0]
 
 			var venue core.Venue
 			if opp.VenueID != nil {
 				venue, _ = s.db.GetVenue(ctx, *opp.VenueID)
 			}
 
-			// Find card renderer for this hunt.
 			var renderer core.CardRenderer
 			for _, h := range s.hunts {
 				if h.Name == huntName {
@@ -149,18 +238,21 @@ func (s *Server) loadCards(ctx context.Context, huntName string) []core.CardData
 					break
 				}
 			}
+
+			var card core.CardData
 			if renderer != nil {
-				cards = append(cards, renderer.RenderCard(opp, pick, venue))
+				card = renderer.RenderCard(opp, pick, venue)
 			} else {
-				// Default card rendering.
-				cards = append(cards, core.CardData{
+				card = core.CardData{
 					Title:    opp.Title,
 					Subtitle: opp.Subtitle,
 					Score:    pick.DisplayScore,
 					Reason:   pick.Reason,
 					Urgency:  pick.Urgency,
-				})
+				}
 			}
+			card.OpportunityID = opp.ID
+			cards = append(cards, card)
 		}
 	}
 	return cards
@@ -195,6 +287,27 @@ func (s *Server) handleSaveFeedback(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.ParseInt(oppIDStr, 10, 64)
 		if err == nil {
 			fb.OpportunityID = &id
+
+			// Snapshot the evaluation context at feedback time.
+			picks, _ := s.db.GetPicksForOpportunity(r.Context(), id)
+			if len(picks) > 0 {
+				pick := picks[0]
+				fb.EvalScore = pick.DisplayScore
+				// Extract summary from pick attributes.
+				var attrs map[string]any
+				if pick.Attributes != nil {
+					_ = json.Unmarshal(pick.Attributes, &attrs)
+				}
+				if attrs != nil {
+					if s, ok := attrs["summary"].(string); ok {
+						fb.EvalSummary = s
+					}
+				}
+				// Fall back to reason if no summary.
+				if fb.EvalSummary == "" {
+					fb.EvalSummary = pick.Reason
+				}
+			}
 		}
 	}
 
@@ -203,5 +316,49 @@ func (s *Server) handleSaveFeedback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error saving feedback", http.StatusInternalServerError)
 		return
 	}
+	http.Redirect(w, r, "/?hunt="+hunt, http.StatusSeeOther)
+}
+
+func (s *Server) handleSaveSchedule(w http.ResponseWriter, r *http.Request) {
+	hunt := r.FormValue("hunt")
+	intervalStr := r.FormValue("interval")
+	interval, err := strconv.Atoi(intervalStr)
+	if err != nil || interval <= 0 {
+		http.Error(w, "Invalid interval", http.StatusBadRequest)
+		return
+	}
+
+	startHour, startMinute := 6, 0 // default
+	if st := r.FormValue("start_time"); st != "" {
+		if _, parseErr := fmt.Sscanf(st, "%d:%d", &startHour, &startMinute); parseErr != nil {
+			http.Error(w, "Invalid start time", http.StatusBadRequest)
+			return
+		}
+		if startHour < 0 || startHour > 23 || startMinute < 0 || startMinute > 59 {
+			http.Error(w, "Start time out of range", http.StatusBadRequest)
+			return
+		}
+	}
+
+	startDay := -1 // not applicable for sub-weekly
+	if interval >= 10080 {
+		if dayStr := r.FormValue("start_day"); dayStr != "" {
+			if _, parseErr := fmt.Sscanf(dayStr, "%d", &startDay); parseErr != nil || startDay < 0 || startDay > 6 {
+				http.Error(w, "Invalid day of week", http.StatusBadRequest)
+				return
+			}
+		} else {
+			startDay = int(time.Now().Weekday()) // default to today
+		}
+	}
+
+	now := time.Now()
+	if err := s.db.SaveSchedule(r.Context(), hunt, interval, startHour, startMinute, startDay, now); err != nil {
+		slog.Error("save schedule", "err", err)
+		http.Error(w, "Error saving schedule", http.StatusInternalServerError)
+		return
+	}
+	slog.Info("schedule updated", "hunt", hunt, "interval_m", interval,
+		"start", fmt.Sprintf("%02d:%02d", startHour, startMinute), "day", startDay)
 	http.Redirect(w, r, "/?hunt="+hunt, http.StatusSeeOther)
 }

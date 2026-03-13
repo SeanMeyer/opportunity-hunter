@@ -1,6 +1,6 @@
 module github.com/seanmeyer/opportunity-hunter
 
-go 1.24.1
+go 1.25.0
 
 require (
 	github.com/gocolly/colly/v2 v2.3.0
@@ -38,6 +38,7 @@ require (
 	golang.org/x/crypto v0.44.0 // indirect
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
 	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

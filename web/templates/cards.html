@@ -5,70 +5,160 @@
 </div>
 {{end}}
 
+{{if gt .TotalCards 0}}
+<div class="toolbar">
+    <label>Sort:</label>
+    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort='+this.value+'&tier={{.FilterTier}}'">
+        <option value="snowfall" {{if eq .SortBy "snowfall"}}selected{{end}}>Snowfall (high to low)</option>
+        <option value="tier" {{if eq .SortBy "tier"}}selected{{end}}>Tier</option>
+        <option value="region" {{if eq .SortBy "region"}}selected{{end}}>Region (A-Z)</option>
+    </select>
+    <label>Filter:</label>
+    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort={{.SortBy}}&tier='+this.value">
+        <option value="" {{if eq .FilterTier ""}}selected{{end}}>All tiers ({{.TotalCards}})</option>
+        <option value="DROP_EVERYTHING" {{if eq .FilterTier "DROP_EVERYTHING"}}selected{{end}}>DROP EVERYTHING</option>
+        <option value="WORTH_A_LOOK" {{if eq .FilterTier "WORTH_A_LOOK"}}selected{{end}}>WORTH A LOOK</option>
+        <option value="ON_THE_RADAR" {{if eq .FilterTier "ON_THE_RADAR"}}selected{{end}}>ON THE RADAR</option>
+    </select>
+    <span class="count">{{len .Cards}} results</span>
+    <button class="prefs-toggle" onclick="document.getElementById('prefs-panel').classList.toggle('open')" title="Preferences">&#x2699;&#xFE0F;</button>
+</div>
+
+<div id="prefs-panel" class="prefs-panel {{if .Preferences}}has-prefs{{end}}">
+    <form method="POST" action="/preferences">
+        <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
+        <div class="prefs-header">
+            <strong>Preferences</strong>
+            <span class="prefs-hint">These are included in every LLM evaluation for this hunt.</span>
+        </div>
+        <textarea name="preferences" placeholder="Skill level, passes held, home location, terrain preferences, schedule constraints...">{{.Preferences}}</textarea>
+        <button type="submit">Save</button>
+    </form>
+    <form method="POST" action="/schedule" class="schedule-form">
+        <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
+        <div class="prefs-header">
+            <strong>Scan Schedule</strong>
+            <span class="prefs-hint">How often this hunt scans for new opportunities.</span>
+        </div>
+        <div class="schedule-row">
+            <label class="schedule-label">Every</label>
+            <select name="interval" id="sched-interval" onchange="toggleDayPicker()">
+                <option value="60" {{if and .Schedule (eq .Schedule.IntervalMinutes 60)}}selected{{end}}>hour</option>
+                <option value="180" {{if and .Schedule (eq .Schedule.IntervalMinutes 180)}}selected{{end}}>3 hours</option>
+                <option value="360" {{if and .Schedule (eq .Schedule.IntervalMinutes 360)}}selected{{end}}>6 hours</option>
+                <option value="720" {{if or (not .Schedule) (and .Schedule (eq .Schedule.IntervalMinutes 720))}}selected{{end}}>12 hours</option>
+                <option value="1440" {{if and .Schedule (eq .Schedule.IntervalMinutes 1440)}}selected{{end}}>day</option>
+                <option value="10080" {{if and .Schedule (eq .Schedule.IntervalMinutes 10080)}}selected{{end}}>week</option>
+            </select>
+            <span id="sched-day-wrap" class="schedule-day-wrap" style="display:none;">
+                <label class="schedule-label">on</label>
+                <select name="start_day" id="sched-day">
+                    <option value="0" {{if and .Schedule (eq .Schedule.StartDay 0)}}selected{{end}}>Sunday</option>
+                    <option value="1" {{if and .Schedule (eq .Schedule.StartDay 1)}}selected{{end}}>Monday</option>
+                    <option value="2" {{if and .Schedule (eq .Schedule.StartDay 2)}}selected{{end}}>Tuesday</option>
+                    <option value="3" {{if and .Schedule (eq .Schedule.StartDay 3)}}selected{{end}}>Wednesday</option>
+                    <option value="4" {{if and .Schedule (eq .Schedule.StartDay 4)}}selected{{end}}>Thursday</option>
+                    <option value="5" {{if and .Schedule (eq .Schedule.StartDay 5)}}selected{{end}}>Friday</option>
+                    <option value="6" {{if and .Schedule (eq .Schedule.StartDay 6)}}selected{{end}}>Saturday</option>
+                </select>
+            </span>
+            <label class="schedule-label">at</label>
+            <input type="time" name="start_time" value="{{if .Schedule}}{{.Schedule.StartTime}}{{else}}06:00{{end}}" class="schedule-time">
+            <button type="submit">Save</button>
+            {{if .Schedule}}<span class="schedule-next">Next: {{.Schedule.NextScan}}</span>{{end}}
+        </div>
+    </form>
+</div>
+{{end}}
+
 {{if .Cards}}
 <div class="cards">
+    {{$hunt := .ActiveHunt}}
     {{range .Cards}}
-    <div class="card">
+    <div class="card tier-{{.Card.ScoreTier}}">
         <div class="card-header">
             <div>
-                <div class="card-title">{{.Title}}</div>
-                <div class="card-subtitle">{{.Subtitle}}</div>
+                <div class="card-title">{{.Card.Title}}</div>
+                <div class="card-subtitle">{{.Card.Subtitle}}</div>
             </div>
-            {{if .Score}}
-            <span class="score score-{{.ScoreTier}}">{{.Score}}</span>
+            {{if .Card.Score}}
+            <span class="score score-{{.Card.ScoreTier}}">{{.Card.Score}}</span>
             {{end}}
         </div>
-        {{if .Reason}}<div class="card-reason">{{.Reason}}</div>{{end}}
-        {{if .Urgency}}<div class="card-urgency">{{.Urgency}}</div>{{end}}
-        {{if .Fields}}
-        <div class="card-fields">
-            {{range .Fields}}
-            <div class="field">
-                <span class="field-label">{{.Icon}} {{.Label}}:</span> {{.Value}}
+        {{if .Card.Reason}}<div class="card-reason">{{.Card.Reason}}</div>{{end}}
+        {{if .Card.Urgency}}<div class="card-urgency">{{.Card.Urgency}}</div>{{end}}
+
+        {{if .Card.Fields}}
+        <details>
+            <summary>Details ({{len .Card.Fields}} fields)</summary>
+            <div class="card-fields">
+                {{range .Card.Fields}}
+                <div class="field field-long">
+                    <span class="field-label">{{.Icon}} {{.Label}}:</span>
+                    <span class="field-value">{{.Value}}</span>
+                </div>
+                {{end}}
             </div>
-            {{end}}
-        </div>
+        </details>
         {{end}}
-        {{if .ActionURL}}
+
+        {{if .Card.ActionURL}}
         <div class="card-action">
-            <a href="{{.ActionURL}}" target="_blank">{{.ActionLabel}}</a>
+            <a href="{{.Card.ActionURL}}" target="_blank">{{.Card.ActionLabel}}</a>
         </div>
         {{end}}
+
+        <div class="card-footer" id="fb-{{.OppID}}">
+            <button class="fb-btn fb-up" onclick="showFeedbackForm({{.OppID}}, 'up', this)" title="Good recommendation">&#x1F44D;</button>
+            <button class="fb-btn fb-down" onclick="showFeedbackForm({{.OppID}}, 'down', this)" title="Bad recommendation">&#x1F44E;</button>
+            <span class="fb-saved" id="fb-saved-{{.OppID}}" style="display:none;">Saved</span>
+        </div>
+        <div class="fb-form" id="fb-form-{{.OppID}}" style="display:none;">
+            <form method="POST" action="/feedback">
+                <input type="hidden" name="hunt" value="{{$hunt}}">
+                <input type="hidden" name="opportunity_id" value="{{.OppID}}">
+                <input type="hidden" name="title" value="{{.Card.Title}}">
+                <input type="hidden" name="rating" id="fb-rating-{{.OppID}}" value="">
+                <div class="fb-form-row">
+                    <input type="text" name="note" placeholder="Why? (optional)" class="fb-note">
+                    <button type="submit" class="fb-save">Save</button>
+                    <button type="button" class="fb-cancel" onclick="hideFeedbackForm({{.OppID}})">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
     {{end}}
 </div>
+{{else if gt .TotalCards 0}}
+<div class="empty">No results match this filter. <a href="/?hunt={{.ActiveHunt}}">Clear filter</a></div>
 {{else}}
 <div class="empty">No opportunities yet for {{.ActiveHunt}}.</div>
 {{end}}
 
-{{if .FeedbackOptions}}
-<section>
-    <h2>Feedback</h2>
-    {{range .FeedbackItems}}
-    <div class="card">
-        <div class="card-title">{{.Title}}</div>
-        <div class="feedback-buttons">
-            {{range $.FeedbackOptions}}
-            <form method="POST" action="/feedback" style="display:inline">
-                <input type="hidden" name="hunt" value="{{$.ActiveHunt}}">
-                <input type="hidden" name="opportunity_id" value="{{$.CurrentOppID}}">
-                <input type="hidden" name="title" value="{{$.CurrentTitle}}">
-                <input type="hidden" name="rating" value="{{.Value}}">
-                <button type="submit">{{.Label}}</button>
-            </form>
-            {{end}}
-        </div>
-    </div>
-    {{end}}
-</section>
-{{end}}
+<script>
+function showFeedbackForm(oppId, rating, btn) {
+    document.getElementById('fb-rating-' + oppId).value = rating;
+    document.getElementById('fb-form-' + oppId).style.display = 'block';
+    var footer = document.getElementById('fb-' + oppId);
+    footer.querySelectorAll('.fb-btn').forEach(function(b) { b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    var note = document.getElementById('fb-form-' + oppId).querySelector('.fb-note');
+    if (note) note.focus();
+}
 
-<section>
-    <h2>Preferences</h2>
-    <form method="POST" action="/preferences">
-        <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
-        <textarea name="preferences">{{.Preferences}}</textarea>
-        <button type="submit">Save Preferences</button>
-    </form>
-</section>
+function hideFeedbackForm(oppId) {
+    document.getElementById('fb-form-' + oppId).style.display = 'none';
+    var footer = document.getElementById('fb-' + oppId);
+    footer.querySelectorAll('.fb-btn').forEach(function(b) { b.classList.remove('selected'); });
+}
+
+function toggleDayPicker() {
+    var interval = document.getElementById('sched-interval');
+    var dayWrap = document.getElementById('sched-day-wrap');
+    if (interval && dayWrap) {
+        dayWrap.style.display = parseInt(interval.value) >= 10080 ? '' : 'none';
+    }
+}
+toggleDayPicker();
+</script>
 {{end}}

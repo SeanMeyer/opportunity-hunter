@@ -20,9 +20,10 @@ func NewClient(webhookURL string) *Client {
 }
 
 // ExecuteActions processes notification actions in order, tracking thread IDs.
-func (c *Client) ExecuteActions(ctx context.Context, actions []core.NotifyAction) error {
+// Returns a map of threadName → discordThreadID for newly created threads.
+func (c *Client) ExecuteActions(ctx context.Context, actions []core.NotifyAction) (map[string]string, error) {
 	if err := core.ValidateActions(actions); err != nil {
-		return fmt.Errorf("invalid actions: %w", err)
+		return nil, fmt.Errorf("invalid actions: %w", err)
 	}
 
 	threads := make(map[string]string) // ThreadName -> Discord thread ID
@@ -38,7 +39,7 @@ func (c *Client) ExecuteActions(ctx context.Context, actions []core.NotifyAction
 			payload.ThreadName = action.ThreadName
 			threadID, err := c.discord.PostThread(ctx, payload)
 			if err != nil {
-				return fmt.Errorf("action %d (CreateThread %q): %w", i, action.ThreadName, err)
+				return threads, fmt.Errorf("action %d (CreateThread %q): %w", i, action.ThreadName, err)
 			}
 			threads[action.ThreadName] = threadID
 			slog.Info("created thread", "name", action.ThreadName, "id", threadID)
@@ -46,15 +47,15 @@ func (c *Client) ExecuteActions(ctx context.Context, actions []core.NotifyAction
 		case core.PostToThread:
 			threadID, ok := threads[action.ThreadRef]
 			if !ok {
-				return fmt.Errorf("action %d: thread %q not found", i, action.ThreadRef)
+				return threads, fmt.Errorf("action %d: thread %q not found", i, action.ThreadRef)
 			}
 			if err := c.discord.PostToThread(ctx, threadID, payload); err != nil {
-				return fmt.Errorf("action %d (PostToThread %q): %w", i, action.ThreadRef, err)
+				return threads, fmt.Errorf("action %d (PostToThread %q): %w", i, action.ThreadRef, err)
 			}
 
 		case core.PostMessage:
 			if err := c.discord.PostMessage(ctx, payload); err != nil {
-				return fmt.Errorf("action %d (PostMessage): %w", i, err)
+				return threads, fmt.Errorf("action %d (PostMessage): %w", i, err)
 			}
 		}
 
@@ -63,7 +64,7 @@ func (c *Client) ExecuteActions(ctx context.Context, actions []core.NotifyAction
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
-	return nil
+	return threads, nil
 }
 
 // PostError sends an error message.

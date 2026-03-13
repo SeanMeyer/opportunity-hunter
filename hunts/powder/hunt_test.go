@@ -51,11 +51,11 @@ func TestCardRenderer_TierMapping(t *testing.T) {
 
 	card := renderer.RenderCard(
 		core.Opportunity{Title: "Summit County", StartTime: time.Now()},
-		core.Pick{Score: 0.95, DisplayScore: "DROP EVERYTHING"},
+		core.Pick{Score: 0.95, DisplayScore: string(powder.TierDropEverything)},
 		core.Venue{},
 	)
 	if card.ScoreTier != core.ScoreHigh {
-		t.Fatalf("expected ScoreHigh for DROP EVERYTHING, got %s", card.ScoreTier)
+		t.Fatalf("expected ScoreHigh for DROP_EVERYTHING, got %s", card.ScoreTier)
 	}
 }
 
@@ -65,8 +65,8 @@ func TestNotifyFormatter_ThreadedActions(t *testing.T) {
 
 	actions := formatter.FormatPicks(core.NotifyContext{
 		Picks: []core.Pick{
-			{OpportunityID: 1, DisplayScore: "DROP EVERYTHING", Reason: "Epic storm"},
-			{OpportunityID: 2, DisplayScore: "WORTH A LOOK", Reason: "Solid storm"},
+			{OpportunityID: 1, DisplayScore: string(powder.TierDropEverything), Reason: "Epic storm"},
+			{OpportunityID: 2, DisplayScore: string(powder.TierWorthALook), Reason: "Solid storm"},
 		},
 		Opportunities: []core.Opportunity{
 			{ID: 1, Title: "Front Range", Subtitle: "Mar 15-17"},
