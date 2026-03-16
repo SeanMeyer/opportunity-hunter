@@ -11,6 +11,8 @@ import (
 // Compile-time interface checks.
 var _ core.Hunt = (*performing.PerformingHunt)(nil)
 var _ core.Grouper = (*performing.PerformingHunt)(nil)
+var _ core.VenueEnricher = (*performing.PerformingHunt)(nil)
+var _ core.DefaultPreferencer = (*performing.PerformingHunt)(nil)
 var _ core.WebHunt = (*performing.PerformingHunt)(nil)
 var _ core.NotifyHunt = (*performing.PerformingHunt)(nil)
 
@@ -22,7 +24,7 @@ func TestDedupeKey(t *testing.T) {
 		StartTime: "2026-03-15T19:30:00-06:00",
 	}
 	key := h.DedupeKey(raw)
-	if key != "Hamilton|Buell Theatre|2026-03-15" {
+	if key != "hamilton|Buell Theatre|2026-03-15" {
 		t.Fatalf("unexpected dedupe key: %q", key)
 	}
 }

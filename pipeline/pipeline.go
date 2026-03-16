@@ -3,6 +3,7 @@ package pipeline
 import (
 	"context"
 	"log/slog"
+	"sort"
 	"sync"
 	"time"
 
@@ -16,6 +17,8 @@ type Pipeline struct {
 	costTracker *core.CostTracker
 	notifier    Notifier
 	dryRun      bool
+	homeRegion  core.ScanRegion
+	homeAddress string
 }
 
 // Notifier abstracts Discord notification sending.
@@ -26,12 +29,30 @@ type Notifier interface {
 }
 
 // New creates a pipeline.
-func New(db *storage.DB, costTracker *core.CostTracker, notifier Notifier) *Pipeline {
+func New(db *storage.DB, costTracker *core.CostTracker, notifier Notifier, homeRegion core.ScanRegion, homeAddress string) *Pipeline {
 	return &Pipeline{
 		db:          db,
 		costTracker: costTracker,
 		notifier:    notifier,
+		homeRegion:  homeRegion,
+		homeAddress: homeAddress,
 	}
+}
+
+// ScanAll runs only the scan step for all hunts (no evaluation, no notifications).
+func (p *Pipeline) ScanAll(ctx context.Context, hunts []core.Hunt) core.PipelineResult {
+	var result core.PipelineResult
+	for _, hunt := range hunts {
+		name := hunt.Name()
+		hr := core.HuntResult{HuntName: name}
+		caps, _ := core.ValidateHunt(hunt)
+		scanned, scanErrs := p.scan(ctx, hunt)
+		hr.Scanned = scanned
+		hr.Errors = append(hr.Errors, scanErrs...)
+		p.expire(ctx, hunt, caps)
+		result.HuntResults = append(result.HuntResults, hr)
+	}
+	return result
 }
 
 // RunAll runs the pipeline for all hunts sequentially.
@@ -175,7 +196,7 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 		wg.Add(1)
 		go func(s core.Source) {
 			defer wg.Done()
-			items, err := s.Scan(ctx, core.ScanRegion{})
+			items, err := s.Scan(ctx, p.homeRegion)
 			mu.Lock()
 			results = append(results, scanResult{items: items, err: err, src: s.Name()})
 			mu.Unlock()
@@ -193,20 +214,58 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 		allItems = append(allItems, r.items...)
 	}
 
-	// Deduplicate and store.
+	// Pre-seed dedup keys from existing DB rows so normalized titles
+	// catch variants across scans (e.g., "Club Seating - X" vs "X").
+	// For merged multi-date events, expand ShowDates into individual dedup keys
+	// so new scan dates that already exist in a merged opp are skipped.
 	seen := make(map[string]bool)
-	stored := 0
+	existing, _ := p.db.GetRawItemsForDedup(ctx, name)
+	for _, ex := range existing {
+		if len(ex.ShowDates) > 0 {
+			for _, d := range ex.ShowDates {
+				expanded := ex
+				expanded.StartTime = d.Format(time.RFC3339)
+				seen[hunt.DedupeKey(expanded)] = true
+			}
+		} else {
+			seen[hunt.DedupeKey(ex)] = true
+		}
+	}
+
+	// Collect best candidate per dedup key. When multiple source items
+	// produce the same key (e.g., "Club Seating - X" and "X: Tour Name"),
+	// prefer the one whose title is closest to the normalized form —
+	// i.e., the "real" event name rather than a venue seating variant.
+	best := make(map[string]core.RawItem)
+	var keyOrder []string
 	for _, item := range allItems {
 		key := hunt.DedupeKey(item)
 		if seen[key] {
 			continue
 		}
-		seen[key] = true
+		if prev, exists := best[key]; exists {
+			// Prefer the title that required less normalization (shorter diff).
+			prevNorm := core.NormalizeTitle(prev.Title)
+			itemNorm := core.NormalizeTitle(item.Title)
+			prevDelta := len(prev.Title) - len(prevNorm)
+			itemDelta := len(item.Title) - len(itemNorm)
+			if itemDelta < prevDelta {
+				best[key] = item
+			}
+		} else {
+			best[key] = item
+			keyOrder = append(keyOrder, key)
+		}
+	}
 
-		// Check if already in DB.
-		exists, _ := p.db.OpportunityExists(ctx, name, item.SourceID)
-		if exists {
-			continue
+	// Merge pass: group best items by normalized title + venue (no date)
+	// to merge multi-date events (e.g., Fri/Sat/Sun shows) into one opportunity.
+	merged := mergeMultiDateItems(best, keyOrder)
+
+	stored := 0
+	for _, item := range merged {
+		for _, key := range item.mergedKeys {
+			seen[key] = true
 		}
 
 		// Upsert venue if provided.
@@ -240,6 +299,7 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 			VenueID:      venueID,
 			StartTime:    startTime,
 			EndTime:      endTime,
+			ShowDates:    item.ShowDates,
 			PriceMin:     item.PriceMin,
 			PriceMax:     item.PriceMax,
 			TicketURL:    item.TicketURL,
@@ -304,8 +364,32 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 		}
 	}
 
-	// Load preferences and feedback.
+	// Enrich venues (e.g. walking distance) and cache results.
+	if enricher, ok := hunt.(core.VenueEnricher); ok {
+		enricher.EnrichVenues(ctx, venues)
+		for _, v := range venues {
+			if v.WalkingMinutes > 0 || v.DistanceMi > 0 {
+				p.db.SaveDistance(ctx, storage.DistanceRow{
+					VenueID:     v.ID,
+					HomeAddress: p.homeAddress,
+					Mode:        "walking",
+					Minutes:     v.WalkingMinutes,
+					DistanceMi:  v.DistanceMi,
+					CreatedAt:   time.Now(),
+				})
+			}
+		}
+	}
+
+	// Load preferences, seeding defaults if empty.
 	prefs, _ := p.db.GetPreferences(ctx, hunt.Name())
+	if prefs == "" {
+		if dp, ok := hunt.(core.DefaultPreferencer); ok {
+			prefs = dp.DefaultPreferences()
+			_ = p.db.SavePreferences(ctx, hunt.Name(), prefs)
+			slog.Info("seeded default preferences", "hunt", hunt.Name())
+		}
+	}
 	fbRows, _ := p.db.GetRecentFeedback(ctx, hunt.Name(), 20)
 	var feedback []core.FeedbackEntry
 	for _, fb := range fbRows {
@@ -400,6 +484,70 @@ func (p *Pipeline) notifyFull(ctx context.Context, hunt core.Hunt, caps core.Hun
 	}
 }
 
+// mergedItem is a RawItem extended with merge metadata.
+type mergedItem struct {
+	core.RawItem
+	mergedKeys []string // all dedup keys that were merged into this item
+}
+
+// mergeMultiDateItems groups best items by normalized title + venue (no date component),
+// merging multi-date events into a single item with all dates in ShowDates.
+func mergeMultiDateItems(best map[string]core.RawItem, keyOrder []string) []mergedItem {
+	type mergeGroup struct {
+		items []core.RawItem
+		keys  []string
+	}
+
+	groups := make(map[string]*mergeGroup)
+	var groupOrder []string
+
+	for _, key := range keyOrder {
+		item := best[key]
+		mergeKey := core.NormalizeTitleForDedup(item.Title) + "|" + item.VenueName
+		if g, ok := groups[mergeKey]; ok {
+			g.items = append(g.items, item)
+			g.keys = append(g.keys, key)
+		} else {
+			groups[mergeKey] = &mergeGroup{
+				items: []core.RawItem{item},
+				keys:  []string{key},
+			}
+			groupOrder = append(groupOrder, mergeKey)
+		}
+	}
+
+	result := make([]mergedItem, 0, len(groupOrder))
+	for _, mk := range groupOrder {
+		g := groups[mk]
+
+		// Sort items by start time.
+		sort.Slice(g.items, func(i, j int) bool {
+			ti, _ := time.Parse(time.RFC3339, g.items[i].StartTime)
+			tj, _ := time.Parse(time.RFC3339, g.items[j].StartTime)
+			return ti.Before(tj)
+		})
+
+		// Use earliest item as the representative.
+		rep := g.items[0]
+
+		// Collect all dates.
+		var dates []time.Time
+		for _, item := range g.items {
+			t, err := time.Parse(time.RFC3339, item.StartTime)
+			if err == nil {
+				dates = append(dates, t)
+			}
+		}
+		rep.ShowDates = dates
+
+		result = append(result, mergedItem{
+			RawItem:    rep,
+			mergedKeys: g.keys,
+		})
+	}
+	return result
+}
+
 func (p *Pipeline) expire(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities) {
 	name := hunt.Name()
 	for _, state := range []core.State{core.Notified, core.Reminded, core.Evaluated} {
@@ -412,8 +560,8 @@ func (p *Pipeline) expire(ctx context.Context, hunt core.Hunt, caps core.HuntCap
 			if caps.HasExpirer {
 				shouldExpire = hunt.(core.Expirer).ShouldExpire(opp)
 			} else {
-				// Default: expire if start time is in the past.
-				shouldExpire = opp.StartTime.Before(time.Now())
+				// Default: expire after the last show date (or StartTime for single-date).
+				shouldExpire = opp.LastShowDate().Before(time.Now())
 			}
 			if shouldExpire {
 				p.db.UpdateState(ctx, opp.ID, core.Expired, nil)

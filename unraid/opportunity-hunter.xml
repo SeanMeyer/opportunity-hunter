@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>opportunity-hunter</Name>
+  <Repository>ghcr.io/seanmeyer/opportunity-hunter</Repository>
+  <Registry/>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project>https://github.com/SeanMeyer/opportunity-hunter</Project>
+  <Overview>Automated opportunity alerts. Scans for comedy shows, performing arts, movies, and powder days — evaluates with Gemini AI and sends personalized picks to Discord.</Overview>
+  <Category>Tools:</Category>
+  <Icon>https://raw.githubusercontent.com/SeanMeyer/opportunity-hunter/main/unraid/icon.png</Icon>
+  <Description>Automated opportunity alerts. Scans for comedy shows, performing arts, movies, and powder days — evaluates with Gemini AI and sends personalized picks to Discord.</Description>
+
+  <!-- Required -->
+  <Config Name="Google API Key" Target="GOOGLE_API_KEY" Default="" Type="Variable" Display="always" Required="true" Mask="true" Description="Gemini API key. Get a free key at https://aistudio.google.com/apikey"/>
+
+  <!-- Location -->
+  <Config Name="Home Address" Target="HOME_ADDRESS" Default="123 Main St, Denver, CO" Type="Variable" Display="always" Required="false" Mask="false" Description="Your home address (used for distance calculations)"/>
+  <Config Name="Home Latitude" Target="HOME_LATITUDE" Default="39.75" Type="Variable" Display="always" Required="false" Mask="false" Description="Latitude of your home"/>
+  <Config Name="Home Longitude" Target="HOME_LONGITUDE" Default="-104.99" Type="Variable" Display="always" Required="false" Mask="false" Description="Longitude of your home"/>
+
+  <!-- Notifications (per-hunt Discord webhooks) -->
+  <Config Name="Comedy Webhook" Target="COMEDY_DISCORD_WEBHOOK_URL" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="Discord webhook URL for comedy show alerts"/>
+  <Config Name="Performing Arts Webhook" Target="PERFORMING_DISCORD_WEBHOOK_URL" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="Discord webhook URL for performing arts alerts"/>
+  <Config Name="Movies Webhook" Target="MOVIES_DISCORD_WEBHOOK_URL" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="Discord webhook URL for movie alerts"/>
+  <Config Name="Powder Webhook" Target="POWDER_DISCORD_WEBHOOK_URL" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="Discord webhook URL for powder day alerts"/>
+  <Config Name="Error Webhook" Target="ERROR_DISCORD_WEBHOOK_URL" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="Discord webhook URL for error notifications"/>
+
+  <!-- Source API Keys -->
+  <Config Name="Ticketmaster API Key" Target="TICKETMASTER_API_KEY" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="Ticketmaster API key (for comedy and performing arts)"/>
+  <Config Name="Eventbrite API Token" Target="EVENTBRITE_API_TOKEN" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="Eventbrite API token (for comedy and performing arts)"/>
+  <Config Name="TMDB API Key" Target="TMDB_API_KEY" Default="" Type="Variable" Display="always" Required="false" Mask="true" Description="The Movie Database API key (for movies hunt)"/>
+
+  <!-- Hunt Toggles -->
+  <Config Name="Comedy Enabled" Target="HUNT_COMEDY_ENABLED" Default="true|true|false" Type="Variable" Display="always" Required="false" Mask="false" Description="Enable the comedy show hunt"/>
+  <Config Name="Performing Arts Enabled" Target="HUNT_PERFORMING_ENABLED" Default="true|true|false" Type="Variable" Display="always" Required="false" Mask="false" Description="Enable the performing arts hunt"/>
+  <Config Name="Movies Enabled" Target="HUNT_MOVIES_ENABLED" Default="true|true|false" Type="Variable" Display="always" Required="false" Mask="false" Description="Enable the movies hunt"/>
+  <Config Name="Powder Enabled" Target="HUNT_POWDER_ENABLED" Default="true|true|false" Type="Variable" Display="always" Required="false" Mask="false" Description="Enable the powder day hunt"/>
+
+  <!-- Profile (powder hunt) -->
+  <Config Name="Home City" Target="HOME_BASE" Default="Denver, CO" Type="Variable" Display="always" Required="false" Mask="false" Description="Your home city (used by powder hunt for travel estimates)"/>
+  <Config Name="Ski Passes" Target="PASSES" Default="ikon" Type="Variable" Display="always" Required="false" Mask="false" Description="Comma-separated ski passes you hold: ikon, epic, indy, etc."/>
+  <Config Name="Skill Level" Target="SKILL_LEVEL" Default="expert|beginner|intermediate|advanced|expert" Type="Variable" Display="always" Required="false" Mask="false" Description="Your skiing ability level"/>
+  <Config Name="Remote Work" Target="REMOTE_WORK" Default="true|true|false" Type="Variable" Display="always" Required="false" Mask="false" Description="Can you work remotely from a ski town?"/>
+  <Config Name="PTO Days" Target="PTO_DAYS" Default="15" Type="Variable" Display="always" Required="false" Mask="false" Description="Annual PTO days available for ski trips"/>
+
+  <!-- Advanced -->
+  <Config Name="Web Port" Target="WEB_PORT" Default="8080" Type="Variable" Display="advanced" Required="false" Mask="false" Description="Port for the web UI"/>
+  <Config Name="Dry Run" Target="DRY_RUN" Default="false|false|true" Type="Variable" Display="advanced" Required="false" Mask="false" Description="Skip Discord posting (useful for testing)"/>
+  <Config Name="Database Path" Target="DB_PATH" Default="/data/opportunity-hunter.db" Type="Variable" Display="advanced" Required="false" Mask="false" Description="Path to the SQLite database file"/>
+
+  <!-- Web UI port -->
+  <Config Name="Web UI Port" Target="8080" Default="8080" Type="Port" Mode="tcp" Display="always" Required="true" Mask="false" Description="Port for the web dashboard"/>
+
+  <!-- Data volume -->
+  <Config Name="Data" Target="/data" Default="/mnt/user/appdata/opportunity-hunter" Type="Path" Mode="rw" Display="always" Required="true" Mask="false" Description="Database and persistent data storage"/>
+</Container>

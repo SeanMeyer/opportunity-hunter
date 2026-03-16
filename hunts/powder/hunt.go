@@ -84,6 +84,22 @@ func (h *PowderHunt) DefaultSchedule() core.Schedule {
 	}
 }
 
+func (h *PowderHunt) WebConfig() core.WebConfig {
+	return core.WebConfig{
+		SortOptions: []core.SortOption{
+			{Value: core.SortByScore, Label: "Snowfall (high to low)"},
+			{Value: core.SortByTier, Label: "Tier"},
+			{Value: core.SortByRegion, Label: "Region (A-Z)"},
+		},
+		FilterOptions: []core.FilterOption{
+			{Value: "DROP_EVERYTHING", Label: "DROP EVERYTHING"},
+			{Value: "WORTH_A_LOOK", Label: "WORTH A LOOK"},
+			{Value: "ON_THE_RADAR", Label: "ON THE RADAR"},
+		},
+		DefaultSort: core.SortByScore,
+	}
+}
+
 // SetCostTracker allows the pipeline to inject the cost tracker for budget checks.
 func (h *PowderHunt) SetCostTracker(ct *core.CostTracker) {
 	h.costTracker = ct

@@ -21,7 +21,14 @@ type Config struct {
 }
 
 // Known hunt names for config parsing.
-var knownHunts = []string{"comedy", "performing", "powder", "movies"}
+// knownHunts maps config key → hunt name. Config keys are used for env vars
+// (e.g., HUNT_PERFORMING_ENABLED), hunt names are used for EnabledHunts map keys.
+var knownHunts = map[string]string{
+	"comedy":     "comedy",
+	"performing": "performing-arts",
+	"powder":     "powder",
+	"movies":     "movies",
+}
 
 // FromEnv parses configuration from a lookup function (typically os.Getenv).
 func FromEnv(lookup func(string) string) (Config, error) {
@@ -44,21 +51,21 @@ func FromEnv(lookup func(string) string) (Config, error) {
 	cfg.HomeLongitude = parseFloatOr(lookup("HOME_LONGITUDE"), -104.99)
 
 	// Parse per-hunt toggles.
-	for _, hunt := range knownHunts {
-		key := "HUNT_" + strings.ToUpper(hunt) + "_ENABLED"
+	for configKey, huntName := range knownHunts {
+		key := "HUNT_" + strings.ToUpper(configKey) + "_ENABLED"
 		val := lookup(key)
 		if val == "" {
-			cfg.EnabledHunts[hunt] = true // enabled by default
+			cfg.EnabledHunts[huntName] = true // enabled by default
 		} else {
-			cfg.EnabledHunts[hunt] = parseBool(val)
+			cfg.EnabledHunts[huntName] = parseBool(val)
 		}
 	}
 
 	// Parse per-hunt webhooks.
-	for _, hunt := range knownHunts {
-		key := strings.ToUpper(hunt) + "_DISCORD_WEBHOOK_URL"
+	for configKey, huntName := range knownHunts {
+		key := strings.ToUpper(configKey) + "_DISCORD_WEBHOOK_URL"
 		if url := lookup(key); url != "" {
-			cfg.HuntWebhooks[hunt] = url
+			cfg.HuntWebhooks[huntName] = url
 		}
 	}
 

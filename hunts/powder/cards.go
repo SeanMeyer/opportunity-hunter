@@ -46,7 +46,7 @@ func (r *powderCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 	if opp.Attributes != nil {
 		attrs, err := DecodePowderAttrs(opp.Attributes)
 		if err == nil {
-			card.SnowfallIn = attrs.SnowfallIn
+			card.SortScore = min(attrs.SnowfallIn/30.0, 1.0) // normalize to [0,1]
 			if attrs.SnowfallIn > 0 {
 				card.Fields = append(card.Fields, core.CardField{
 					Icon: "\xe2\x9d\x84\xef\xb8\x8f", Label: "Snowfall", Value: fmt.Sprintf("%.0f inches", attrs.SnowfallIn),

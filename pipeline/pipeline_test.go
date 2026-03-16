@@ -18,7 +18,7 @@ func newTestPipeline(t *testing.T) (*pipeline.Pipeline, *testutil.FakeNotifier) 
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	p := pipeline.New(db, ct, notifier)
+	p := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 	return p, notifier
 }
 
@@ -115,7 +115,7 @@ func TestPipeline_BudgetGating(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(100, map[string]float64{"test": 100}) // already at budget
-	p := pipeline.New(db, ct, notifier)
+	p := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 
 	budget := 10.0
 	evaluator := &testutil.FakeEvaluator{

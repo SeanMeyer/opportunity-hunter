@@ -8,8 +8,12 @@ import (
 	"github.com/seanmeyer/opportunity-hunter/hunts/movies"
 )
 
+// Compile-time interface checks.
 var _ core.Hunt = (*movies.MoviesHunt)(nil)
+var _ core.Grouper = (*movies.MoviesHunt)(nil)
 var _ core.Expirer = (*movies.MoviesHunt)(nil)
+var _ core.VenueEnricher = (*movies.MoviesHunt)(nil)
+var _ core.DefaultPreferencer = (*movies.MoviesHunt)(nil)
 var _ core.WebHunt = (*movies.MoviesHunt)(nil)
 var _ core.NotifyHunt = (*movies.MoviesHunt)(nil)
 
@@ -96,9 +100,9 @@ func TestCardRenderer(t *testing.T) {
 	renderer := h.CardRenderer()
 
 	attrs := movies.MovieAttrs{
-		Genre:      []string{"Sci-Fi", "Drama"},
-		Director:   "Denis Villeneuve",
-		TMDBRating: 8.5,
+		Genre:       []string{"Sci-Fi", "Drama"},
+		Director:    "Denis Villeneuve",
+		TMDBRating:  8.5,
 		ReleaseType: "theatrical",
 	}
 	card := renderer.RenderCard(
@@ -115,6 +119,32 @@ func TestCardRenderer(t *testing.T) {
 	// Should have genre, director, TMDB, release fields.
 	if len(card.Fields) < 3 {
 		t.Fatalf("expected at least 3 fields, got %d", len(card.Fields))
+	}
+	if card.DateDisplay == "" {
+		t.Fatal("expected DateDisplay to be set")
+	}
+}
+
+func TestCardRenderer_WithVenueDistance(t *testing.T) {
+	h := &movies.MoviesHunt{}
+	renderer := h.CardRenderer()
+
+	attrs := movies.MovieAttrs{ReleaseType: "theatrical"}
+	card := renderer.RenderCard(
+		core.Opportunity{Title: "Test Movie", Attributes: attrs.Encode(), StartTime: time.Now()},
+		core.Pick{Score: 0.8, DisplayScore: "8/10"},
+		core.Venue{Name: "Alamo Drafthouse Sloans Lake", WalkingMinutes: 12, DistanceMi: 0.6},
+	)
+
+	hasDistance := false
+	for _, f := range card.Fields {
+		if f.Label == "Distance" {
+			hasDistance = true
+			break
+		}
+	}
+	if !hasDistance {
+		t.Fatal("expected Distance field for venue with WalkingMinutes")
 	}
 }
 
@@ -133,4 +163,49 @@ func TestNotifyFormatter_NoReminderForStreaming(t *testing.T) {
 	if len(actions) != 0 {
 		t.Fatal("expected no reminder for streaming movie")
 	}
+}
+
+func TestNotifyFormatter_IncludesUrgency(t *testing.T) {
+	h := &movies.MoviesHunt{}
+	formatter := h.NotifyFormatter()
+
+	actions := formatter.FormatPicks(core.NotifyContext{
+		Picks: []core.Pick{
+			{OpportunityID: 1, DisplayScore: "9/10", Reason: "Great film", Urgency: "See it in IMAX this weekend"},
+		},
+		Opportunities: []core.Opportunity{
+			{ID: 1, Title: "Dune: Part Three"},
+		},
+	})
+	if len(actions) != 1 {
+		t.Fatalf("expected 1 action, got %d", len(actions))
+	}
+	desc := actions[0].Message.Embeds[0].Description
+	if !contains(desc, "See it in IMAX this weekend") {
+		t.Fatalf("expected urgency in description, got: %s", desc)
+	}
+}
+
+func TestDefaultPreferences(t *testing.T) {
+	h := &movies.MoviesHunt{}
+	prefs := h.DefaultPreferences()
+	if prefs == "" {
+		t.Fatal("expected non-empty default preferences")
+	}
+	if !contains(prefs, "Scoring Calibration") {
+		t.Fatal("expected scoring calibration in default preferences")
+	}
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && searchString(s, substr)
+}
+
+func searchString(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }

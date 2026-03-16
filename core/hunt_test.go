@@ -28,9 +28,11 @@ func (h *fullHunt) Synthesize(_ context.Context, _ core.NotifyGroup, _ *core.Cos
 	return "", nil
 }
 func (h *fullHunt) ShouldExpire(_ core.Opportunity) bool                       { return false }
-func (h *fullHunt) CardRenderer() core.CardRenderer                            { return nil }
-func (h *fullHunt) FeedbackOptions() []core.FeedbackOption                     { return nil }
-func (h *fullHunt) NotifyFormatter() core.NotifyFormatter                      { return nil }
+func (h *fullHunt) CardRenderer() core.CardRenderer        { return nil }
+func (h *fullHunt) FeedbackOptions() []core.FeedbackOption { return nil }
+func (h *fullHunt) WebConfig() core.WebConfig              { return core.WebConfig{} }
+func (h *fullHunt) EnrichVenues(_ context.Context, _ map[int64]core.Venue) {}
+func (h *fullHunt) NotifyFormatter() core.NotifyFormatter  { return nil }
 
 // Compile-time interface checks.
 var _ core.Hunt = (*minimalHunt)(nil)
@@ -38,6 +40,7 @@ var _ core.Hunt = (*fullHunt)(nil)
 var _ core.Grouper = (*fullHunt)(nil)
 var _ core.ReEvaluator = (*fullHunt)(nil)
 var _ core.Briefer = (*fullHunt)(nil)
+var _ core.VenueEnricher = (*fullHunt)(nil)
 var _ core.Expirer = (*fullHunt)(nil)
 var _ core.WebHunt = (*fullHunt)(nil)
 var _ core.NotifyHunt = (*fullHunt)(nil)

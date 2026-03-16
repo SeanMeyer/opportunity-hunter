@@ -26,7 +26,7 @@ func TestIntegration_MoviesFullPipeline(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	pipe := pipeline.New(db, ct, notifier)
+	pipe := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 
 	items := []core.RawItem{
 		{SourceID: "m-1", Source: "tmdb", Title: "Dune: Part Three", StartTime: time.Now().Add(7 * 24 * time.Hour).Format(time.RFC3339), Attributes: movieAttrs("theatrical")},
@@ -85,7 +85,7 @@ func TestIntegration_MoviesExpiration(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	pipe := pipeline.New(db, ct, notifier)
+	pipe := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 	ctx := context.Background()
 
 	// Manually insert opportunities at various ages.

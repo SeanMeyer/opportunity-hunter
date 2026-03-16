@@ -27,6 +27,9 @@ func (f *moviesNotifyFormatter) FormatPicks(ctx core.NotifyContext) []core.Notif
 		if pick.Reason != "" {
 			fmt.Fprintf(&desc, "%s\n", pick.Reason)
 		}
+		if pick.Urgency != "" {
+			fmt.Fprintf(&desc, "_%s_\n", pick.Urgency)
+		}
 		desc.WriteString("\n")
 	}
 

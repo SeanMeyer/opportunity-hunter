@@ -52,6 +52,8 @@ func (d *DB) runMigrations(ctx context.Context) error {
 		`ALTER TABLE hunt_schedules ADD COLUMN start_hour INTEGER NOT NULL DEFAULT 6`,
 		`ALTER TABLE hunt_schedules ADD COLUMN start_minute INTEGER NOT NULL DEFAULT 0`,
 		`ALTER TABLE hunt_schedules ADD COLUMN start_day INTEGER NOT NULL DEFAULT -1`,
+		// Add show_dates for multi-date event merging.
+		`ALTER TABLE opportunities ADD COLUMN show_dates TEXT NOT NULL DEFAULT '[]'`,
 	}
 
 	for _, m := range migrations {

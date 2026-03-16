@@ -50,13 +50,14 @@ func (f *comedyNotifyFormatter) FormatPicks(ctx core.NotifyContext) []core.Notif
 }
 
 func (f *comedyNotifyFormatter) FormatReminder(opp core.Opportunity, pick core.Pick, _ core.ReminderType) []core.NotifyAction {
+	nextDate := opp.NextShowDate()
 	return []core.NotifyAction{
 		{
 			Type: core.PostMessage,
 			Message: core.NotifyMessage{
 				Content: fmt.Sprintf("Reminder: **%s** — %s tomorrow at %s",
 					opp.Title, pick.DisplayScore,
-					opp.StartTime.Format("3:04 PM")),
+					nextDate.Format("3:04 PM")),
 			},
 		},
 	}

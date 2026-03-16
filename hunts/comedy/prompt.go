@@ -7,6 +7,18 @@ import (
 	"github.com/seanmeyer/opportunity-hunter/core"
 )
 
+// formatShowDates formats ShowDates for display in prompts and cards.
+func formatShowDates(dates []string) string {
+	switch len(dates) {
+	case 0:
+		return ""
+	case 1:
+		return dates[0]
+	default:
+		return strings.Join(dates, ", ")
+	}
+}
+
 func buildPrompt(ec core.EvalContext) string {
 	var b strings.Builder
 
@@ -42,56 +54,39 @@ func buildPrompt(ec core.EvalContext) string {
 
 	b.WriteString("## Shows to Evaluate\n\n")
 
-	// Consolidate multi-night residencies.
-	type showGroup struct {
-		opp   core.Opportunity
-		dates []string
-	}
-	type groupKey struct {
-		title   string
-		venueID int64
-	}
-	order := []groupKey{}
-	groups := map[groupKey]*showGroup{}
-
+	showIdx := 0
 	for _, opp := range ec.Opportunities {
 		if shouldSkipForEval(opp.Title) {
 			continue
 		}
-		vid := int64(0)
+		showIdx++
+		fmt.Fprintf(&b, "### Show %d: %s\n", showIdx, opp.Title)
 		if opp.VenueID != nil {
-			vid = *opp.VenueID
-		}
-		k := groupKey{title: opp.Title, venueID: vid}
-		if g, ok := groups[k]; ok {
-			g.dates = append(g.dates, opp.StartTime.Format("Mon Jan 2, 3:04 PM"))
-		} else {
-			groups[k] = &showGroup{
-				opp:   opp,
-				dates: []string{opp.StartTime.Format("Mon Jan 2, 3:04 PM")},
+			if venue, ok := ec.Venues[*opp.VenueID]; ok {
+				venueLine := venue.Name
+				if venue.WalkingMinutes > 0 {
+					venueLine += fmt.Sprintf(" (%d min walk)", venue.WalkingMinutes)
+				}
+				fmt.Fprintf(&b, "- Venue: %s\n", venueLine)
 			}
-			order = append(order, k)
 		}
-	}
 
-	for i, k := range order {
-		g := groups[k]
-		fmt.Fprintf(&b, "### Show %d: %s\n", i+1, g.opp.Title)
-		if g.opp.VenueID != nil {
-			if venue, ok := ec.Venues[*g.opp.VenueID]; ok {
-				fmt.Fprintf(&b, "- Venue: %s\n", venue.Name)
-			}
-		}
-		if len(g.dates) == 1 {
-			fmt.Fprintf(&b, "- Date/Time: %s\n", g.dates[0])
+		// Format dates from ShowDates.
+		if len(opp.ShowDates) <= 1 {
+			fmt.Fprintf(&b, "- Date/Time: %s\n", opp.StartTime.Format("Mon Jan 2, 3:04 PM"))
 		} else {
-			fmt.Fprintf(&b, "- Dates: %s\n", strings.Join(g.dates, ", "))
+			var dates []string
+			for _, d := range opp.ShowDates {
+				dates = append(dates, d.Format("Mon Jan 2, 3:04 PM"))
+			}
+			fmt.Fprintf(&b, "- Dates: %s\n", formatShowDates(dates))
 		}
-		if g.opp.PriceMin != nil {
-			if g.opp.PriceMax != nil {
-				fmt.Fprintf(&b, "- Price: $%.0f - $%.0f\n", *g.opp.PriceMin, *g.opp.PriceMax)
+
+		if opp.PriceMin != nil {
+			if opp.PriceMax != nil {
+				fmt.Fprintf(&b, "- Price: $%.0f - $%.0f\n", *opp.PriceMin, *opp.PriceMax)
 			} else {
-				fmt.Fprintf(&b, "- Price: from $%.0f\n", *g.opp.PriceMin)
+				fmt.Fprintf(&b, "- Price: from $%.0f\n", *opp.PriceMin)
 			}
 		}
 		b.WriteString("\n")

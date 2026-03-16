@@ -31,8 +31,9 @@ type Opportunity struct {
 	Title        string
 	Subtitle     string
 	VenueID      *int64
-	StartTime    time.Time
+	StartTime    time.Time // earliest date (backward compat for sorting)
 	EndTime      *time.Time
+	ShowDates    []time.Time // all performance dates; empty for non-merged events
 	PriceMin     *float64
 	PriceMax     *float64
 	TicketURL    string
@@ -43,6 +44,32 @@ type Opportunity struct {
 	EvaluatedAt  *time.Time
 	NotifiedAt   *time.Time
 	RemindedAt   *time.Time
+}
+
+// LastShowDate returns the latest date from ShowDates, falling back to StartTime.
+func (o *Opportunity) LastShowDate() time.Time {
+	last := o.StartTime
+	for _, d := range o.ShowDates {
+		if d.After(last) {
+			last = d
+		}
+	}
+	return last
+}
+
+// NextShowDate returns the next future date from ShowDates, or StartTime if none.
+func (o *Opportunity) NextShowDate() time.Time {
+	now := time.Now()
+	var next time.Time
+	for _, d := range o.ShowDates {
+		if d.After(now) && (next.IsZero() || d.Before(next)) {
+			next = d
+		}
+	}
+	if next.IsZero() {
+		return o.StartTime
+	}
+	return next
 }
 
 // MarkEvaluated transitions to Evaluated state with timestamp.
@@ -84,10 +111,12 @@ func (o *Opportunity) Validate() error {
 
 // Venue is a physical location shared across hunts.
 type Venue struct {
-	ID        int64
-	Name      string
-	Address   string
-	Latitude  float64
-	Longitude float64
-	Notes     string
+	ID             int64
+	Name           string
+	Address        string
+	Latitude       float64
+	Longitude      float64
+	Notes          string
+	WalkingMinutes int     // 0 = unknown; enriched from distance_cache
+	DistanceMi     float64 // 0 = unknown; enriched from distance_cache
 }

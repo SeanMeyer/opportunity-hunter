@@ -43,6 +43,18 @@ type Briefer interface {
 	Synthesize(ctx context.Context, group NotifyGroup, costTracker *CostTracker) (string, error)
 }
 
+// VenueEnricher enriches venues with computed data (e.g. walking distance).
+// Called by the pipeline before evaluation. Results are cached in the DB.
+type VenueEnricher interface {
+	EnrichVenues(ctx context.Context, venues map[int64]Venue)
+}
+
+// DefaultPreferencer provides default preferences text for a hunt.
+// The pipeline seeds preferences with this text if none exist yet.
+type DefaultPreferencer interface {
+	DefaultPreferences() string
+}
+
 // Expirer controls when opportunities should be marked as expired.
 // Default: expire when StartTime is in the past.
 type Expirer interface {
@@ -54,6 +66,7 @@ type Expirer interface {
 type WebHunt interface {
 	CardRenderer() CardRenderer
 	FeedbackOptions() []FeedbackOption
+	WebConfig() WebConfig
 }
 
 // NotifyHunt provides notification formatting.
@@ -64,12 +77,13 @@ type NotifyHunt interface {
 
 // HuntCapabilities records which optional interfaces a hunt implements.
 type HuntCapabilities struct {
-	HasGrouper      bool
-	HasReEvaluator  bool
-	HasBriefer      bool
-	HasExpirer      bool
-	HasWebHunt      bool
-	HasNotifyHunt   bool
+	HasGrouper       bool
+	HasReEvaluator   bool
+	HasVenueEnricher bool
+	HasBriefer       bool
+	HasExpirer       bool
+	HasWebHunt       bool
+	HasNotifyHunt    bool
 }
 
 // ValidateHunt checks a hunt's interfaces and returns its capabilities.
@@ -81,6 +95,9 @@ func ValidateHunt(h Hunt) (HuntCapabilities, error) {
 	}
 	if _, ok := h.(ReEvaluator); ok {
 		caps.HasReEvaluator = true
+	}
+	if _, ok := h.(VenueEnricher); ok {
+		caps.HasVenueEnricher = true
 	}
 	if _, ok := h.(Briefer); ok {
 		caps.HasBriefer = true
@@ -99,6 +116,7 @@ func ValidateHunt(h Hunt) (HuntCapabilities, error) {
 		"hunt", h.Name(),
 		"grouper", caps.HasGrouper,
 		"re_evaluator", caps.HasReEvaluator,
+		"venue_enricher", caps.HasVenueEnricher,
 		"briefer", caps.HasBriefer,
 		"expirer", caps.HasExpirer,
 		"web_hunt", caps.HasWebHunt,

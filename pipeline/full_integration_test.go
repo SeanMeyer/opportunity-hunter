@@ -16,7 +16,7 @@ func TestIntegration_AllFourHunts(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	pipe := pipeline.New(db, ct, notifier)
+	pipe := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 
 	sharedVenue := "Buell Theatre"
 	sharedAddr := "1350 Curtis St, Denver, CO"

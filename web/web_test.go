@@ -19,7 +19,7 @@ func newTestServer(t *testing.T) (*web.Server, *httptest.Server) {
 		{Name: "comedy", FeedbackOptions: []core.FeedbackOption{{Value: "loved", Label: "Loved"}}},
 		{Name: "powder"},
 	}
-	srv, err := web.New(db, hunts)
+	srv, err := web.New(db, hunts, "")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -28,6 +28,9 @@ func (f *performingNotifyFormatter) FormatPicks(ctx core.NotifyContext) []core.N
 		if pick.Reason != "" {
 			fmt.Fprintf(&desc, "%s\n", pick.Reason)
 		}
+		if pick.Urgency != "" {
+			fmt.Fprintf(&desc, "_%s_\n", pick.Urgency)
+		}
 		desc.WriteString("\n")
 	}
 
@@ -48,13 +51,14 @@ func (f *performingNotifyFormatter) FormatPicks(ctx core.NotifyContext) []core.N
 }
 
 func (f *performingNotifyFormatter) FormatReminder(opp core.Opportunity, pick core.Pick, _ core.ReminderType) []core.NotifyAction {
+	nextDate := opp.NextShowDate()
 	return []core.NotifyAction{
 		{
 			Type: core.PostMessage,
 			Message: core.NotifyMessage{
 				Content: fmt.Sprintf("Reminder: **%s** — %s on %s",
 					opp.Title, pick.DisplayScore,
-					opp.StartTime.Format("Mon Jan 2 at 3:04 PM")),
+					nextDate.Format("Mon Jan 2 at 3:04 PM")),
 			},
 		},
 	}
@@ -63,23 +67,4 @@ func (f *performingNotifyFormatter) FormatReminder(opp core.Opportunity, pick co
 // NotifyFormatter returns the performing arts notification formatter.
 func (h *PerformingHunt) NotifyFormatter() core.NotifyFormatter {
 	return &performingNotifyFormatter{}
-}
-
-// GroupForEval groups opportunities by week for batch evaluation.
-func (h *PerformingHunt) GroupForEval(items []core.Opportunity) []core.Group {
-	weeks := make(map[string][]core.Opportunity)
-	for _, opp := range items {
-		year, week := opp.StartTime.ISOWeek()
-		key := fmt.Sprintf("%d-W%02d", year, week)
-		weeks[key] = append(weeks[key], opp)
-	}
-
-	var groups []core.Group
-	for key, opps := range weeks {
-		groups = append(groups, core.Group{
-			Key:           key,
-			Opportunities: opps,
-		})
-	}
-	return groups
 }

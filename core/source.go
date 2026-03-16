@@ -1,6 +1,9 @@
 package core
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Source fetches raw items from an external provider.
 type Source interface {
@@ -25,8 +28,9 @@ type RawItem struct {
 	VenueAddress   string
 	VenueLatitude  float64
 	VenueLongitude float64
-	StartTime      string // RFC3339
-	EndTime        string // RFC3339, empty for single events
+	StartTime      string      // RFC3339
+	EndTime        string      // RFC3339, empty for single events
+	ShowDates      []time.Time // populated during scan-time merge, not by sources
 	PriceMin       *float64
 	PriceMax       *float64
 	TicketURL      string

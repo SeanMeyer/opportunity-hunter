@@ -7,19 +7,23 @@
 
 {{if gt .TotalCards 0}}
 <div class="toolbar">
+    {{if .SortOptions}}
     <label>Sort:</label>
-    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort='+this.value+'&tier={{.FilterTier}}'">
-        <option value="snowfall" {{if eq .SortBy "snowfall"}}selected{{end}}>Snowfall (high to low)</option>
-        <option value="tier" {{if eq .SortBy "tier"}}selected{{end}}>Tier</option>
-        <option value="region" {{if eq .SortBy "region"}}selected{{end}}>Region (A-Z)</option>
+    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort='+this.value+'&filter={{.FilterValue}}'">
+        {{range .SortOptions}}
+        <option value="{{.Value}}" {{if eq $.SortBy .Value}}selected{{end}}>{{.Label}}</option>
+        {{end}}
     </select>
+    {{end}}
+    {{if .FilterOptions}}
     <label>Filter:</label>
-    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort={{.SortBy}}&tier='+this.value">
-        <option value="" {{if eq .FilterTier ""}}selected{{end}}>All tiers ({{.TotalCards}})</option>
-        <option value="DROP_EVERYTHING" {{if eq .FilterTier "DROP_EVERYTHING"}}selected{{end}}>DROP EVERYTHING</option>
-        <option value="WORTH_A_LOOK" {{if eq .FilterTier "WORTH_A_LOOK"}}selected{{end}}>WORTH A LOOK</option>
-        <option value="ON_THE_RADAR" {{if eq .FilterTier "ON_THE_RADAR"}}selected{{end}}>ON THE RADAR</option>
+    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort={{.SortBy}}&filter='+this.value">
+        <option value="" {{if eq .FilterValue ""}}selected{{end}}>All ({{.TotalCards}})</option>
+        {{range .FilterOptions}}
+        <option value="{{.Value}}" {{if eq $.FilterValue .Value}}selected{{end}}>{{.Label}}</option>
+        {{end}}
     </select>
+    {{end}}
     <span class="count">{{len .Cards}} results</span>
     <button class="prefs-toggle" onclick="document.getElementById('prefs-panel').classList.toggle('open')" title="Preferences">&#x2699;&#xFE0F;</button>
 </div>

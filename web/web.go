@@ -24,6 +24,7 @@ type HuntInfo struct {
 	Name            string
 	CardRenderer    core.CardRenderer
 	FeedbackOptions []core.FeedbackOption
+	WebConfig       core.WebConfig
 }
 
 // StatusInfo holds pipeline run status for display.
@@ -35,15 +36,16 @@ type StatusInfo struct {
 
 // Server is the web UI server.
 type Server struct {
-	db         *storage.DB
-	tmpl       *template.Template
-	hunts      []HuntInfo
-	huntNames  []string
-	lastStatus *StatusInfo
+	db          *storage.DB
+	tmpl        *template.Template
+	hunts       []HuntInfo
+	huntNames   []string
+	lastStatus  *StatusInfo
+	homeAddress string
 }
 
-// New creates a web server.
-func New(db *storage.DB, hunts []HuntInfo) (*Server, error) {
+// New creates a web server. homeAddress is used for distance enrichment (empty = skip).
+func New(db *storage.DB, hunts []HuntInfo, homeAddress string) (*Server, error) {
 	tmpl, err := template.New("").ParseFS(templateFS, "templates/*.html")
 	if err != nil {
 		return nil, fmt.Errorf("parse templates: %w", err)
@@ -54,7 +56,7 @@ func New(db *storage.DB, hunts []HuntInfo) (*Server, error) {
 		names[i] = h.Name
 	}
 
-	return &Server{db: db, tmpl: tmpl, hunts: hunts, huntNames: names}, nil
+	return &Server{db: db, tmpl: tmpl, hunts: hunts, huntNames: names, homeAddress: homeAddress}, nil
 }
 
 // SetStatus updates the last pipeline run status.
@@ -97,7 +99,9 @@ type pageData struct {
 	FeedbackOptions []core.FeedbackOption
 	Status          *StatusInfo
 	SortBy          string
-	FilterTier      string
+	FilterValue     string
+	SortOptions     []core.SortOption
+	FilterOptions   []core.FilterOption
 	Schedule        *ScheduleInfo
 }
 
@@ -107,19 +111,41 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		activeHunt = s.huntNames[0]
 	}
 
-	sortBy := r.URL.Query().Get("sort")
-	if sortBy == "" {
-		sortBy = "snowfall"
+	// Find hunt info for active hunt.
+	var huntInfo *HuntInfo
+	for i, h := range s.hunts {
+		if h.Name == activeHunt {
+			huntInfo = &s.hunts[i]
+			break
+		}
 	}
-	filterTier := r.URL.Query().Get("tier")
+
+	var webCfg core.WebConfig
+	if huntInfo != nil {
+		webCfg = huntInfo.WebConfig
+	}
+
+	sortBy := r.URL.Query().Get("sort")
+	if sortBy == "" && webCfg.DefaultSort != "" {
+		sortBy = webCfg.DefaultSort
+	} else if sortBy == "" {
+		sortBy = core.SortByScore
+	}
+	filterValue := r.URL.Query().Get("filter")
 
 	ctx := r.Context()
 	data := pageData{
-		Hunts:      s.huntNames,
-		ActiveHunt: activeHunt,
-		Status:     s.lastStatus,
-		SortBy:     sortBy,
-		FilterTier: filterTier,
+		Hunts:       s.huntNames,
+		ActiveHunt:  activeHunt,
+		Status:      s.lastStatus,
+		SortBy:      sortBy,
+		FilterValue: filterValue,
+	}
+
+	if huntInfo != nil {
+		data.SortOptions = webCfg.SortOptions
+		data.FilterOptions = webCfg.FilterOptions
+		data.FeedbackOptions = huntInfo.FeedbackOptions
 	}
 
 	// Load preferences.
@@ -138,28 +164,12 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Load feedback options for active hunt.
-	for _, h := range s.hunts {
-		if h.Name == activeHunt {
-			data.FeedbackOptions = h.FeedbackOptions
-			break
-		}
-	}
-
 	// Load cards.
-	rawCards := s.loadCards(ctx, activeHunt)
+	rawCards := s.loadCards(ctx, activeHunt, huntInfo)
 	data.TotalCards = len(rawCards)
 
-	// Filter by tier.
-	if filterTier != "" {
-		var filtered []core.CardData
-		for _, c := range rawCards {
-			if c.Score == filterTier {
-				filtered = append(filtered, c)
-			}
-		}
-		rawCards = filtered
-	}
+	// Filter cards.
+	rawCards = filterCards(rawCards, filterValue)
 
 	// Sort cards.
 	sortCards(rawCards, sortBy)
@@ -179,21 +189,21 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 func sortCards(cards []core.CardData, sortBy string) {
 	switch sortBy {
-	case "snowfall":
+	case core.SortByDate:
 		sort.Slice(cards, func(i, j int) bool {
-			return cards[i].SnowfallIn > cards[j].SnowfallIn
+			return cards[i].DateSort < cards[j].DateSort
 		})
-	case "tier":
+	case core.SortByTier:
 		sort.Slice(cards, func(i, j int) bool {
 			return tierSortOrder(cards[i].Score) < tierSortOrder(cards[j].Score)
 		})
-	case "region":
+	case core.SortByRegion:
 		sort.Slice(cards, func(i, j int) bool {
 			return cards[i].Title < cards[j].Title
 		})
-	default:
+	default: // SortByScore and any unknown value
 		sort.Slice(cards, func(i, j int) bool {
-			return cards[i].SnowfallIn > cards[j].SnowfallIn
+			return cards[i].SortScore > cards[j].SortScore
 		})
 	}
 }
@@ -211,7 +221,36 @@ func tierSortOrder(score string) int {
 	}
 }
 
-func (s *Server) loadCards(ctx context.Context, huntName string) []core.CardData {
+func filterCards(cards []core.CardData, filterValue string) []core.CardData {
+	if filterValue == "" {
+		return cards
+	}
+
+	// Try numeric threshold filter (e.g. "8" means SortScore >= 0.8).
+	// SortScore is normalized to [0,1], filter values are on a 1-10 scale.
+	threshold, err := strconv.ParseFloat(filterValue, 64)
+	if err == nil {
+		normalized := threshold / 10.0
+		var filtered []core.CardData
+		for _, c := range cards {
+			if c.SortScore >= normalized {
+				filtered = append(filtered, c)
+			}
+		}
+		return filtered
+	}
+
+	// Exact match filter (for tier-based hunts like powder).
+	var filtered []core.CardData
+	for _, c := range cards {
+		if c.Score == filterValue {
+			filtered = append(filtered, c)
+		}
+	}
+	return filtered
+}
+
+func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo) []core.CardData {
 	var cards []core.CardData
 	for _, state := range []core.State{core.Notified, core.Evaluated, core.Reminded} {
 		opps, err := s.db.GetByState(ctx, huntName, state)
@@ -229,19 +268,17 @@ func (s *Server) loadCards(ctx context.Context, huntName string) []core.CardData
 			var venue core.Venue
 			if opp.VenueID != nil {
 				venue, _ = s.db.GetVenue(ctx, *opp.VenueID)
-			}
-
-			var renderer core.CardRenderer
-			for _, h := range s.hunts {
-				if h.Name == huntName {
-					renderer = h.CardRenderer
-					break
+				if venue.ID != 0 {
+					if dist, err := s.db.GetDistance(ctx, venue.ID, s.homeAddress, "walking"); err == nil {
+						venue.WalkingMinutes = dist.Minutes
+						venue.DistanceMi = dist.DistanceMi
+					}
 				}
 			}
 
 			var card core.CardData
-			if renderer != nil {
-				card = renderer.RenderCard(opp, pick, venue)
+			if info != nil && info.CardRenderer != nil {
+				card = info.CardRenderer.RenderCard(opp, pick, venue)
 			} else {
 				card = core.CardData{
 					Title:    opp.Title,

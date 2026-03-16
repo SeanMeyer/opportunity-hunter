@@ -25,7 +25,7 @@ func TestIntegration_PowderFullPipeline(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	pipe := pipeline.New(db, ct, notifier)
+	pipe := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 
 	window := time.Now().Add(3 * 24 * time.Hour)
 	windowEnd := window.Add(3 * 24 * time.Hour)
@@ -73,7 +73,7 @@ func TestIntegration_PowderReEvaluation(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	pipe := pipeline.New(db, ct, notifier)
+	pipe := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 
 	window := time.Now().Add(3 * 24 * time.Hour)
 	windowEnd := window.Add(3 * 24 * time.Hour)

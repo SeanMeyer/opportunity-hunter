@@ -16,7 +16,7 @@ func TestIntegration_ComedyFullPipeline(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	pipe := pipeline.New(db, ct, notifier)
+	pipe := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 
 	// Simulate comedy shows across 2 weeks, including a multi-night residency.
 	items := []core.RawItem{
@@ -59,9 +59,10 @@ func TestIntegration_ComedyFullPipeline(t *testing.T) {
 	ctx := context.Background()
 	result := pipe.Run(ctx, hunt)
 
-	// Assert: 4 scanned (from 2 sources, no duplicates since different SourceIDs).
-	if result.Scanned != 4 {
-		t.Fatalf("expected 4 scanned, got %d", result.Scanned)
+	// Assert: 3 scanned — the 2 "Nate Bargatze" at "Comedy Works Downtown" are
+	// merged into 1 multi-date opportunity at scan time.
+	if result.Scanned != 3 {
+		t.Fatalf("expected 3 scanned (multi-date merge), got %d", result.Scanned)
 	}
 
 	// Assert: evaluated (2 weeks).

@@ -3,6 +3,7 @@ package comedy
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -63,7 +64,7 @@ func (h *ComedyHunt) Sources() []core.Source {
 func (h *ComedyHunt) DedupeKey(raw core.RawItem) string {
 	t, _ := time.Parse(time.RFC3339, raw.StartTime)
 	date := t.Format("2006-01-02")
-	return raw.Title + "|" + raw.VenueName + "|" + date
+	return core.NormalizeTitleForDedup(raw.Title) + "|" + raw.VenueName + "|" + date
 }
 
 func (h *ComedyHunt) Evaluator() core.Evaluator {
@@ -99,6 +100,40 @@ func (h *ComedyHunt) GroupForEval(items []core.Opportunity) []core.Group {
 		})
 	}
 	return groups
+}
+
+func (h *ComedyHunt) WebConfig() core.WebConfig {
+	return core.WebConfig{
+		SortOptions: []core.SortOption{
+			{Value: core.SortByScore, Label: "Score (high to low)"},
+			{Value: core.SortByDate, Label: "Date (soonest)"},
+		},
+		FilterOptions: []core.FilterOption{
+			{Value: "8", Label: "8+ only"},
+			{Value: "7", Label: "7+ only"},
+		},
+		DefaultSort: core.SortByScore,
+	}
+}
+
+// EnrichVenues fetches walking distances for venues that don't have them yet.
+func (h *ComedyHunt) EnrichVenues(ctx context.Context, venues map[int64]core.Venue) {
+	if h.distClient == nil || h.homeAddress == "" {
+		return
+	}
+	for id, venue := range venues {
+		if venue.WalkingMinutes > 0 || venue.Address == "" {
+			continue
+		}
+		result, err := h.distClient.GetDistance(ctx, h.homeAddress, venue.Address, "WALK")
+		if err != nil {
+			slog.Warn("distance lookup failed", "venue", venue.Name, "err", err)
+			continue
+		}
+		venue.WalkingMinutes = result.Minutes
+		venue.DistanceMi = result.DistanceMi
+		venues[id] = venue
+	}
 }
 
 // shouldSkipForEval filters recurring house shows.

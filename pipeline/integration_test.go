@@ -16,7 +16,7 @@ func TestIntegration_PerformingArtsFullPipeline(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
 	ct := core.NewCostTracker(0, nil)
-	pipe := pipeline.New(db, ct, notifier)
+	pipe := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
 
 	// Fake source with 5 performing arts shows across 2 weeks.
 	items := []core.RawItem{

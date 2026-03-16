@@ -1,6 +1,8 @@
 services:
   opportunity-hunter:
-    build: .
+    # To build from source instead: comment 'image' and uncomment 'build'
+    image: ghcr.io/seanmeyer/opportunity-hunter:latest
+    # build: .
     env_file: .env
     ports:
       - "${WEB_PORT:-8080}:${WEB_PORT:-8080}"

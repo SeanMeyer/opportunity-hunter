@@ -104,6 +104,16 @@ Commands:
 
 // registeredHunts returns all hunts. Import hunt packages here.
 // Hunts are registered but only enabled ones are initialized.
+const defaultScanRadiusMi = 30
+
+func homeRegion(cfg config.Config) core.ScanRegion {
+	return core.ScanRegion{
+		Latitude:  cfg.HomeLatitude,
+		Longitude: cfg.HomeLongitude,
+		RadiusMi:  defaultScanRadiusMi,
+	}
+}
+
 func registeredHunts() []core.Hunt {
 	return []core.Hunt{
 		&comedy.ComedyHunt{},
@@ -231,11 +241,11 @@ func runDaemon() int {
 	}
 
 	// Pipeline.
-	pipe := pipeline.New(db, costTracker, pipeNotifier)
+	pipe := pipeline.New(db, costTracker, pipeNotifier, homeRegion(cfg), cfg.HomeAddress)
 
 	// Web server.
 	huntInfos := buildHuntInfos(hunts)
-	webServer, err := web.New(db, huntInfos)
+	webServer, err := web.New(db, huntInfos, cfg.HomeAddress)
 	if err != nil {
 		slog.Error("create web server", "err", err)
 		return 1
@@ -337,9 +347,9 @@ func runScan() int {
 
 	costTracker := core.NewCostTracker(0, nil)
 	// Scan uses noop notifier — no notifications for scan-only.
-	pipe := pipeline.New(db, costTracker, &noopNotifier{})
+	pipe := pipeline.New(db, costTracker, &noopNotifier{}, homeRegion(cfg), cfg.HomeAddress)
 
-	result := pipe.RunAll(ctx, hunts)
+	result := pipe.ScanAll(ctx, hunts)
 	logResult(result)
 	return 0
 }
@@ -375,7 +385,7 @@ func runEval() int {
 	} else {
 		pipeNotifier = newRoutingNotifier(cfg.HuntWebhooks, cfg.ErrorDiscordWebhookURL)
 	}
-	pipe := pipeline.New(db, costTracker, pipeNotifier)
+	pipe := pipeline.New(db, costTracker, pipeNotifier, homeRegion(cfg), cfg.HomeAddress)
 
 	result := pipe.RunAll(ctx, hunts)
 	logResult(result)
@@ -402,7 +412,7 @@ func runWeb() int {
 	hunts, _ := initHunts(ctx, cfg)
 	huntInfos := buildHuntInfos(hunts)
 
-	webServer, err := web.New(db, huntInfos)
+	webServer, err := web.New(db, huntInfos, cfg.HomeAddress)
 	if err != nil {
 		slog.Error("create web server", "err", err)
 		return 1
@@ -430,6 +440,7 @@ func buildHuntInfos(hunts []core.Hunt) []web.HuntInfo {
 		if wh, ok := h.(core.WebHunt); ok {
 			info.CardRenderer = wh.CardRenderer()
 			info.FeedbackOptions = wh.FeedbackOptions()
+			info.WebConfig = wh.WebConfig()
 		}
 		infos = append(infos, info)
 	}

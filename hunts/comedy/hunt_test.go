@@ -22,7 +22,7 @@ func TestDedupeKey(t *testing.T) {
 		StartTime: "2026-03-15T20:00:00-06:00",
 	}
 	key := h.DedupeKey(raw)
-	if key != "Nate Bargatze|Comedy Works Downtown|2026-03-15" {
+	if key != "nate bargatze|Comedy Works Downtown|2026-03-15" {
 		t.Fatalf("unexpected dedupe key: %q", key)
 	}
 }

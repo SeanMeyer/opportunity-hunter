@@ -1,0 +1,121 @@
+{
+  "theaters": [
+    {
+      "id": "regal_denver_pavilions",
+      "name": "Regal UA Denver Pavilions 4DX & RPX",
+      "address": "500 16th St Mall Suite 310, Denver, CO 80202",
+      "coords": { "lat": 39.7445, "lon": -104.9939 },
+      "metadata": {
+        "vibe": "Downtown multiplex on 16th Street Mall, 4DX motion seats and RPX premium screen",
+        "screens": "4DX, RPX, standard with recliners",
+        "pricing": "$13-16 standard, $18-22 RPX, $22-28 4DX, $6.99 Value Tuesdays for Crown Club members",
+        "best_for": "Walkable from downtown/LoDo, premium formats, casual moviegoing",
+        "notes": "On 16th Street Mall, easy transit access, parking garage available"
+      }
+    },
+    {
+      "id": "landmark_mayan",
+      "name": "Landmark Mayan Theatre",
+      "address": "110 Broadway, Denver, CO 80203",
+      "coords": { "lat": 39.7158, "lon": -104.9873 },
+      "metadata": {
+        "vibe": "Historic 1930 Mayan Revival Art Deco theater, one of three remaining in the country",
+        "screens": "3 screens, DLP digital, intimate setting",
+        "pricing": "$12-14 general",
+        "best_for": "Independent films, foreign cinema, Denver landmark experience",
+        "notes": "Full bar, Denver historic landmark, specializes in arthouse and indie"
+      }
+    },
+    {
+      "id": "alamo_sloan_lake",
+      "name": "Alamo Drafthouse Sloans Lake",
+      "address": "4255 W Colfax Ave, Denver, CO 80204",
+      "coords": { "lat": 39.7402, "lon": -105.0453 },
+      "metadata": {
+        "vibe": "Full dinner service, craft cocktails, strict no-talking policy",
+        "screens": "Standard, with occasional 70mm screenings",
+        "pricing": "$14-18 general, $8 Terror Tuesday, pre-show entertainment included",
+        "best_for": "Date night, horror fans, food-and-movie experience",
+        "notes": "Reserved seating, order food from your seat"
+      }
+    },
+    {
+      "id": "alamo_westminster",
+      "name": "Alamo Drafthouse Westminster",
+      "address": "8890 Westminster Blvd, Westminster, CO 80031",
+      "coords": { "lat": 39.8561, "lon": -105.0372 },
+      "metadata": {
+        "vibe": "Same Alamo experience, newer location, less crowded than Sloans Lake",
+        "screens": "Standard",
+        "pricing": "$14-18 general, $8 Terror Tuesday",
+        "best_for": "North Denver/suburbs, same Alamo quality with easier parking",
+        "notes": "Reserved seating, full food and drink service"
+      }
+    },
+    {
+      "id": "regal_ua_colorado_center",
+      "name": "Regal UA Colorado Center & IMAX",
+      "address": "2000 S Colorado Blvd, Denver, CO 80222",
+      "coords": { "lat": 39.6788, "lon": -104.9414 },
+      "metadata": {
+        "vibe": "Standard multiplex with a solid IMAX screen",
+        "screens": "IMAX, standard",
+        "pricing": "$13-16 standard, $18-22 IMAX, $5 discount Tuesdays",
+        "best_for": "IMAX spectacle films, convenient south Denver location",
+        "notes": "Free parking garage, Regal Crown Club rewards"
+      }
+    },
+    {
+      "id": "amc_flatirons",
+      "name": "AMC Flatirons Crossing 14",
+      "address": "1 W Flatiron Crossing Dr, Broomfield, CO 80021",
+      "coords": { "lat": 39.9272, "lon": -105.1319 },
+      "metadata": {
+        "vibe": "Large suburban AMC with Dolby Cinema",
+        "screens": "Dolby Cinema, standard",
+        "pricing": "$16-22 standard, $20-26 Dolby, $5 discount Tuesdays with A-List",
+        "best_for": "Dolby Atmos/Vision for blockbusters, AMC A-List value",
+        "notes": "Mall location, plenty of parking, dine-in options nearby"
+      }
+    },
+    {
+      "id": "sie_filmcenter",
+      "name": "Sie FilmCenter",
+      "address": "2510 E Colfax Ave, Denver, CO 80206",
+      "coords": { "lat": 39.7402, "lon": -104.9583 },
+      "metadata": {
+        "vibe": "Denver Film's arthouse cinema, curated programming, film festival hub",
+        "screens": "3 screens, all standard but intimate",
+        "pricing": "$12-14 general, $10 members, discounts for Denver Film members",
+        "best_for": "Indie films, foreign cinema, documentaries, film festivals",
+        "notes": "Home of Denver Film, hosts special screenings and Q&As"
+      }
+    },
+    {
+      "id": "landmark_esquire",
+      "name": "Landmark's Esquire Theatre",
+      "address": "590 Downing St, Denver, CO 80218",
+      "coords": { "lat": 39.7218, "lon": -104.9749 },
+      "metadata": {
+        "vibe": "Historic single-screen arthouse theater, iconic Denver landmark",
+        "screens": "Single screen, standard",
+        "pricing": "$12-14 general",
+        "best_for": "Art films, limited releases, classic cinema experience",
+        "notes": "One of Denver's oldest theaters, intimate viewing experience"
+      }
+    },
+    {
+      "id": "amc_dine_in_southlands",
+      "name": "AMC DINE-IN Southlands 16",
+      "address": "6075 S Main St, Aurora, CO 80016",
+      "coords": { "lat": 39.5618, "lon": -104.7142 },
+      "metadata": {
+        "vibe": "Dine-in AMC with recliner seating",
+        "screens": "IMAX, Dolby Cinema, standard with recliners",
+        "pricing": "$16-22 standard, $20-26 premium, $5 discount Tuesdays",
+        "best_for": "South suburban option, dine-in experience, IMAX available",
+        "notes": "Full dine-in menu, recliner seats in all auditoriums"
+      }
+    }
+  ]
+}

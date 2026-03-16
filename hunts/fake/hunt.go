@@ -121,6 +121,13 @@ func (h *FakeHunt) FeedbackOptions() []core.FeedbackOption {
 	return []core.FeedbackOption{{Value: "liked", Label: "Liked"}}
 }
 
+func (h *FakeHunt) WebConfig() core.WebConfig {
+	return core.WebConfig{
+		SortOptions: []core.SortOption{{Value: core.SortByScore, Label: "Score"}},
+		DefaultSort: core.SortByScore,
+	}
+}
+
 // NotifyHunt interface.
 func (h *FakeHunt) NotifyFormatter() core.NotifyFormatter {
 	if h.NotifyFmtFn != nil {

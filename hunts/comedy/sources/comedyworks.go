@@ -14,13 +14,13 @@ import (
 )
 
 const (
-	downtownURL  = "https://comedyworks.com/comedians"
+	downtownURL  = "https://comedyworks.com/events?downtown=1"
 	downtownName = "Comedy Works Downtown"
 	downtownAddr = "1226 15th St, Denver, CO 80202"
 	downtownLat  = 39.7475
 	downtownLon  = -104.9994
 
-	southURL  = "https://comedyworks.com/comedians?location=south"
+	southURL  = "https://comedyworks.com/events?south=1"
 	southName = "Comedy Works South"
 	southAddr = "5345 Landmark Pl, Greenwood Village, CO 80111"
 	southLat  = 39.5966
@@ -36,58 +36,89 @@ func (s *ComedyWorks) Name() string { return "comedyworks" }
 
 func (s *ComedyWorks) Scan(_ context.Context, _ core.ScanRegion) ([]core.RawItem, error) {
 	var items []core.RawItem
-	var scrapeErr error
 
-	c := colly.NewCollector(
-		colly.AllowedDomains("comedyworks.com", "www.comedyworks.com"),
-	)
+	type pageInfo struct {
+		url       string
+		venueName string
+		venueAddr string
+		venueLat  float64
+		venueLon  float64
+	}
 
-	c.OnHTML("li.comedian-box", func(e *colly.HTMLElement) {
-		name := strings.TrimSpace(e.ChildText("h2.comedian-box-title"))
-		dateStr := strings.TrimSpace(e.ChildText("p.comedian-box-date"))
-		location := strings.TrimSpace(e.ChildText("p.comedian-box-location"))
-		ticketLink := e.ChildAttr("a.buy-tickets", "href")
+	pages := []pageInfo{
+		{downtownURL, downtownName, downtownAddr, downtownLat, downtownLon},
+		{southURL, southName, southAddr, southLat, southLon},
+	}
 
-		if name == "" || dateStr == "" {
-			return
-		}
+	for _, page := range pages {
+		c := colly.NewCollector(
+			colly.AllowedDomains("comedyworks.com", "www.comedyworks.com"),
+		)
 
-		showTime := parseFlexibleDate(dateStr)
-		if showTime.IsZero() {
-			return
-		}
+		var scrapeErr error
 
-		if ticketLink != "" && !strings.HasPrefix(ticketLink, "http") {
-			ticketLink = "https://comedyworks.com" + ticketLink
-		}
+		c.OnHTML("li", func(e *colly.HTMLElement) {
+			name := strings.TrimSpace(e.ChildText("h3 a"))
+			if name == "" {
+				return
+			}
 
-		venueName, venueAddr, venueLat, venueLon := resolveVenue(location)
+			// Extract date and ticket link from <a> elements.
+			var showTime time.Time
+			var ticketLink string
+			e.ForEach("a", func(_ int, a *colly.HTMLElement) {
+				text := strings.TrimSpace(a.Text)
+				href := a.Attr("href")
+				if strings.EqualFold(text, "Buy Tickets") {
+					if href != "" && !strings.HasPrefix(href, "http") {
+						href = "https://comedyworks.com" + href
+					}
+					ticketLink = href
+				} else if text != name && showTime.IsZero() {
+					if t := parseFlexibleDate(text); !t.IsZero() {
+						showTime = t
+					}
+				}
+			})
 
-		raw, _ := json.Marshal(map[string]string{
-			"name": name, "date": dateStr, "url": ticketLink, "location": location,
+			if showTime.IsZero() {
+				return
+			}
+
+			// Fall back to detail page link if no Buy Tickets link.
+			if ticketLink == "" {
+				if href := e.ChildAttr("h3 a", "href"); href != "" {
+					if !strings.HasPrefix(href, "http") {
+						href = "https://comedyworks.com" + href
+					}
+					ticketLink = href
+				}
+			}
+
+			raw, _ := json.Marshal(map[string]string{
+				"name": name, "date": showTime.Format("Jan 2, 2006"), "url": ticketLink, "venue": page.venueName,
+			})
+
+			items = append(items, core.RawItem{
+				SourceID:       fmt.Sprintf("cw-%s-%s", slugify(name), showTime.Format("2006-01-02")),
+				Source:         "comedyworks",
+				Title:          name,
+				Subtitle:       page.venueName,
+				VenueName:      page.venueName,
+				VenueAddress:   page.venueAddr,
+				VenueLatitude:  page.venueLat,
+				VenueLongitude: page.venueLon,
+				StartTime:      showTime.Format(time.RFC3339),
+				TicketURL:      ticketLink,
+				RawJSON:        string(raw),
+			})
 		})
 
-		items = append(items, core.RawItem{
-			SourceID:       fmt.Sprintf("cw-%s-%s", slugify(name), showTime.Format("2006-01-02")),
-			Source:         "comedyworks",
-			Title:          name,
-			Subtitle:       venueName,
-			VenueName:      venueName,
-			VenueAddress:   venueAddr,
-			VenueLatitude:  venueLat,
-			VenueLongitude: venueLon,
-			StartTime:      showTime.Format(time.RFC3339),
-			TicketURL:      ticketLink,
-			RawJSON:        string(raw),
+		c.OnError(func(_ *colly.Response, err error) {
+			scrapeErr = fmt.Errorf("scrape comedyworks: %w", err)
 		})
-	})
 
-	c.OnError(func(_ *colly.Response, err error) {
-		scrapeErr = fmt.Errorf("scrape comedyworks: %w", err)
-	})
-
-	for _, url := range []string{downtownURL, southURL} {
-		if err := c.Visit(url); err != nil {
+		if err := c.Visit(page.url); err != nil {
 			return nil, fmt.Errorf("visit comedyworks: %w", err)
 		}
 		if scrapeErr != nil {
@@ -131,10 +162,3 @@ func slugify(s string) string {
 	}, s)
 }
 
-func resolveVenue(location string) (name, addr string, lat, lon float64) {
-	loc := strings.ToLower(location)
-	if strings.Contains(loc, "south") || strings.Contains(loc, "landmark") || strings.Contains(loc, "greenwood") {
-		return southName, southAddr, southLat, southLon
-	}
-	return downtownName, downtownAddr, downtownLat, downtownLon
-}
