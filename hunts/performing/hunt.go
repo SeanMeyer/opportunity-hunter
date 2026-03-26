@@ -68,7 +68,7 @@ func (h *PerformingHunt) Evaluator() core.Evaluator {
 
 func (h *PerformingHunt) DefaultSchedule() core.Schedule {
 	return core.Schedule{
-		ScanInterval: 12 * time.Hour,
+		ScanInterval: 7 * 24 * time.Hour,
 		EvalInterval: 7 * 24 * time.Hour,
 		RemindBefore: []time.Duration{7 * 24 * time.Hour, 24 * time.Hour},
 	}

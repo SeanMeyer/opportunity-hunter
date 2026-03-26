@@ -30,8 +30,8 @@ func TestDedupeKey(t *testing.T) {
 func TestDefaultSchedule(t *testing.T) {
 	h := &comedy.ComedyHunt{}
 	s := h.DefaultSchedule()
-	if s.ScanInterval != 12*time.Hour {
-		t.Fatalf("expected 12h scan interval, got %v", s.ScanInterval)
+	if s.ScanInterval != 7*24*time.Hour {
+		t.Fatalf("expected 7d scan interval, got %v", s.ScanInterval)
 	}
 	if len(s.RemindBefore) != 1 {
 		t.Fatalf("expected 1 remind window, got %d", len(s.RemindBefore))

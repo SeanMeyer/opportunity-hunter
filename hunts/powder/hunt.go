@@ -77,7 +77,7 @@ func (h *PowderHunt) Evaluator() core.Evaluator {
 func (h *PowderHunt) DefaultSchedule() core.Schedule {
 	budget := 10.0
 	return core.Schedule{
-		ScanInterval:       12 * time.Hour,
+		ScanInterval:       24 * time.Hour,
 		EvalInterval:       0,
 		RemindBefore:       []time.Duration{2 * 24 * time.Hour},
 		MaxMonthlySpendUSD: &budget,

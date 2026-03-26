@@ -1,24 +1,5 @@
 {{define "content"}}
-{{if gt .TotalCards 0}}
 <div class="toolbar">
-    {{if .SortOptions}}
-    <label>Sort:</label>
-    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort='+this.value+'&filter={{.FilterValue}}'">
-        {{range .SortOptions}}
-        <option value="{{.Value}}" {{if eq $.SortBy .Value}}selected{{end}}>{{.Label}}</option>
-        {{end}}
-    </select>
-    {{end}}
-    {{if .FilterOptions}}
-    <label>Filter:</label>
-    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort={{.SortBy}}&filter='+this.value">
-        <option value="" {{if eq .FilterValue ""}}selected{{end}}>All ({{.TotalCards}})</option>
-        {{range .FilterOptions}}
-        <option value="{{.Value}}" {{if eq $.FilterValue .Value}}selected{{end}}>{{.Label}}</option>
-        {{end}}
-    </select>
-    {{end}}
-    <span class="count">{{len .Cards}} results</span>
     <div class="toolbar-right">
         <span class="run-status">
             {{if .LatestRun}}
@@ -46,7 +27,7 @@
             <strong>Preferences</strong>
             <span class="prefs-hint">These are included in every LLM evaluation for this hunt.</span>
         </div>
-        <textarea name="preferences" placeholder="Skill level, passes held, home location, terrain preferences, schedule constraints...">{{.Preferences}}</textarea>
+        <textarea name="preferences" placeholder="What matters to you for this hunt? Budget, distance, schedule, taste, anything the AI should factor in...">{{.Preferences}}</textarea>
         <button type="submit">Save</button>
     </form>
     <form method="POST" action="/schedule" class="schedule-form">
@@ -82,6 +63,28 @@
             <button type="submit">Save</button>
         </div>
     </form>
+</div>
+
+{{if gt .TotalCards 0}}
+<div class="toolbar" style="margin-top: 0.5rem;">
+    {{if .SortOptions}}
+    <label>Sort:</label>
+    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort='+this.value+'&filter={{.FilterValue}}'">
+        {{range .SortOptions}}
+        <option value="{{.Value}}" {{if eq $.SortBy .Value}}selected{{end}}>{{.Label}}</option>
+        {{end}}
+    </select>
+    {{end}}
+    {{if .FilterOptions}}
+    <label>Filter:</label>
+    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort={{.SortBy}}&filter='+this.value">
+        <option value="" {{if eq .FilterValue ""}}selected{{end}}>All ({{.TotalCards}})</option>
+        {{range .FilterOptions}}
+        <option value="{{.Value}}" {{if eq $.FilterValue .Value}}selected{{end}}>{{.Label}}</option>
+        {{end}}
+    </select>
+    {{end}}
+    <span class="count">{{len .Cards}} results</span>
 </div>
 {{end}}
 

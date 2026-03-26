@@ -77,7 +77,7 @@ func (h *ComedyHunt) Evaluator() core.Evaluator {
 
 func (h *ComedyHunt) DefaultSchedule() core.Schedule {
 	return core.Schedule{
-		ScanInterval: 12 * time.Hour,
+		ScanInterval: 7 * 24 * time.Hour,
 		EvalInterval: 7 * 24 * time.Hour,
 		RemindBefore: []time.Duration{24 * time.Hour},
 	}
