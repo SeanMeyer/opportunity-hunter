@@ -63,8 +63,7 @@ func run(args []string) int {
 		return 1
 	}
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
-	slog.SetDefault(logger)
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
 
 	switch args[0] {
 	case "run":
@@ -215,6 +214,10 @@ func runDaemon() int {
 	}
 	defer db.Close()
 
+	logHandler := storage.NewDBLogHandler(db, slog.LevelInfo)
+	defer logHandler.Stop()
+	slog.SetDefault(slog.New(logHandler))
+
 	// Seed global user profile from .env on first run.
 	seedProfileFromEnv(ctx, db)
 
@@ -315,6 +318,22 @@ func runDaemon() int {
 	// Per-hunt schedule loop: check every minute for due hunts.
 	checkTicker := time.NewTicker(1 * time.Minute)
 	defer checkTicker.Stop()
+
+	// Hourly log pruning: remove logs older than 7 days.
+	go func() {
+		for {
+			select {
+			case <-time.After(1 * time.Hour):
+				if n, err := db.PruneLogs(ctx, 7*24*time.Hour); err != nil {
+					slog.Warn("prune logs", "err", err)
+				} else if n > 0 {
+					slog.Info("pruned logs", "count", n)
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 
 	slog.Info("daemon started", "hunts", len(hunts), "web_port", cfg.WebPort)
 
