@@ -70,6 +70,42 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 	name := hunt.Name()
 	result := core.HuntResult{HuntName: name}
 
+	// Record the run start; inject run ID into context for log association.
+	trigger := storage.TriggerFromContext(ctx)
+	runID, insertErr := p.db.InsertRun(ctx, name, trigger)
+	if insertErr != nil {
+		slog.Warn("failed to record pipeline run start", "hunt", name, "err", insertErr)
+	} else {
+		ctx = storage.ContextWithRunID(ctx, runID)
+	}
+
+	costBefore := p.costTracker.ForHunt(name)
+
+	defer func() {
+		if insertErr != nil {
+			return // nothing to finish if we couldn't insert
+		}
+		status := "ok"
+		if len(result.Errors) > 0 {
+			status = "error"
+		}
+		costDelta := p.costTracker.ForHunt(name) - costBefore
+		var errSummary string
+		if len(result.Errors) > 0 {
+			errSummary = result.Errors[0].Err.Error()
+		}
+		if err := p.db.FinishRun(ctx, runID, storage.RunResult{
+			Status:       status,
+			Scanned:      result.Scanned,
+			Evaluated:    result.Evaluated,
+			Notified:     result.Notified,
+			CostUSD:      costDelta,
+			ErrorSummary: errSummary,
+		}); err != nil {
+			slog.Warn("failed to finish pipeline run record", "hunt", name, "err", err)
+		}
+	}()
+
 	caps, _ := core.ValidateHunt(hunt)
 	schedule := hunt.DefaultSchedule()
 

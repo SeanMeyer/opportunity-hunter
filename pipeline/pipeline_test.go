@@ -111,6 +111,40 @@ func TestPipeline_ErrorsCollectedInResult(t *testing.T) {
 	}
 }
 
+func TestRunRecordsPipelineRun(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	notifier := &testutil.FakeNotifier{}
+	ct := core.NewCostTracker(0, nil)
+	p := pipeline.New(db, ct, notifier, core.ScanRegion{}, "")
+
+	hunt := &fake.FakeHunt{
+		HuntName: "comedy",
+		Srcs: []core.Source{&fake.FakeSource{
+			SourceName: "test",
+			Items:      makeRawItems(3),
+		}},
+		Eval:   &testutil.FakeEvaluator{},
+		Dedupe: func(r core.RawItem) string { return r.SourceID },
+		Sched:  core.Schedule{ScanInterval: time.Hour},
+	}
+
+	p.Run(context.Background(), hunt)
+
+	run, err := db.LatestRun(context.Background(), "comedy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if run == nil {
+		t.Fatal("expected a pipeline run record")
+	}
+	if run.Scanned != 3 {
+		t.Errorf("expected 3 scanned, got %d", run.Scanned)
+	}
+	if run.Status != "ok" {
+		t.Errorf("expected ok status, got %q", run.Status)
+	}
+}
+
 func TestPipeline_BudgetGating(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	notifier := &testutil.FakeNotifier{}
