@@ -45,11 +45,37 @@ type Server struct {
 	runFunc     func(context.Context, string)
 }
 
+// relativeTime returns a human-friendly relative time string (e.g. "5m ago", "2h ago").
+func relativeTime(t time.Time) string {
+	if t.IsZero() {
+		return "never"
+	}
+	d := time.Since(t)
+	switch {
+	case d < time.Minute:
+		return "just now"
+	case d < time.Hour:
+		return fmt.Sprintf("%dm ago", int(d.Minutes()))
+	case d < 24*time.Hour:
+		return fmt.Sprintf("%dh ago", int(d.Hours()))
+	default:
+		days := int(d.Hours() / 24)
+		if days == 1 {
+			return "yesterday"
+		}
+		return fmt.Sprintf("%dd ago", days)
+	}
+}
+
 // New creates a web server. homeAddress is used for distance enrichment (empty = skip).
 // An optional runFunc callback may be provided; it is called (in a goroutine) when the
 // user triggers a manual run via POST /run.
 func New(db *storage.DB, hunts []HuntInfo, homeAddress string, runFunc ...func(context.Context, string)) (*Server, error) {
-	tmpl, err := template.New("").ParseFS(templateFS, "templates/*.html")
+	funcMap := template.FuncMap{
+		"relativeTime":   relativeTime,
+		"formatDistance": FormatDistance,
+	}
+	tmpl, err := template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
 		return nil, fmt.Errorf("parse templates: %w", err)
 	}
@@ -161,6 +187,7 @@ type pageData struct {
 	Schedule        *ScheduleInfo
 	IsStatusPage    bool
 	HasRunFunc      bool
+	LatestRun       *storage.PipelineRun
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -222,6 +249,10 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 			StartDay:        sched.StartDay,
 		}
 	}
+
+	// Load latest pipeline run for this hunt.
+	latestRun, _ := s.db.LatestRun(ctx, activeHunt)
+	data.LatestRun = latestRun
 
 	// Load cards.
 	rawCards := s.loadCards(ctx, activeHunt, huntInfo)

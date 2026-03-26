@@ -1,10 +1,4 @@
 {{define "content"}}
-{{if .Status}}
-<div class="status {{if .Status.HasErrors}}status-error{{else}}status-ok{{end}}">
-    Last run: {{.Status.Summary}}
-</div>
-{{end}}
-
 {{if gt .TotalCards 0}}
 <div class="toolbar">
     {{if .SortOptions}}
@@ -25,7 +19,24 @@
     </select>
     {{end}}
     <span class="count">{{len .Cards}} results</span>
-    <button class="prefs-toggle" onclick="document.getElementById('prefs-panel').classList.toggle('open')" title="Preferences">&#x2699;&#xFE0F;</button>
+    <div class="toolbar-right">
+        <span class="run-status">
+            {{if .LatestRun}}
+            <span class="status-dot"></span>
+            Ran {{relativeTime .LatestRun.StartedAt}} &middot; {{.LatestRun.Scanned}} scanned, {{.LatestRun.Notified}} notified
+            {{else}}
+            No runs yet
+            {{end}}
+        </span>
+        {{if .Schedule}}<span class="schedule-next-inline">Next: {{.Schedule.NextScan}}</span>{{end}}
+        {{if .HasRunFunc}}
+        <form method="POST" action="/run" style="display:inline">
+            <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
+            <button type="submit" class="btn-ghost">Run Now</button>
+        </form>
+        {{end}}
+        <button class="prefs-toggle" onclick="document.getElementById('prefs-panel').classList.toggle('open')" title="Preferences">&#x2699;</button>
+    </div>
 </div>
 
 <div id="prefs-panel" class="prefs-panel {{if .Preferences}}has-prefs{{end}}">
@@ -69,7 +80,6 @@
             <label class="schedule-label">at</label>
             <input type="time" name="start_time" value="{{if .Schedule}}{{.Schedule.StartTime}}{{else}}06:00{{end}}" class="schedule-time">
             <button type="submit">Save</button>
-            {{if .Schedule}}<span class="schedule-next">Next: {{.Schedule.NextScan}}</span>{{end}}
         </div>
     </form>
 </div>
@@ -80,17 +90,26 @@
     {{$hunt := .ActiveHunt}}
     {{range .Cards}}
     <div class="card tier-{{.Card.ScoreTier}}">
-        <div class="card-header">
-            <div>
-                <div class="card-title">{{.Card.Title}}</div>
-                <div class="card-subtitle">{{.Card.Subtitle}}</div>
-            </div>
+        <div class="card-main">
             {{if .Card.Score}}
             <span class="score score-{{.Card.ScoreTier}}">{{.Card.Score}}</span>
             {{end}}
+            <div class="card-body">
+                <div class="card-top-row">
+                    <span class="card-title">{{.Card.Title}}</span>
+                    {{if .Card.Subtitle}}<span class="card-subtitle">{{.Card.Subtitle}}</span>{{end}}
+                </div>
+                {{if .Card.Reason}}<div class="card-reason">{{.Card.Reason}}</div>{{end}}
+                <div class="card-meta-row">
+                    {{range .Card.Fields}}
+                    <span class="card-meta-item">{{.Icon}} {{.Value}}</span>
+                    {{end}}
+                    {{if .Card.Urgency}}
+                    <span class="urgency-badge">&#x26A0; {{.Card.Urgency}}</span>
+                    {{end}}
+                </div>
+            </div>
         </div>
-        {{if .Card.Reason}}<div class="card-reason">{{.Card.Reason}}</div>{{end}}
-        {{if .Card.Urgency}}<div class="card-urgency">{{.Card.Urgency}}</div>{{end}}
 
         {{if .Card.Fields}}
         <details>
@@ -106,16 +125,15 @@
         </details>
         {{end}}
 
-        {{if .Card.ActionURL}}
-        <div class="card-action">
-            <a href="{{.Card.ActionURL}}" target="_blank">{{.Card.ActionLabel}}</a>
-        </div>
-        {{end}}
-
         <div class="card-footer" id="fb-{{.OppID}}">
-            <button class="fb-btn fb-up" onclick="showFeedbackForm({{.OppID}}, 'up', this)" title="Good recommendation">&#x1F44D;</button>
-            <button class="fb-btn fb-down" onclick="showFeedbackForm({{.OppID}}, 'down', this)" title="Bad recommendation">&#x1F44E;</button>
-            <span class="fb-saved" id="fb-saved-{{.OppID}}" style="display:none;">Saved</span>
+            {{if .Card.ActionURL}}
+            <a href="{{.Card.ActionURL}}" target="_blank" class="card-action-link">{{.Card.ActionLabel}}</a>
+            {{end}}
+            <div class="fb-buttons">
+                <button class="fb-btn fb-up" onclick="showFeedbackForm({{.OppID}}, 'up', this)" title="Good recommendation">&#x1F44D;</button>
+                <button class="fb-btn fb-down" onclick="showFeedbackForm({{.OppID}}, 'down', this)" title="Bad recommendation">&#x1F44E;</button>
+                <span class="fb-saved" id="fb-saved-{{.OppID}}" style="display:none;">Saved</span>
+            </div>
         </div>
         <div class="fb-form" id="fb-form-{{.OppID}}" style="display:none;">
             <form method="POST" action="/feedback">
@@ -138,6 +156,30 @@
 {{else}}
 <div class="empty">No opportunities yet for {{.ActiveHunt}}.</div>
 {{end}}
+
+<style>
+    .toolbar-right{display:flex;gap:.6rem;align-items:center;margin-left:auto;flex-wrap:wrap}
+    .run-status{font-size:.8rem;color:#9ca3af;display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap}
+    .schedule-next-inline{font-size:.8rem;color:#6b7280;white-space:nowrap}
+    .card-main{display:flex;gap:.75rem;align-items:flex-start}
+    .card-body{flex:1;min-width:0}
+    .card-top-row{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem}
+    .card-title{font-size:1rem;font-weight:600;color:#f3f4f6}
+    .card-subtitle{color:#9ca3af;font-size:.85rem}
+    .card-reason{color:#a5b4fc;font-size:.85rem;line-height:1.5;margin-bottom:.4rem}
+    .card-meta-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;font-size:.8rem;color:#9ca3af}
+    .card-meta-item{white-space:nowrap}
+    .urgency-badge{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:.1rem .4rem;font-size:.75rem;font-weight:600;white-space:nowrap}
+    .card-footer{margin-top:.75rem;padding-top:.75rem;border-top:1px solid #374151;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+    .card-action-link{color:#a5b4fc;text-decoration:none;font-weight:500;font-size:.85rem}
+    .card-action-link:hover{color:#818cf8;text-decoration:underline}
+    .fb-buttons{display:flex;gap:.4rem;align-items:center;margin-left:auto}
+    .fb-btn{width:1.5rem;height:1.5rem;border:1px solid #374151;border-radius:50%;background:#1a1a2e;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#f3f4f6;padding:0}
+    .fb-btn:hover{background:#2d2b4a;transform:scale(1.1);border-color:#6366f1}
+    .fb-btn.selected{border-color:#6366f1;background:rgba(99,102,241,.15)}
+    .fb-up.selected{border-color:#86efac;background:rgba(134,239,172,.1)}
+    .fb-down.selected{border-color:#ef4444;background:rgba(239,68,68,.1)}
+</style>
 
 <script>
 function showFeedbackForm(oppId, rating, btn) {
