@@ -243,9 +243,35 @@ func runDaemon() int {
 	// Pipeline.
 	pipe := pipeline.New(db, costTracker, pipeNotifier, homeRegion(cfg), cfg.HomeAddress)
 
+	// Concurrency guard — prevents overlapping scheduled and manual runs.
+	guard := pipeline.NewRunGuard()
+
 	// Web server.
 	huntInfos := buildHuntInfos(hunts)
-	webServer, err := web.New(db, huntInfos, cfg.HomeAddress)
+
+	// runFunc is called (in a goroutine) when the user triggers a manual run.
+	// It must capture webServer by pointer so it can call SetStatus after creation.
+	var webServer *web.Server
+	runFunc := func(runCtx context.Context, huntName string) {
+		if !guard.TryAcquire(huntName) {
+			slog.Info("hunt already running, skipping manual trigger", "hunt", huntName)
+			return
+		}
+		defer guard.Release(huntName)
+		runCtx = storage.ContextWithTrigger(runCtx, "manual")
+		for _, h := range hunts {
+			if h.Name() == huntName {
+				hr := pipe.Run(runCtx, h)
+				logHuntResult(hr)
+				if webServer != nil {
+					webServer.SetStatus(toStatusInfo(core.PipelineResult{HuntResults: []core.HuntResult{hr}}))
+				}
+				break
+			}
+		}
+	}
+
+	webServer, err = web.New(db, huntInfos, cfg.HomeAddress, runFunc)
 	if err != nil {
 		slog.Error("create web server", "err", err)
 		return 1
@@ -312,8 +338,13 @@ func runDaemon() int {
 					slog.Warn("due hunt not found in registry", "hunt", name)
 					continue
 				}
+				if !guard.TryAcquire(name) {
+					slog.Info("hunt already running, skipping", "hunt", name)
+					continue
+				}
 				slog.Info("scheduled hunt run", "hunt", name)
 				hr := pipe.Run(ctx, hunt)
+				guard.Release(name)
 				logHuntResult(hr)
 				webServer.SetStatus(toStatusInfo(core.PipelineResult{HuntResults: []core.HuntResult{hr}}))
 				if err := db.AdvanceNextScan(ctx, name, time.Now()); err != nil {

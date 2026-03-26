@@ -1,11 +1,13 @@
 package web_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
 	"github.com/seanmeyer/opportunity-hunter/testutil"
@@ -116,6 +118,56 @@ func TestSmartDistanceDisplay(t *testing.T) {
 				t.Errorf("got %q, want %q", got, tt.wantText)
 			}
 		})
+	}
+}
+
+func TestHandleRun(t *testing.T) {
+	db := testutil.NewTestDB(t)
+
+	var triggered string
+	hunts := []web.HuntInfo{{Name: "comedy"}, {Name: "powder"}}
+	srv, err := web.New(db, hunts, "", func(ctx context.Context, hunt string) {
+		triggered = hunt
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	resp, err := http.PostForm(ts.URL+"/run", url.Values{"hunt": {"comedy"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected 200 after redirect, got %d", resp.StatusCode)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+	if triggered != "comedy" {
+		t.Errorf("expected comedy triggered, got %q", triggered)
+	}
+}
+
+func TestHandleRunInvalidHunt(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	hunts := []web.HuntInfo{{Name: "comedy"}}
+	srv, err := web.New(db, hunts, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	client := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}}
+	resp, err := client.PostForm(ts.URL+"/run", url.Values{"hunt": {"nonexistent"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("expected 400, got %d", resp.StatusCode)
 	}
 }
 

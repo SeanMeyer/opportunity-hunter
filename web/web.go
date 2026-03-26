@@ -42,10 +42,13 @@ type Server struct {
 	huntNames   []string
 	lastStatus  *StatusInfo
 	homeAddress string
+	runFunc     func(context.Context, string)
 }
 
 // New creates a web server. homeAddress is used for distance enrichment (empty = skip).
-func New(db *storage.DB, hunts []HuntInfo, homeAddress string) (*Server, error) {
+// An optional runFunc callback may be provided; it is called (in a goroutine) when the
+// user triggers a manual run via POST /run.
+func New(db *storage.DB, hunts []HuntInfo, homeAddress string, runFunc ...func(context.Context, string)) (*Server, error) {
 	tmpl, err := template.New("").ParseFS(templateFS, "templates/*.html")
 	if err != nil {
 		return nil, fmt.Errorf("parse templates: %w", err)
@@ -56,7 +59,11 @@ func New(db *storage.DB, hunts []HuntInfo, homeAddress string) (*Server, error) 
 		names[i] = h.Name
 	}
 
-	return &Server{db: db, tmpl: tmpl, hunts: hunts, huntNames: names, homeAddress: homeAddress}, nil
+	s := &Server{db: db, tmpl: tmpl, hunts: hunts, huntNames: names, homeAddress: homeAddress}
+	if len(runFunc) > 0 {
+		s.runFunc = runFunc[0]
+	}
+	return s, nil
 }
 
 // SetStatus updates the last pipeline run status.
@@ -73,6 +80,33 @@ func FormatDistance(walkingMinutes, drivingMinutes int) string {
 	return fmt.Sprintf("%d min drive", drivingMinutes)
 }
 
+// validHunt reports whether name is a registered hunt.
+func (s *Server) validHunt(name string) bool {
+	for _, h := range s.huntNames {
+		if h == name {
+			return true
+		}
+	}
+	return false
+}
+
+// handleRun handles POST /run — triggers a manual pipeline run for a single hunt.
+func (s *Server) handleRun(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	huntName := r.FormValue("hunt")
+	if !s.validHunt(huntName) {
+		http.Error(w, "unknown hunt", http.StatusBadRequest)
+		return
+	}
+	if s.runFunc != nil {
+		go s.runFunc(context.Background(), huntName)
+	}
+	http.Redirect(w, r, "/?hunt="+huntName, http.StatusSeeOther)
+}
+
 // Handler returns the HTTP handler for the web UI.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
@@ -80,6 +114,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /preferences", s.handleSavePreferences)
 	mux.HandleFunc("POST /feedback", s.handleSaveFeedback)
 	mux.HandleFunc("POST /schedule", s.handleSaveSchedule)
+	mux.HandleFunc("POST /run", s.handleRun)
 	return mux
 }
 
