@@ -138,6 +138,22 @@ CREATE TABLE IF NOT EXISTS hunt_schedules (
     updated_at      TEXT NOT NULL
 );
 
+-- Pipeline run history for observability and web UI status display.
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+    id TEXT PRIMARY KEY,
+    hunt_name TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    finished_at TEXT,
+    status TEXT NOT NULL DEFAULT 'running',
+    scanned INTEGER NOT NULL DEFAULT 0,
+    evaluated INTEGER NOT NULL DEFAULT 0,
+    notified INTEGER NOT NULL DEFAULT 0,
+    cost_usd REAL NOT NULL DEFAULT 0,
+    error_summary TEXT,
+    trigger TEXT NOT NULL DEFAULT 'scheduled'
+);
+CREATE INDEX IF NOT EXISTS idx_pipeline_runs_hunt_started ON pipeline_runs (hunt_name, started_at);
+
 -- Indexes for common queries.
 CREATE INDEX IF NOT EXISTS idx_opportunities_hunt_state ON opportunities(hunt_name, state);
 CREATE INDEX IF NOT EXISTS idx_opportunities_start_time ON opportunities(start_time);
