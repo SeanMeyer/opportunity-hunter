@@ -11,6 +11,7 @@
   <Category>Tools:</Category>
   <Icon>https://raw.githubusercontent.com/SeanMeyer/opportunity-hunter/main/unraid/icon.png</Icon>
   <Description>Automated opportunity alerts. Scans for comedy shows, performing arts, movies, and powder days — evaluates with Gemini AI and sends personalized picks to Discord.</Description>
+  <WebUI>http://[IP]:[PORT:8080]</WebUI>
 
   <!-- Required -->
   <Config Name="Google API Key" Target="GOOGLE_API_KEY" Default="" Type="Variable" Display="always" Required="true" Mask="true" Description="Gemini API key. Get a free key at https://aistudio.google.com/apikey"/>
