@@ -154,6 +154,19 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
 );
 CREATE INDEX IF NOT EXISTS idx_pipeline_runs_hunt_started ON pipeline_runs (hunt_name, started_at);
 
+-- Structured log entries written by the slog handler.
+CREATE TABLE IF NOT EXISTS run_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT,
+    hunt_name TEXT,
+    timestamp TEXT NOT NULL,
+    level TEXT NOT NULL,
+    message TEXT NOT NULL,
+    attrs TEXT NOT NULL DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS idx_run_logs_hunt_ts ON run_logs (hunt_name, timestamp);
+CREATE INDEX IF NOT EXISTS idx_run_logs_run ON run_logs (run_id);
+
 -- Indexes for common queries.
 CREATE INDEX IF NOT EXISTS idx_opportunities_hunt_state ON opportunities(hunt_name, state);
 CREATE INDEX IF NOT EXISTS idx_opportunities_start_time ON opportunities(start_time);
