@@ -172,6 +172,22 @@ func TestHandleRunInvalidHunt(t *testing.T) {
 	}
 }
 
+func TestStatusPage(t *testing.T) {
+	srv, ts := newTestServer(t)
+	_ = srv
+	resp, err := http.Get(ts.URL + "/status")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != 200 {
+		t.Errorf("expected 200, got %d", resp.StatusCode)
+	}
+	body := readBody(t, resp)
+	if !strings.Contains(body, "Run History") {
+		t.Error("expected status page with Run History")
+	}
+}
+
 func readBody(t *testing.T, resp *http.Response) string {
 	t.Helper()
 	defer resp.Body.Close()

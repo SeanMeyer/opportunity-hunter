@@ -133,15 +133,64 @@ func (s *Server) handleRun(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/?hunt="+huntName, http.StatusSeeOther)
 }
 
-// handleStatus handles GET /status — renders the System Status page stub.
+// huntHealth holds the latest run and schedule for one hunt, for the status dashboard.
+type huntHealth struct {
+	Name     string
+	Run      *storage.PipelineRun // nil if no runs yet
+	Schedule *storage.ScheduleRow // nil if no schedule set
+}
+
+// statusData is the template data for the /status page.
+type statusData struct {
+	Hunts        []string
+	ActiveHunt   string // empty on status page
+	IsStatusPage bool
+	HasRunFunc   bool
+	Health       []huntHealth
+	Costs        storage.MonthlySpendResult
+	Runs         []storage.PipelineRun
+	Logs         []storage.RunLog
+	HuntFilter   string
+	LevelFilter  string
+}
+
+// handleStatus handles GET /status — renders the System Status dashboard.
 func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
-	// Stub — will be fleshed out in Task 10
-	data := pageData{
+	ctx := r.Context()
+	huntFilter := r.URL.Query().Get("hunt")
+	levelFilter := r.URL.Query().Get("level")
+
+	var healthCards []huntHealth
+	for _, name := range s.huntNames {
+		run, _ := s.db.LatestRun(ctx, name)
+		sched, _ := s.db.GetSchedule(ctx, name)
+		healthCards = append(healthCards, huntHealth{
+			Name:     name,
+			Run:      run,
+			Schedule: sched,
+		})
+	}
+
+	costs, _ := s.db.MonthlySpend(ctx, time.Now())
+	runs, _ := s.db.RecentRuns(ctx, huntFilter, 50)
+	logs, _ := s.db.RecentLogs(ctx, huntFilter, levelFilter, 200)
+
+	data := statusData{
 		Hunts:        s.huntNames,
 		IsStatusPage: true,
 		HasRunFunc:   s.runFunc != nil,
+		Health:       healthCards,
+		Costs:        costs,
+		Runs:         runs,
+		Logs:         logs,
+		HuntFilter:   huntFilter,
+		LevelFilter:  levelFilter,
 	}
-	s.tmpl.ExecuteTemplate(w, "layout.html", data)
+
+	if err := s.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+		slog.Error("render status template", "err", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
 // Handler returns the HTTP handler for the web UI.

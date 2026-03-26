@@ -1,5 +1,113 @@
 {{define "status"}}
-<div style="padding: 2rem; text-align: center; color: #9ca3af;">
-    System Status dashboard coming soon.
+<div style="padding: 1rem 0;">
+
+    {{/* Hunt Health Cards */}}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 12px;">
+        {{range .Health}}
+        <div style="background: #222238; border-radius: 8px; padding: 10px 12px; border-top: 3px solid {{if .Run}}{{if eq .Run.Status "ok"}}#86efac{{else if eq .Run.Status "error"}}#ef4444{{else}}#fbbf24{{end}}{{else}}#6b7280{{end}};">
+            <div style="font-size: 0.82rem; font-weight: 600; color: #f3f4f6; margin-bottom: 4px;">{{.Name}}</div>
+            {{if .Run}}
+            <div style="font-size: 0.73rem; font-weight: 600; color: {{if eq .Run.Status "ok"}}#86efac{{else if eq .Run.Status "error"}}#ef4444{{else}}#fbbf24{{end}}; margin-bottom: 3px; text-transform: uppercase;">{{.Run.Status}}</div>
+            <div style="font-size: 0.73rem; color: #9ca3af; margin-bottom: 2px;">Last run {{relativeTime .Run.StartedAt}}</div>
+            <div style="font-size: 0.73rem; color: #6b7280;">{{.Run.Scanned}} scanned &middot; {{.Run.Notified}} notified</div>
+            {{else}}
+            <div style="font-size: 0.73rem; color: #6b7280; font-style: italic;">No runs yet</div>
+            {{end}}
+            {{if .Schedule}}<div style="font-size: 0.7rem; color: #a5b4fc; margin-top: 4px;">Next: {{.Schedule.NextScanAt.Local.Format "Mon 3:04 PM"}}</div>{{end}}
+        </div>
+        {{end}}
+    </div>
+
+    {{/* Cost Bar */}}
+    <div style="background: #222238; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div style="font-size: 0.73rem; color: #9ca3af; font-weight: 500; text-transform: uppercase; white-space: nowrap;">
+            This Month's Costs
+        </div>
+        <div style="font-size: 1rem; color: #f3f4f6; font-weight: 600;">${{printf "%.2f" .Costs.Total}}</div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.73rem; color: #6b7280;">
+            {{range $hunt, $cost := .Costs.ByHunt}}
+            <span>{{$hunt}} <span style="color: #a5b4fc;">${{printf "%.2f" $cost}}</span></span>
+            {{end}}
+        </div>
+    </div>
+
+    {{/* Run History Table */}}
+    <div style="background: #222238; border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
+        <div style="padding: 10px 14px; border-bottom: 1px solid #2d2b4a; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+            <span style="font-size: 0.82rem; color: #f3f4f6; font-weight: 600;">Run History</span>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <a href="/status" style="padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; text-decoration: none; border: 1px solid #374151; color: #9ca3af; {{if eq .HuntFilter ""}}background: rgba(255,255,255,0.05); border-color: #6b7280; color: #f3f4f6;{{end}}">All</a>
+                {{range .Hunts}}
+                <a href="/status?hunt={{.}}" style="padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; text-decoration: none; border: 1px solid #374151; color: #9ca3af; {{if eq $.HuntFilter .}}background: rgba(165,180,252,0.1); border-color: #a5b4fc; color: #a5b4fc;{{end}}">{{.}}</a>
+                {{end}}
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse;">
+                <thead>
+                    <tr style="color: #6b7280; text-align: left; background: rgba(0,0,0,0.15);">
+                        <th style="padding: 6px 14px; font-weight: 500;">Time</th>
+                        <th style="padding: 6px 8px; font-weight: 500;">Hunt</th>
+                        <th style="padding: 6px 8px; font-weight: 500;">Result</th>
+                        <th style="padding: 6px 8px; font-weight: 500;">Scanned</th>
+                        <th style="padding: 6px 8px; font-weight: 500;">Evaluated</th>
+                        <th style="padding: 6px 8px; font-weight: 500;">Notified</th>
+                        <th style="padding: 6px 8px; font-weight: 500;">Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Runs}}
+                    <tr style="color: #d1d5db; border-top: 1px solid #2d2b4a;">
+                        <td style="padding: 7px 14px; color: #9ca3af; white-space: nowrap;">{{relativeTime .StartedAt}}</td>
+                        <td style="padding: 7px 8px;"><span style="color: #a5b4fc;">{{.HuntName}}</span></td>
+                        <td style="padding: 7px 8px; white-space: nowrap;">
+                            {{if eq .Status "ok"}}<span style="color: #86efac;">&#10003; OK</span>
+                            {{else if eq .Status "error"}}<span style="color: #ef4444;">&#10007; Error</span>
+                            {{else}}<span style="color: #fbbf24;">&#9888; {{.Status}}</span>{{end}}
+                        </td>
+                        <td style="padding: 7px 8px;">{{.Scanned}}</td>
+                        <td style="padding: 7px 8px;">{{.Evaluated}}</td>
+                        <td style="padding: 7px 8px;">{{.Notified}}</td>
+                        <td style="padding: 7px 8px; color: #9ca3af;">${{printf "%.2f" .CostUSD}}</td>
+                    </tr>
+                    {{end}}
+                    {{if not .Runs}}
+                    <tr><td colspan="7" style="padding: 1.5rem 14px; color: #6b7280; text-align: center;">No runs yet.</td></tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{/* Log Viewer */}}
+    <div style="background: #222238; border-radius: 8px; overflow: hidden;">
+        <div style="padding: 10px 14px; border-bottom: 1px solid #2d2b4a; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+            <span style="font-size: 0.82rem; color: #f3f4f6; font-weight: 600;">Logs</span>
+            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                {{/* Severity pills */}}
+                <a href="/status?hunt={{.HuntFilter}}" style="padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; text-decoration: none; border: 1px solid #374151; color: #9ca3af; {{if eq .LevelFilter ""}}background: rgba(255,255,255,0.05); border-color: #6b7280; color: #f3f4f6;{{end}}">All</a>
+                <a href="/status?hunt={{.HuntFilter}}&level=ERROR" style="padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; text-decoration: none; border: 1px solid #374151; color: #9ca3af; {{if eq .LevelFilter "ERROR"}}background: rgba(239,68,68,0.1); border-color: #ef4444; color: #ef4444;{{end}}">Errors</a>
+                <a href="/status?hunt={{.HuntFilter}}&level=WARN" style="padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; text-decoration: none; border: 1px solid #374151; color: #9ca3af; {{if eq .LevelFilter "WARN"}}background: rgba(251,191,36,0.1); border-color: #fbbf24; color: #fbbf24;{{end}}">Warnings</a>
+                <span style="color: #374151;">|</span>
+                {{/* Hunt pills */}}
+                <a href="/status?level={{.LevelFilter}}" style="padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; text-decoration: none; border: 1px solid #374151; color: #9ca3af; {{if eq .HuntFilter ""}}background: rgba(255,255,255,0.05); border-color: #6b7280; color: #f3f4f6;{{end}}">All hunts</a>
+                {{range .Hunts}}
+                <a href="/status?hunt={{.}}&level={{$.LevelFilter}}" style="padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; text-decoration: none; border: 1px solid #374151; color: #9ca3af; {{if eq $.HuntFilter .}}background: rgba(165,180,252,0.1); border-color: #a5b4fc; color: #a5b4fc;{{end}}">{{.}}</a>
+                {{end}}
+            </div>
+        </div>
+        <div style="font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 0.7rem; line-height: 1.7; padding: 8px 14px; max-height: 300px; overflow-y: auto;">
+            {{range .Logs}}
+            <div>
+                <span style="color: #6b7280; user-select: none;">{{.Timestamp.Format "15:04:05"}}</span>
+                <span style="font-weight: 600; color: {{if eq .Level "INFO"}}#86efac{{else if eq .Level "WARN"}}#fbbf24{{else}}#ef4444{{end}}; margin: 0 4px;">{{.Level}}</span>
+                {{if .HuntName}}<span style="color: #a5b4fc;">[{{.HuntName}}]</span>{{end}}
+                <span style="color: #d1d5db;"> {{.Message}}</span>
+            </div>
+            {{end}}
+            {{if not .Logs}}<div style="color: #6b7280; padding: 1rem 0;">No logs yet.</div>{{end}}
+        </div>
+    </div>
+
 </div>
 {{end}}
