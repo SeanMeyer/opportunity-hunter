@@ -64,6 +64,15 @@ func (s *Server) SetStatus(status *StatusInfo) {
 	s.lastStatus = status
 }
 
+// FormatDistance returns a human-friendly distance string.
+// Shows walking for close venues (<=30 min), driving otherwise.
+func FormatDistance(walkingMinutes, drivingMinutes int) string {
+	if walkingMinutes <= 30 {
+		return fmt.Sprintf("%d min walk", walkingMinutes)
+	}
+	return fmt.Sprintf("%d min drive", drivingMinutes)
+}
+
 // Handler returns the HTTP handler for the web UI.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
@@ -272,6 +281,9 @@ func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo)
 					if dist, err := s.db.GetDistance(ctx, venue.ID, s.homeAddress, "walking"); err == nil {
 						venue.WalkingMinutes = dist.Minutes
 						venue.DistanceMi = dist.DistanceMi
+					}
+					if dist, err := s.db.GetDistance(ctx, venue.ID, s.homeAddress, "driving"); err == nil {
+						venue.DrivingMinutes = dist.Minutes
 					}
 				}
 			}

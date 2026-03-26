@@ -97,6 +97,28 @@ func TestSaveFeedback(t *testing.T) {
 	}
 }
 
+func TestSmartDistanceDisplay(t *testing.T) {
+	tests := []struct {
+		name     string
+		walking  int
+		driving  int
+		wantText string
+	}{
+		{"close venue", 8, 3, "8 min walk"},
+		{"far venue", 90, 25, "25 min drive"},
+		{"boundary", 30, 12, "30 min walk"},
+		{"just over", 31, 13, "13 min drive"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := web.FormatDistance(tt.walking, tt.driving)
+			if got != tt.wantText {
+				t.Errorf("got %q, want %q", got, tt.wantText)
+			}
+		})
+	}
+}
+
 func readBody(t *testing.T, resp *http.Response) string {
 	t.Helper()
 	defer resp.Body.Close()

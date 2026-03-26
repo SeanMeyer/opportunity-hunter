@@ -118,5 +118,6 @@ type Venue struct {
 	Longitude      float64
 	Notes          string
 	WalkingMinutes int     // 0 = unknown; enriched from distance_cache
+	DrivingMinutes int     // enriched from distance_cache (mode=driving)
 	DistanceMi     float64 // 0 = unknown; enriched from distance_cache
 }
