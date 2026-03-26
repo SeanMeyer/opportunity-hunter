@@ -107,10 +107,22 @@ func (s *Server) handleRun(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/?hunt="+huntName, http.StatusSeeOther)
 }
 
+// handleStatus handles GET /status — renders the System Status page stub.
+func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
+	// Stub — will be fleshed out in Task 10
+	data := pageData{
+		Hunts:        s.huntNames,
+		IsStatusPage: true,
+		HasRunFunc:   s.runFunc != nil,
+	}
+	s.tmpl.ExecuteTemplate(w, "layout.html", data)
+}
+
 // Handler returns the HTTP handler for the web UI.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", s.handleIndex)
+	mux.HandleFunc("GET /status", s.handleStatus)
 	mux.HandleFunc("POST /preferences", s.handleSavePreferences)
 	mux.HandleFunc("POST /feedback", s.handleSaveFeedback)
 	mux.HandleFunc("POST /schedule", s.handleSaveSchedule)
@@ -147,6 +159,8 @@ type pageData struct {
 	SortOptions     []core.SortOption
 	FilterOptions   []core.FilterOption
 	Schedule        *ScheduleInfo
+	IsStatusPage    bool
+	HasRunFunc      bool
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -184,6 +198,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Status:      s.lastStatus,
 		SortBy:      sortBy,
 		FilterValue: filterValue,
+		HasRunFunc:  s.runFunc != nil,
 	}
 
 	if huntInfo != nil {

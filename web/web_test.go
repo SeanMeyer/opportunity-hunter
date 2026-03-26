@@ -2,6 +2,7 @@ package web_test
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -174,12 +175,9 @@ func TestHandleRunInvalidHunt(t *testing.T) {
 func readBody(t *testing.T, resp *http.Response) string {
 	t.Helper()
 	defer resp.Body.Close()
-	buf := new(strings.Builder)
-	if _, err := strings.NewReader("").WriteTo(buf); err != nil {
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
 		t.Fatal(err)
 	}
-	// Read the actual body.
-	b := make([]byte, 10000)
-	n, _ := resp.Body.Read(b)
-	return string(b[:n])
+	return string(b)
 }
