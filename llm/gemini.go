@@ -42,6 +42,7 @@ type TwoStepResult struct {
 	Structured map[string]any   // parsed JSON from structured extraction
 	Sources    []string          // grounding sources from research
 	RawJSON    string            // raw JSON string from structured step
+	CostUSD    float64           // estimated cost of both API calls
 }
 
 // TwoStep performs the two-step evaluation pattern:
@@ -65,6 +66,7 @@ func (c *Client) TwoStep(ctx context.Context, prompt string, schema *genai.Schem
 	}
 	result.Research = researchResp.Text()
 	result.Sources = extractSources(researchResp)
+	result.CostUSD += responseCost(c.model, researchResp)
 
 	// Step 2: Structured extraction.
 	structurePrompt := fmt.Sprintf(`You are a JSON extraction assistant. Parse the analysis below into the required JSON schema exactly. Preserve all specific details.
@@ -86,6 +88,7 @@ func (c *Client) TwoStep(ctx context.Context, prompt string, schema *genai.Schem
 	}
 
 	result.RawJSON = structureResp.Text()
+	result.CostUSD += responseCost(c.model, structureResp)
 	if err := json.Unmarshal([]byte(result.RawJSON), &result.Structured); err != nil {
 		return result, fmt.Errorf("parse structured response: %w", err)
 	}
@@ -93,16 +96,25 @@ func (c *Client) TwoStep(ctx context.Context, prompt string, schema *genai.Schem
 	return result, nil
 }
 
+// GenerateResult holds the output of a single generation call.
+type GenerateResult struct {
+	Text    string
+	CostUSD float64
+}
+
 // Generate performs a single generation call.
-func (c *Client) Generate(ctx context.Context, prompt string, config *genai.GenerateContentConfig) (string, error) {
+func (c *Client) Generate(ctx context.Context, prompt string, config *genai.GenerateContentConfig) (GenerateResult, error) {
 	contents := []*genai.Content{
 		genai.NewContentFromText(prompt, genai.RoleUser),
 	}
 	resp, err := c.generateWithRetry(ctx, contents, config, "generate")
 	if err != nil {
-		return "", err
+		return GenerateResult{}, err
 	}
-	return resp.Text(), nil
+	return GenerateResult{
+		Text:    resp.Text(),
+		CostUSD: responseCost(c.model, resp),
+	}, nil
 }
 
 func (c *Client) generateWithRetry(ctx context.Context, contents []*genai.Content, config *genai.GenerateContentConfig, step string) (*genai.GenerateContentResponse, error) {
@@ -143,6 +155,14 @@ func extractSources(resp *genai.GenerateContentResponse) []string {
 		}
 	}
 	return sources
+}
+
+// responseCost extracts token counts from a Gemini response and estimates cost.
+func responseCost(model string, resp *genai.GenerateContentResponse) float64 {
+	if resp == nil || resp.UsageMetadata == nil {
+		return 0
+	}
+	return EstimateCost(model, int(resp.UsageMetadata.PromptTokenCount), int(resp.UsageMetadata.CandidatesTokenCount))
 }
 
 // EstimateCost estimates the cost of a Gemini API call in USD.

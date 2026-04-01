@@ -410,7 +410,7 @@ func HaversineDistanceKM(lat1, lon1, lat2, lon2 float64) float64 {
 
 // FrictionTierFromDistance assigns a friction tier based on straight-line distance.
 func FrictionTierFromDistance(distKM float64) string {
-	estimatedDriveHours := (distKM * 1.3) / 100.0
+	estimatedDriveHours := (distKM * 1.8) / 100.0
 	switch {
 	case estimatedDriveHours <= 3:
 		return "local_drive"

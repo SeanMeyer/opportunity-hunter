@@ -31,7 +31,7 @@ func (h *PowderHunt) Synthesize(ctx context.Context, group core.NotifyGroup, ct 
 	}
 
 	prompt := fmt.Sprintf(briefingPrompt, summaries.String())
-	text, err := h.llmC.Generate(ctx, prompt, nil)
+	result, err := h.llmC.Generate(ctx, prompt, nil)
 	if err != nil {
 		// Fall back to simple briefing on LLM failure.
 		return fmt.Sprintf("Storm system impacting %s with %d regions showing activity. Monitor for updates.",
@@ -39,10 +39,10 @@ func (h *PowderHunt) Synthesize(ctx context.Context, group core.NotifyGroup, ct 
 	}
 
 	if ct != nil {
-		ct.Add(h.Name(), 0.001) // Approximate cost for briefing call.
+		ct.Add(h.Name(), result.CostUSD)
 	}
 
-	return strings.TrimSpace(text), nil
+	return strings.TrimSpace(result.Text), nil
 }
 
 func truncate(s string, maxLen int) string {

@@ -3,7 +3,7 @@
     <div class="toolbar-right">
         <span class="run-status">
             {{if .LatestRun}}
-            <span class="status-dot"></span>
+            <span class="status-dot" {{if eq .LatestRun.Status "error"}}style="background:#ef4444"{{else if eq .LatestRun.Status "ok"}}{{else}}style="background:#fbbf24"{{end}}></span>
             Ran {{relativeTime .LatestRun.StartedAt}} &middot; {{.LatestRun.Scanned}} scanned, {{.LatestRun.Notified}} notified
             {{else}}
             No runs yet
@@ -169,10 +169,10 @@
     .card-top-row{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem}
     .card-title{font-size:1rem;font-weight:600;color:#f3f4f6}
     .card-subtitle{color:#9ca3af;font-size:.85rem}
-    .card-reason{color:#a5b4fc;font-size:.85rem;line-height:1.5;margin-bottom:.4rem}
+    .card-reason{color:#a5b4fc;font-size:.85rem;line-height:1.5;margin-bottom:.4rem;overflow-wrap:break-word;word-break:break-word}
     .card-meta-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;font-size:.8rem;color:#9ca3af}
     .card-meta-item{white-space:nowrap}
-    .urgency-badge{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:.1rem .4rem;font-size:.75rem;font-weight:600;white-space:nowrap}
+    .urgency-badge{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:.1rem .4rem;font-size:.75rem;font-weight:600}
     .card-footer{margin-top:.75rem;padding-top:.75rem;border-top:1px solid #374151;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
     .card-action-link{color:#a5b4fc;text-decoration:none;font-weight:500;font-size:.85rem}
     .card-action-link:hover{color:#818cf8;text-decoration:underline}

@@ -115,6 +115,7 @@ func (e *powderEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 			EvaluatedAt:    time.Now(),
 			RawLLMResponse: twoStep.Research,
 			RenderedPrompt: prompt,
+			CostUSD:        twoStep.CostUSD,
 		},
 		Picks: picks,
 	}, nil

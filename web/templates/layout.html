@@ -47,8 +47,8 @@
         .schedule-time:focus{outline:none;border-color:#6366f1}
         .schedule-day-wrap{display:inline-flex;gap:.5rem;align-items:center}
         .schedule-day-wrap select{padding:.3rem .5rem;border:1px solid #374151;border-radius:6px;font-size:.85rem;background:#1a1a2e;color:#f3f4f6}
-        .cards{display:grid;gap:1rem;margin:1rem 0}
-        .card{background:#222238;border-radius:8px;padding:1rem;border:1px solid #2d2b4a;border-left:4px solid #374151}
+        .cards{display:grid;grid-template-columns:1fr;gap:1rem;margin:1rem 0}
+        .card{background:#222238;border-radius:8px;padding:1rem;border:1px solid #2d2b4a;border-left:4px solid #374151;min-width:0;overflow:hidden}
         .card.tier-high{border-left-color:#ef4444}
         .card.tier-medium{border-left-color:#fbbf24}
         .card.tier-low{border-left-color:#6366f1}

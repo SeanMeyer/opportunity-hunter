@@ -58,6 +58,7 @@ func (e *comedyEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 			RawLLMResponse:   twoStep.Research,
 			RenderedPrompt:   prompt,
 			SkippedReasoning: stringField(twoStep.Structured, "skipped_reasoning"),
+			CostUSD:          twoStep.CostUSD,
 		},
 		Picks: picks,
 	}, nil

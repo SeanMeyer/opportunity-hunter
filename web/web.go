@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"encoding/json"
@@ -187,10 +188,13 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		LevelFilter:  levelFilter,
 	}
 
-	if err := s.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+	var buf bytes.Buffer
+	if err := s.tmpl.ExecuteTemplate(&buf, "layout.html", data); err != nil {
 		slog.Error("render status template", "err", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	buf.WriteTo(w)
 }
 
 // Handler returns the HTTP handler for the web UI.
@@ -320,10 +324,13 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 	data.Cards = items
 
-	if err := s.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+	var buf bytes.Buffer
+	if err := s.tmpl.ExecuteTemplate(&buf, "layout.html", data); err != nil {
 		slog.Error("render template", "err", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	buf.WriteTo(w)
 }
 
 func sortCards(cards []core.CardData, sortBy string) {
