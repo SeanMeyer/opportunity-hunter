@@ -94,6 +94,9 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 		if len(result.Errors) > 0 {
 			errSummary = result.Errors[0].Err.Error()
 		}
+		for _, e := range result.Errors {
+			slog.Error("pipeline step error", "hunt", name, "step", e.Step, "err", e.Err, "context", e.Context)
+		}
 		if err := p.db.FinishRun(ctx, runID, storage.RunResult{
 			Status:       status,
 			Scanned:      result.Scanned,
