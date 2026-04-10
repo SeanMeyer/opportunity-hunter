@@ -9,6 +9,19 @@ import (
 	"github.com/seanmeyer/opportunity-hunter/hunts/powder/weather"
 )
 
+func tierDisplayName(tier weather.Tier) string {
+	switch tier {
+	case weather.TierDropEverything:
+		return "Drop Everything"
+	case weather.TierWorthALook:
+		return "Worth a Look"
+	case weather.TierOnTheRadar:
+		return "On the Radar"
+	default:
+		return string(tier)
+	}
+}
+
 type powderCardRenderer struct{}
 
 func (r *powderCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, venue core.Venue) core.CardData {
@@ -28,7 +41,7 @@ func (r *powderCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 	card := core.CardData{
 		Title:    opp.Title,
 		Subtitle: opp.Subtitle,
-		Score:    pick.DisplayScore,
+		Score:    tierDisplayName(weather.Tier(pick.DisplayScore)),
 		Reason:   reason,
 		Urgency:  pick.Urgency,
 	}
