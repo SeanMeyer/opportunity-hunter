@@ -102,7 +102,8 @@
                     <span class="card-title">{{.Card.Title}}</span>
                     {{if .Card.Subtitle}}<span class="card-subtitle">{{.Card.Subtitle}}</span>{{end}}
                 </div>
-                {{if .Card.Reason}}<div class="card-reason">{{.Card.Reason}}</div>{{end}}
+                {{if .Card.Reason}}<div class="card-reason" id="reason-{{.OppID}}">{{.Card.Reason}}</div>
+                <button class="card-reason-toggle" id="reason-toggle-{{.OppID}}" style="display:none" onclick="toggleReason({{.OppID}})">show more</button>{{end}}
                 <div class="card-meta-row">
                     {{range .Card.Fields}}
                     <span class="card-meta-item">{{.Icon}} {{.Value}}</span>
@@ -169,7 +170,8 @@
     .card-top-row{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem}
     .card-title{font-size:1rem;font-weight:600;color:#f3f4f6}
     .card-subtitle{color:#9ca3af;font-size:.85rem}
-    .card-reason{color:#a5b4fc;font-size:.85rem;line-height:1.5;margin-bottom:.4rem;overflow-wrap:break-word;word-break:break-word}
+    .card-reason{color:#a5b4fc;font-size:.85rem;line-height:1.5;margin-bottom:.4rem;overflow-wrap:break-word;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .card-reason.expanded{-webkit-line-clamp:unset;overflow:visible}
     .card-meta-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;font-size:.8rem;color:#9ca3af}
     .card-meta-item{white-space:nowrap}
     .urgency-badge{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:.1rem .4rem;font-size:.75rem;font-weight:600}
@@ -209,5 +211,27 @@ function toggleDayPicker() {
     }
 }
 toggleDayPicker();
+
+function toggleReason(oppId) {
+    var el = document.getElementById('reason-' + oppId);
+    var btn = document.getElementById('reason-toggle-' + oppId);
+    if (el.classList.contains('expanded')) {
+        el.classList.remove('expanded');
+        btn.textContent = 'show more';
+    } else {
+        el.classList.add('expanded');
+        btn.textContent = 'show less';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.card-reason').forEach(function(el) {
+        if (el.scrollHeight > el.clientHeight) {
+            var id = el.id.replace('reason-', '');
+            var btn = document.getElementById('reason-toggle-' + id);
+            if (btn) btn.style.display = '';
+        }
+    });
+});
 </script>
 {{end}}
