@@ -55,13 +55,20 @@ func (r *comedyCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 			Icon: "📍", Label: "Venue", Value: venue.Name,
 		})
 	}
-	if venue.WalkingMinutes > 0 {
-		distVal := fmt.Sprintf("%d min walk", venue.WalkingMinutes)
+	if venue.WalkingMinutes > 0 || venue.DrivingMinutes > 0 {
+		var distVal, icon string
+		if venue.WalkingMinutes > 0 && venue.WalkingMinutes <= 30 {
+			icon = "🚶"
+			distVal = fmt.Sprintf("%d min walk", venue.WalkingMinutes)
+		} else {
+			icon = "🚗"
+			distVal = fmt.Sprintf("%d min drive", venue.DrivingMinutes)
+		}
 		if venue.DistanceMi > 0 {
 			distVal += fmt.Sprintf(" · %.1f mi", venue.DistanceMi)
 		}
 		card.Fields = append(card.Fields, core.CardField{
-			Icon: "🚶", Label: "Distance", Value: distVal,
+			Icon: icon, Label: "Distance", Value: distVal,
 		})
 	}
 	card.Fields = append(card.Fields, core.CardField{
