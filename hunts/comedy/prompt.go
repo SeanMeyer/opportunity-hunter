@@ -57,34 +57,18 @@ func buildPrompt(ec core.EvalContext) string {
 			}
 		}
 
-		// Format dates from ShowDates.
-		if len(opp.ShowDates) <= 1 {
-			fmt.Fprintf(&b, "- Date/Time: %s\n", opp.StartTime.Format("Mon Jan 2, 3:04 PM"))
-		} else {
-			var dates []string
-			for _, d := range opp.ShowDates {
-				dates = append(dates, d.Format("Mon Jan 2, 3:04 PM"))
-			}
-			fmt.Fprintf(&b, "- Dates: %s\n", formatShowDates(dates))
-		}
-
-		if opp.PriceMin != nil {
-			if opp.PriceMax != nil {
-				fmt.Fprintf(&b, "- Price: $%.0f - $%.0f\n", *opp.PriceMin, *opp.PriceMax)
-			} else {
-				fmt.Fprintf(&b, "- Price: from $%.0f\n", *opp.PriceMin)
-			}
-		}
+		b.WriteString(core.ListingFacts(opp))
 		b.WriteString("\n")
 	}
 
+	b.WriteString(core.RecommendationEvidenceRules + "\n\n")
 	b.WriteString(`## Instructions
 
 For each show that scores 7+, provide:
 - show_id: index from the list above
 - score: 1-10 rating
 - reason: why this matches the user's preferences
-- sell_out_risk: low/medium/high
+- sell_out_risk: unknown/low/medium/high
 - urgency: what the user should do
 
 If no shows score 7+, return an empty picks list.

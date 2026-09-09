@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 	"unicode"
@@ -20,7 +22,7 @@ const (
 	downtownLat  = 39.7475
 	downtownLon  = -104.9994
 
-	southURL  = "https://comedyworks.com/events?south=1"
+	southURL  = "https://comedyworks.com/events?landmark=1"
 	southName = "Comedy Works South"
 	southAddr = "5345 Landmark Pl, Greenwood Village, CO 80111"
 	southLat  = 39.5966
@@ -28,13 +30,13 @@ const (
 )
 
 // ComedyWorks scrapes the Comedy Works Denver website.
-type ComedyWorks struct{}
+type ComedyWorks struct{ client *http.Client }
 
 func NewComedyWorks() *ComedyWorks { return &ComedyWorks{} }
 
 func (s *ComedyWorks) Name() string { return "comedyworks" }
 
-func (s *ComedyWorks) Scan(_ context.Context, _ core.ScanRegion) ([]core.RawItem, error) {
+func (s *ComedyWorks) Scan(ctx context.Context, _ core.ScanRegion) ([]core.RawItem, error) {
 	var items []core.RawItem
 
 	type pageInfo struct {
@@ -51,14 +53,28 @@ func (s *ComedyWorks) Scan(_ context.Context, _ core.ScanRegion) ([]core.RawItem
 	}
 
 	for _, page := range pages {
+		if err := ctx.Err(); err != nil {
+			return items, err
+		}
 		c := colly.NewCollector(
 			colly.AllowedDomains("comedyworks.com", "www.comedyworks.com"),
 		)
 
+		client := s.client
+		if client == nil {
+			client = &http.Client{Timeout: 30 * time.Second}
+		}
+		transport := client.Transport
+		if transport == nil {
+			transport = http.DefaultTransport
+		}
+		copyClient := *client
+		copyClient.Transport = scanTransport{ctx: ctx, base: transport}
+		c.SetClient(&copyClient)
 		var scrapeErr error
 
-		c.OnHTML("li", func(e *colly.HTMLElement) {
-			name := strings.TrimSpace(e.ChildText("h3 a"))
+		c.OnHTML("li.comedian-box", func(e *colly.HTMLElement) {
+			name := strings.TrimSpace(e.ChildText("h2 a, h3 a"))
 			if name == "" {
 				return
 			}
@@ -87,7 +103,7 @@ func (s *ComedyWorks) Scan(_ context.Context, _ core.ScanRegion) ([]core.RawItem
 
 			// Fall back to detail page link if no Buy Tickets link.
 			if ticketLink == "" {
-				if href := e.ChildAttr("h3 a", "href"); href != "" {
+				if href := e.ChildAttr("h2 a, h3 a", "href"); href != "" {
 					if !strings.HasPrefix(href, "http") {
 						href = "https://comedyworks.com" + href
 					}
@@ -100,7 +116,7 @@ func (s *ComedyWorks) Scan(_ context.Context, _ core.ScanRegion) ([]core.RawItem
 			})
 
 			items = append(items, core.RawItem{
-				SourceID:       fmt.Sprintf("cw-%s-%s", slugify(name), showTime.Format("2006-01-02")),
+				SourceID:       fmt.Sprintf("cw-%s-%s-%s", slugify(page.venueName), slugify(name), showTime.Format("2006-01-02")),
 				Source:         "comedyworks",
 				Title:          name,
 				Subtitle:       page.venueName,
@@ -162,3 +178,37 @@ func slugify(s string) string {
 	}, s)
 }
 
+// scanTransport propagates cancellation through Colly HTTP requests.
+type scanTransport struct {
+	ctx  context.Context
+	base http.RoundTripper
+}
+
+func (t scanTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	// Keep client/request deadlines and values; add scan cancellation without
+	// replacing the request context. The lifetime includes reading the body.
+	ctx, cancel := context.WithCancel(r.Context())
+	stop := context.AfterFunc(t.ctx, cancel)
+	cleanup := func() { stop(); cancel() }
+	if t.ctx.Err() != nil {
+		cancel()
+	}
+	resp, err := t.base.RoundTrip(r.WithContext(ctx))
+	if err != nil {
+		cleanup()
+		return resp, err
+	}
+	resp.Body = &scanResponseBody{ReadCloser: resp.Body, cleanup: cleanup}
+	return resp, nil
+}
+
+type scanResponseBody struct {
+	io.ReadCloser
+	cleanup func()
+}
+
+func (b *scanResponseBody) Close() error {
+	err := b.ReadCloser.Close()
+	b.cleanup()
+	return err
+}

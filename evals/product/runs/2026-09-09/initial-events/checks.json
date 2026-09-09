@@ -1,0 +1,98 @@
+[
+  {
+    "Case": "comedy-baseline",
+    "Seconds": 10.51,
+    "Cost": 0.012006,
+    "Picks": "101:10/10,102:8/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "comedy-feedback-repeat",
+    "Seconds": 8.86,
+    "Cost": 0.013179,
+    "Picks": "102:10/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "comedy-feedback",
+    "Seconds": 11.49,
+    "Cost": 0.0152175,
+    "Picks": "102:9/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "comedy-no-good",
+    "Seconds": 6.09,
+    "Cost": 0.0088275,
+    "Picks": "",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "movies-baseline",
+    "Seconds": 75.19,
+    "Cost": 0.10331625,
+    "Picks": "101:9/10,102:8/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "movies-feedback-repeat",
+    "Seconds": 13.07,
+    "Cost": 0.0195585,
+    "Picks": "102:9/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "movies-feedback",
+    "Seconds": 12.65,
+    "Cost": 0.01873875,
+    "Picks": "102:9/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "movies-no-good",
+    "Seconds": 15.86,
+    "Cost": 0.022080000000000002,
+    "Picks": "",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "performing-arts-baseline",
+    "Seconds": 7.17,
+    "Cost": 0.01119,
+    "Picks": "101:9/10,102:8/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "performing-arts-feedback-repeat",
+    "Seconds": 9.18,
+    "Cost": 0.012497250000000001,
+    "Picks": "102:9/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "performing-arts-feedback",
+    "Seconds": 9.41,
+    "Cost": 0.01191825,
+    "Picks": "102:9/10",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  },
+  {
+    "Case": "performing-arts-no-good",
+    "Seconds": 5.89,
+    "Cost": 0.0071445,
+    "Picks": "",
+    "InvalidIDsOrScores": 0,
+    "Error": ""
+  }
+]

@@ -1,0 +1,78 @@
+[
+  {
+    "ai_calls": 0,
+    "cycle": 1,
+    "duration_seconds": 1.9126155,
+    "external_notifications": 0,
+    "result": {
+      "HuntResults": [
+        {
+          "HuntName": "comedy",
+          "Scanned": 82,
+          "Evaluated": 0,
+          "Notified": 0,
+          "Errors": null
+        },
+        {
+          "HuntName": "powder",
+          "Scanned": 0,
+          "Evaluated": 0,
+          "Notified": 0,
+          "Errors": null
+        }
+      ]
+    },
+    "started_at": "2026-09-09T21:52:30.7949092Z",
+    "stored_discovered_counts": {
+      "comedy": 82,
+      "powder": 0
+    },
+    "weather_region": "Colorado I-70 Corridor",
+    "weather_requests": [
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.open-meteo.com: 200 OK"
+    ]
+  },
+  {
+    "ai_calls": 0,
+    "cycle": 2,
+    "duration_seconds": 2.087434,
+    "external_notifications": 0,
+    "result": {
+      "HuntResults": [
+        {
+          "HuntName": "comedy",
+          "Scanned": 0,
+          "Evaluated": 0,
+          "Notified": 0,
+          "Errors": null
+        },
+        {
+          "HuntName": "powder",
+          "Scanned": 0,
+          "Evaluated": 0,
+          "Notified": 0,
+          "Errors": null
+        }
+      ]
+    },
+    "started_at": "2026-09-09T21:59:10.8101161Z",
+    "stored_discovered_counts": {
+      "comedy": 82,
+      "powder": 0
+    },
+    "weather_region": "Colorado I-70 Corridor",
+    "weather_requests": [
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.weather.gov: 200 OK",
+      "api.open-meteo.com: 200 OK"
+    ]
+  }
+]

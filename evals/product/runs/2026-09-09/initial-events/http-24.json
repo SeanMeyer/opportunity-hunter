@@ -1,0 +1,82 @@
+{
+  "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
+  "error": "",
+  "latency_seconds": 1.8791982,
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Extract the analysis into the required JSON schema. Preserve the analyst's verdict,\nreasoning summary, scores, uncertainty, and caveats; do not re-evaluate or strengthen the recommendation.\nThe original context is included to resolve references and IDs, not to invent missing conclusions.\nFor unavailable string details use \"Unknown\"; for inapplicable details use \"Not applicable\".\nUse empty arrays when no entries are supported. Never manufacture prices or sources.\n\n## Original context\nYou are an expert performing arts recommender for Denver, CO. Evaluate the following shows and score each on a scale of 1-10.\n\nUnlike comedy or movies, performing arts scoring should heavily weight EXTERNAL signals: critical acclaim, Tony awards, production company reputation, touring status, and cultural buzz. Use your knowledge of the arts world to assess production quality.\n\n## User Preferences \u0026 Scoring Guidance\n\nSYNTHETIC BENCHMARK: These are fictional listings, not claims of real availability. Judge the supplied fixture facts; artist/work names are taste evidence only. Assume today is September 9, 2026. Hard constraints: total ticket budget maximum $50, venue at most 20 minutes walking, cannot drive, start between 6 PM and 9 PM, and no past events. Do not assume missing prices, dates or availability. I love musicals especially Hadestown; also open to ballet like Swan Lake. Production/company reputation is unknown unless listed.\n\n## Feedback on past recommendations\n\nNo feedback yet.\n\n## Shows to Evaluate\n\n### Show 1: Hadestown Premium [SYNTHETIC listing]\n- Details: Musical; company/cast unknown\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Fri Sep 18, 7:00 PM\n- Price: $150 - $150\n\n### Show 2: Hadestown Remote [SYNTHETIC listing]\n- Details: Musical; company/cast unknown\n- Venue: Synthetic Remote Venue (95 min walk)\n- Date/Time: Fri Sep 18, 7:00 PM\n- Price: $35 - $35\n\n### Show 3: Hadestown Late [SYNTHETIC listing]\n- Details: Musical; company/cast unknown\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Fri Sep 18, 11:00 PM\n- Price: $35 - $35\n\n### Show 4: Hadestown Past [SYNTHETIC listing]\n- Details: Musical; company/cast unknown\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Sat Aug 29, 7:00 PM\n- Price: $35 - $35\n\n### Show 5: Mystery Production [SYNTHETIC listing]\n- Details: Musical; company/cast unknown\n- Date/Time: Mon Jan 1, 12:00 AM\n\n## Instructions\n\nFor each show that scores 7+, provide:\n- show_id: index from the list above\n- score: 1-10 rating\n- reason: why this is worth seeing (focus on production quality, cultural significance)\n- genre: one of musical, play, opera, ballet, dance, symphony, other\n- urgency: what the user should do (e.g., \"buy tickets now — limited run\")\n\nIf no shows score 7+, return an empty picks list.\nExplain in skipped_reasoning why the remaining shows didn't make the cut.\n\n\n## Analysis\n\n### Assessment\n\nEvery listing in the provided lineup violates one or more of the user's strict constraints:\n\n- **Show 1 (Hadestown Premium):** While *Hadestown* is a critically acclaimed Tony-winning musical directly aligned with the user's tastes, the ticket price of $150 substantially exceeds the user's $50 maximum budget constraint.\n- **Show 2 (Hadestown Remote):** Although appropriately priced ($35) and timed, the 95-minute walk severely violates the hard constraint requiring venues to be within a 20-minute walk (with driving not an option).\n- **Show 3 (Hadestown Late):** This production satisfies budget and proximity requirements, but its 11:00 PM start time falls well outside the mandatory 6:00 PM to 9:00 PM start window.\n- **Show 4 (Hadestown Past):** Scheduled for Saturday, August 29, 2026, this performance is already in the past relative to the current date of September 9, 2026.\n- **Show 5 (Mystery Production):** Fails on multiple fronts: missing price and venue information (violating instructions to not assume missing data), and a 12:00 AM start time outside the required 6:00 PM to 9:00 PM window.\n\nBecause all shows fail hard personal constraints, none score 7 or higher.\n\n```json\n{\n  \"picks\": [],\n  \"skipped_reasoning\": \"Show 1 exceeds the $50 budget limit ($150). Show 2 exceeds the 20-minute walking distance limit (95 min walk). Show 3 starts outside the 6:00 PM - 9:00 PM window (11:00 PM). Show 4 occurred in the past (August 29, 2026 vs. today's date of September 9, 2026). Show 5 lacks venue and price data and starts at 12:00 AM outside the permitted time window.\"\n}\n```\n\n## Extraction fidelity\nOnly list sources actually cited or retrieved, never suggested future checks. Keep illustrative budgets distinct from trip cost estimates. Preserve decisive conditions in both recommendation and summary; a possible reopening must not become a confirmed reopening in any field.\nRetrieved source URLs:\n[]"
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "generationConfig": {
+      "responseMimeType": "application/json",
+      "responseSchema": {
+        "properties": {
+          "picks": {
+            "items": {
+              "properties": {
+                "genre": {
+                  "enum": [
+                    "musical",
+                    "play",
+                    "opera",
+                    "ballet",
+                    "dance",
+                    "symphony",
+                    "other"
+                  ],
+                  "type": "STRING"
+                },
+                "reason": {
+                  "description": "Why this show is worth seeing (production quality, cultural significance)",
+                  "type": "STRING"
+                },
+                "score": {
+                  "description": "Score from 1-10",
+                  "type": "INTEGER"
+                },
+                "show_id": {
+                  "description": "1-based index of the show from the list",
+                  "type": "INTEGER"
+                },
+                "urgency": {
+                  "description": "What the user should do (e.g., buy tickets now — limited run)",
+                  "type": "STRING"
+                }
+              },
+              "required": [
+                "show_id",
+                "score",
+                "reason",
+                "genre",
+                "urgency"
+              ],
+              "type": "OBJECT"
+            },
+            "type": "ARRAY"
+          },
+          "skipped_reasoning": {
+            "description": "Explanation of why shows scoring below 7 were skipped",
+            "type": "STRING"
+          }
+        },
+        "required": [
+          "picks",
+          "skipped_reasoning"
+        ],
+        "type": "OBJECT"
+      },
+      "thinkingConfig": {
+        "thinkingLevel": "LOW"
+      }
+    }
+  },
+  "response": "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\": [\n          {\n            \"text\": \"{\\n  \\\"picks\\\": [],\\n  \\\"skipped_reasoning\\\": \\\"Show 1 exceeds the $50 budget limit ($150). Show 2 exceeds the 20-minute walking distance limit (95 min walk). Show 3 starts outside the 6:00 PM - 9:00 PM window (11:00 PM). Show 4 occurred in the past (August 29, 2026 vs. today's date of September 9, 2026). Show 5 lacks venue and price data and starts at 12:00 AM outside the permitted time window.\\\"\\n}\",\n            \"thoughtSignature\": \"EmcKZQERTTIPaP823gz68RJn8RhjNKLIpK0Nl8nmlCuEDQneiNy1fRq+OCMHWixF/zWD4YlSNnhxK8OCZS5Y8dbZNSDUQh2yF6mOt86337jptTM9jK8HHPz9IZ4ZncDETHFYdQTMIZi6\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 1265,\n    \"candidatesTokenCount\": 139,\n    \"totalTokenCount\": 1404,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 1265\n      }\n    ],\n    \"serviceTier\": \"standard\"\n  },\n  \"modelVersion\": \"gemini-3.8-flash\",\n  \"responseId\": \"QtOharz2Jave-sAP4PSskQI\"\n}\n",
+  "started": "2026-09-09T15:44:34.3653893-06:00",
+  "status": 200
+}

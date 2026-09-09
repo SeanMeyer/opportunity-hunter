@@ -46,6 +46,10 @@ func buildPrompt(ec core.EvalContext, theaters []catalog.Theater, homeLat, homeL
 				}
 			}
 		}
+		b.WriteString(core.ListingFacts(opp))
+		if opp.Source == "tmdb" {
+			b.WriteString("- The listing date is a release date, not a screening time.\n")
+		}
 		// Add venue/distance context for theatrical showings.
 		if opp.VenueID != nil {
 			if venue, ok := ec.Venues[*opp.VenueID]; ok {
@@ -62,7 +66,7 @@ func buildPrompt(ec core.EvalContext, theaters []catalog.Theater, homeLat, homeL
 	// Include theater catalog as context for theatrical recommendations.
 	if len(theaters) > 0 {
 		b.WriteString("## Nearby Theaters\n\n")
-		b.WriteString("Use this context when recommending theatrical movies. Match films to the best viewing experience.\n\n")
+		b.WriteString("This catalog is general context, not current screenings or ticket inventory. Prices are guides, not verified tickets. Distances are straight-line, not walking routes or travel times. Suggest a venue only conditionally until film availability, price and the user's travel constraints are verified.\n\n")
 		for _, t := range theaters {
 			distMi := haversineMi(homeLat, homeLon, t.Coords.Lat, t.Coords.Lon)
 			distLabel := formatDistance(distMi)
@@ -83,13 +87,14 @@ func buildPrompt(ec core.EvalContext, theaters []catalog.Theater, homeLat, homeL
 		}
 	}
 
+	b.WriteString(core.RecommendationEvidenceRules + "\n\n")
 	b.WriteString(`## Instructions
 
 For each movie that scores 7+, provide:
 - movie_id: index from the list above
 - score: 1-10 rating
 - reason: why this is worth seeing (taste match, critical reception, viewing experience)
-- urgency: what the user should do — reference specific nearby theaters by name with distance (e.g., "see it in RPX at Regal Denver Pavilions, 5 min walk", "catch $8 Terror Tuesday at Alamo Sloans Lake")
+- urgency: a practical next step supported by the listing; do not invent showtimes, prices, walking times, or bookings
 
 If no movies score 7+, return an empty picks list.
 Explain in skipped_reasoning why the remaining movies didn't make the cut.
@@ -111,11 +116,5 @@ func haversineMi(lat1, lon1, lat2, lon2 float64) float64 {
 
 // formatDistance returns a human-friendly distance string.
 func formatDistance(miles float64) string {
-	if miles < 1.0 {
-		return fmt.Sprintf("%.1f mi walk", miles)
-	}
-	if miles < 5.0 {
-		return fmt.Sprintf("%.1f mi", miles)
-	}
-	return fmt.Sprintf("%.0f mi drive", miles)
+	return fmt.Sprintf("%.1f mi straight-line", miles)
 }

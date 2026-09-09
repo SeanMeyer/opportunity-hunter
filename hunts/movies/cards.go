@@ -21,7 +21,7 @@ func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 		Urgency:     pick.Urgency,
 		SortScore:   pick.Score,
 		DateSort:    opp.StartTime.Unix(),
-		DateDisplay: opp.StartTime.Format("Mon Jan 2, 2006"),
+		DateDisplay: core.FormatListingTime(opp.StartTime),
 	}
 
 	switch {
@@ -51,9 +51,11 @@ func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 					Icon: "⭐", Label: "TMDB", Value: fmt.Sprintf("%.1f/10", attrs.TMDBRating),
 				})
 			}
-			card.Fields = append(card.Fields, core.CardField{
-				Icon: "📽️", Label: "Release", Value: attrs.ReleaseType,
-			})
+			if attrs.ReleaseType != "" {
+				card.Fields = append(card.Fields, core.CardField{
+					Icon: "📽️", Label: "Release", Value: attrs.ReleaseType,
+				})
+			}
 			if attrs.Service != "" {
 				card.Fields = append(card.Fields, core.CardField{
 					Icon: "📺", Label: "Streaming", Value: attrs.Service,
@@ -69,7 +71,7 @@ func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 	}
 	if venue.WalkingMinutes > 0 || venue.DrivingMinutes > 0 {
 		var distVal, icon string
-		if venue.WalkingMinutes > 0 && venue.WalkingMinutes <= 30 {
+		if venue.WalkingMinutes > 0 && (venue.WalkingMinutes <= 30 || venue.DrivingMinutes == 0) {
 			icon = "🚶"
 			distVal = fmt.Sprintf("%d min walk", venue.WalkingMinutes)
 		} else {
@@ -84,12 +86,19 @@ func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 		})
 	}
 
-	// Add theater pricing from catalog if venue matches a known theater.
+	if opp.PriceMin != nil {
+		price := fmt.Sprintf("$%.0f", *opp.PriceMin)
+		if opp.PriceMax != nil {
+			price = fmt.Sprintf("$%.0f - $%.0f", *opp.PriceMin, *opp.PriceMax)
+		}
+		card.Fields = append(card.Fields, core.CardField{Icon: "💰", Label: "Price", Value: price})
+	}
+	// Catalog pricing is general guidance, separate from a known listing price.
 	if venue.Name != "" && r.theatersByName != nil {
 		if theater, ok := r.theatersByName[venue.Name]; ok {
 			if pricing, ok := theater.Metadata["pricing"]; ok {
 				card.Fields = append(card.Fields, core.CardField{
-					Icon: "💰", Label: "Pricing", Value: pricing,
+					Icon: "💰", Label: "Theater price guide", Value: pricing,
 				})
 			}
 		}

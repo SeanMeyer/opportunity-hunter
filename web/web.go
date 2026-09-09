@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
@@ -44,6 +45,7 @@ type Server struct {
 	hunts       []HuntInfo
 	huntNames   []string
 	lastStatus  *StatusInfo
+	statusMu    sync.RWMutex
 	homeAddress string
 	runFunc     func(context.Context, string)
 }
@@ -98,16 +100,26 @@ func New(db *storage.DB, hunts []HuntInfo, homeAddress string, runFunc ...func(c
 
 // SetStatus updates the last pipeline run status.
 func (s *Server) SetStatus(status *StatusInfo) {
-	s.lastStatus = status
+	s.statusMu.Lock()
+	defer s.statusMu.Unlock()
+	if status == nil {
+		s.lastStatus = nil
+		return
+	}
+	copyStatus := *status
+	s.lastStatus = &copyStatus
 }
 
 // FormatDistance returns a human-friendly distance string.
 // Shows walking for close venues (<=30 min), driving otherwise.
 func FormatDistance(walkingMinutes, drivingMinutes int) string {
-	if walkingMinutes <= 30 {
+	if walkingMinutes > 0 && (walkingMinutes <= 30 || drivingMinutes == 0) {
 		return fmt.Sprintf("%d min walk", walkingMinutes)
 	}
-	return fmt.Sprintf("%d min drive", drivingMinutes)
+	if drivingMinutes > 0 {
+		return fmt.Sprintf("%d min drive", drivingMinutes)
+	}
+	return "Unknown"
 }
 
 // validHunt reports whether name is a registered hunt.
@@ -286,7 +298,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	data := pageData{
 		Hunts:       s.huntNames,
 		ActiveHunt:  activeHunt,
-		Status:      s.lastStatus,
+		Status:      s.statusSnapshot(),
 		SortBy:      sortBy,
 		FilterValue: filterValue,
 		HasRunFunc:  s.runFunc != nil,
@@ -670,4 +682,14 @@ func (s *Server) handleSaveSchedule(w http.ResponseWriter, r *http.Request) {
 	slog.Info("schedule updated", "hunt", hunt, "interval_m", interval,
 		"start", fmt.Sprintf("%02d:%02d", startHour, startMinute), "day", startDay)
 	s.redirectToView(w, r, "schedule", "")
+}
+
+func (s *Server) statusSnapshot() *StatusInfo {
+	s.statusMu.RLock()
+	defer s.statusMu.RUnlock()
+	if s.lastStatus == nil {
+		return nil
+	}
+	v := *s.lastStatus
+	return &v
 }

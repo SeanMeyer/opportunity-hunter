@@ -13,7 +13,7 @@ import (
 //   - 4+ dates: "Mar 27 – Apr 15 (12 shows)"
 func formatDateDisplay(opp core.Opportunity) string {
 	if len(opp.ShowDates) <= 1 {
-		return opp.StartTime.Format("Mon Jan 2, 3:04 PM")
+		return core.FormatListingTime(opp.StartTime)
 	}
 	if len(opp.ShowDates) <= 3 {
 		var parts []string
@@ -57,7 +57,7 @@ func (r *comedyCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 	}
 	if venue.WalkingMinutes > 0 || venue.DrivingMinutes > 0 {
 		var distVal, icon string
-		if venue.WalkingMinutes > 0 && venue.WalkingMinutes <= 30 {
+		if venue.WalkingMinutes > 0 && (venue.WalkingMinutes <= 30 || venue.DrivingMinutes == 0) {
 			icon = "🚶"
 			distVal = fmt.Sprintf("%d min walk", venue.WalkingMinutes)
 		} else {

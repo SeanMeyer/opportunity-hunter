@@ -1,0 +1,53 @@
+{
+  "Opportunities": [
+    {
+      "ID": 1,
+      "HuntName": "powder",
+      "SourceID": "",
+      "Source": "",
+      "Title": "Steamboat simulation",
+      "Subtitle": "January 8 2027",
+      "VenueID": null,
+      "StartTime": "2027-01-08T00:00:00Z",
+      "EndTime": null,
+      "ShowDates": null,
+      "PriceMin": null,
+      "PriceMax": null,
+      "TicketURL": "",
+      "State": "",
+      "Attributes": {
+        "snowfall_in": 21,
+        "consensus": 0,
+        "friction_tier": "regional_drive",
+        "change_class": "",
+        "weather_window": "January 8 2027",
+        "storm_group": ""
+      },
+      "RawData": "{\"forecasts\":[{\"RegionID\":\"steamboat\",\"ResortID\":\"steamboat\",\"FetchedAt\":\"2027-01-07T00:00:00Z\",\"Source\":\"synthetic\",\"Model\":\"synthetic\",\"DailyData\":[{\"SkiSession\":{\"OpenHour\":9,\"CloseHour\":16,\"OpeningSnowCM\":50.8,\"DuringSkiingSnowCM\":2.54},\"Date\":\"2027-01-08T00:00:00Z\",\"SnowfallCM\":53.339999999999996,\"ShelteredSnowfallCM\":0,\"TemperatureMinC\":-12,\"TemperatureMaxC\":-6,\"PrecipitationMM\":0,\"FreezingLevelM\":0,\"SLRatio\":16,\"RainHours\":0,\"MixedHours\":0,\"Day\":{\"SnowfallCM\":2.54,\"ShelteredSnowfallCM\":0,\"TemperatureC\":-6,\"PrecipitationMM\":0,\"WindSpeedKmh\":11.700000000000001,\"WindGustKmh\":28.96812,\"FreezingLevelMinM\":900,\"FreezingLevelMaxM\":1200,\"CloudCoverPct\":0},\"Night\":{\"SnowfallCM\":50.8,\"ShelteredSnowfallCM\":0,\"TemperatureC\":-12,\"PrecipitationMM\":0,\"WindSpeedKmh\":0,\"WindGustKmh\":15,\"FreezingLevelMinM\":900,\"FreezingLevelMaxM\":1200,\"CloudCoverPct\":0}}]}],\"consensus\":{\"RegionID\":\"steamboat\",\"Models\":[\"synthetic\"],\"DailyConsensus\":[{\"Date\":\"2027-01-08T00:00:00Z\",\"SnowfallMinCM\":53.339999999999996,\"SnowfallMaxCM\":53.339999999999996,\"SnowfallMeanCM\":53.339999999999996,\"SpreadToMean\":0,\"Confidence\":\"high\"}]},\"resorts\":[{\"ID\":\"steamboat\",\"RegionID\":\"\",\"Name\":\"Steamboat\",\"Latitude\":0,\"Longitude\":0,\"SummitElevationFt\":10568,\"BaseElevationFt\":6900,\"VerticalDropFt\":0,\"SkiableAcres\":0,\"LiftCount\":0,\"PassAffiliations\":[\"Ikon\"],\"Metadata\":{\"notes\":\"SIMULATION ONLY. Reference time is 2027-01-07 12:00 Mountain. Weather, operations and traveler facts below are hypothetical scenario assumptions, not real future forecasts. Present-day September resort pages do not establish simulated January operations. Search may support durable geography only. Steamboat is closed January 8-10 for infrastructure damage. No reopening announced before January 15. No skiable alternative operations supplied.\"}}],\"detection\":{\"RegionID\":\"\",\"Detected\":true,\"Windows\":[{\"RegionID\":\"\",\"StartDate\":\"2027-01-08T00:00:00Z\",\"EndDate\":\"2027-01-08T00:00:00Z\",\"TotalIn\":21,\"IsNearRange\":true}]},\"scanned_at\":\"2027-01-07T00:00:00Z\"}",
+      "DiscoveredAt": "0001-01-01T00:00:00Z",
+      "EvaluatedAt": null,
+      "NotifiedAt": null,
+      "RemindedAt": null
+    }
+  ],
+  "Venues": null,
+  "Preferences": "SIMULATION ONLY. Reference time is 2027-01-07 12:00 Mountain. Weather, operations and traveler facts below are hypothetical scenario assumptions, not real future forecasts. Present-day September resort pages do not establish simulated January operations. Search may support durable geography only. Can only ski January 8 or 9. Cannot extend trip.",
+  "Profile": {
+    "hunt_name": "",
+    "home_base": "Denver",
+    "home_lat": 0,
+    "home_lon": 0,
+    "passes": [
+      "Ikon"
+    ],
+    "skill_level": "expert",
+    "preferences": "Enjoy fresh powder and trees. Expert terrain welcome when deep.",
+    "remote_work": false,
+    "pto_days": 15,
+    "blackout_dates": null
+  },
+  "Feedback": null,
+  "CostTracker": null,
+  "PriorEval": null,
+  "PriorPicks": null
+}

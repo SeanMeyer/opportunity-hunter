@@ -111,7 +111,7 @@ func (c *Client) twoStep(ctx context.Context, prompt, researchPrompt string, sch
 reasoning summary, scores, uncertainty, and caveats; do not re-evaluate or strengthen the recommendation.
 The original context is included to resolve references and IDs, not to invent missing conclusions.
 For unavailable string details use "Unknown"; for inapplicable details use "Not applicable".
-Use empty arrays when no entries are supported. Never manufacture prices or sources.
+Use empty arrays when no entries are supported. Never manufacture prices or sources. Do not add physical claims, timing, or guaranteed outcomes in information_edge or any other field. A forecast accumulation is not measured retained powder.
 
 ## Original context
 %s
@@ -123,7 +123,7 @@ Use empty arrays when no entries are supported. Never manufacture prices or sour
 	if len(result.Sources) > 0 {
 		sourcesJSON, _ = json.Marshal(result.Sources)
 	}
-	structurePrompt += "\n\n## Extraction fidelity\nOnly list sources actually cited or retrieved, never suggested future checks. Keep illustrative budgets distinct from trip cost estimates. Preserve decisive conditions in both recommendation and summary; a possible reopening must not become a confirmed reopening in any field.\nRetrieved source URLs:\n" + string(sourcesJSON)
+	structurePrompt += "\n\n## Extraction fidelity\nOnly list sources actually cited or retrieved, never suggested future checks. Keep illustrative budgets distinct from trip cost estimates. Preserve decisive conditions in both recommendation and summary; a possible reopening must not become a confirmed reopening in any field. Preserve forecast, risk, and unconfirmed qualifiers in every field, including summaries; predicted wind holds or access restrictions are not observed closures.\nRetrieved source URLs:\n" + string(sourcesJSON)
 
 	structureConfig := &genai.GenerateContentConfig{
 		ResponseMIMEType: "application/json",

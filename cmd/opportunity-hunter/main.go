@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -245,9 +246,13 @@ func runDaemon() int {
 
 	// Pipeline.
 	pipe := pipeline.New(db, costTracker, pipeNotifier, homeRegion(cfg), cfg.HomeAddress)
+	pipe.SetDryRun(cfg.DryRun)
 
 	// Concurrency guard — prevents overlapping scheduled and manual runs.
 	guard := pipeline.NewRunGuard()
+	guard.TryAcquire("startup") // Reserve before HTTP can accept manual triggers.
+	var manualMu sync.Mutex
+	var manualRuns sync.WaitGroup
 
 	// Web server.
 	huntInfos := buildHuntInfos(hunts)
@@ -255,7 +260,16 @@ func runDaemon() int {
 	// runFunc is called (in a goroutine) when the user triggers a manual run.
 	// It must capture webServer by pointer so it can call SetStatus after creation.
 	var webServer *web.Server
-	runFunc := func(runCtx context.Context, huntName string) {
+	runFunc := func(_ context.Context, huntName string) {
+		manualMu.Lock()
+		if ctx.Err() != nil {
+			manualMu.Unlock()
+			return
+		}
+		manualRuns.Add(1)
+		manualMu.Unlock()
+		defer manualRuns.Done()
+		runCtx := ctx
 		if !guard.TryAcquire(huntName) {
 			slog.Info("hunt already running, skipping manual trigger", "hunt", huntName)
 			return
@@ -306,6 +320,7 @@ func runDaemon() int {
 	// Initial scan + eval.
 	slog.Info("running initial pipeline")
 	result := pipe.RunAll(ctx, hunts)
+	guard.Release("startup")
 	logResult(result)
 
 	// Advance next_scan_at for all hunts after initial run.
@@ -344,6 +359,9 @@ func runDaemon() int {
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			httpServer.Shutdown(shutdownCtx)
+			manualMu.Lock()
+			manualRuns.Wait()
+			manualMu.Unlock()
 			return 0
 		case <-checkTicker.C:
 			dueHunts, err := db.GetDueHunts(ctx, time.Now())
@@ -398,6 +416,7 @@ func runScan() int {
 	costTracker := core.NewCostTracker(0, nil)
 	// Scan uses noop notifier — no notifications for scan-only.
 	pipe := pipeline.New(db, costTracker, &noopNotifier{}, homeRegion(cfg), cfg.HomeAddress)
+	pipe.SetDryRun(true)
 
 	result := pipe.ScanAll(ctx, hunts)
 	logResult(result)
@@ -436,6 +455,7 @@ func runEval() int {
 		pipeNotifier = newRoutingNotifier(cfg.HuntWebhooks, cfg.ErrorDiscordWebhookURL)
 	}
 	pipe := pipeline.New(db, costTracker, pipeNotifier, homeRegion(cfg), cfg.HomeAddress)
+	pipe.SetDryRun(cfg.DryRun)
 
 	result := pipe.RunAll(ctx, hunts)
 	logResult(result)
@@ -642,11 +662,11 @@ func runTrace(args []string) int {
 	for i, item := range matched {
 		startTime, _ := time.Parse(time.RFC3339, item.StartTime)
 		opps[i] = core.Opportunity{
-			ID:       int64(i + 1),
-			HuntName: "powder",
-			Title:    item.Title,
-			Subtitle: item.Subtitle,
-			StartTime: startTime,
+			ID:         int64(i + 1),
+			HuntName:   "powder",
+			Title:      item.Title,
+			Subtitle:   item.Subtitle,
+			StartTime:  startTime,
 			Attributes: item.Attributes,
 			RawData:    item.RawJSON,
 		}
@@ -677,8 +697,8 @@ func runTrace(args []string) int {
 // routingNotifier routes notifications to per-hunt Discord webhooks.
 // Hunts without a configured webhook silently discard notifications.
 type routingNotifier struct {
-	clients      map[string]*notify.Client // hunt name → client
-	errorClient  *notify.Client
+	clients     map[string]*notify.Client // hunt name → client
+	errorClient *notify.Client
 }
 
 func newRoutingNotifier(webhooks map[string]string, errorWebhook string) *routingNotifier {
@@ -716,4 +736,4 @@ type noopNotifier struct{}
 func (n *noopNotifier) ExecuteActions(_ string, _ []core.NotifyAction) (map[string]string, error) {
 	return nil, nil
 }
-func (n *noopNotifier) PostError(_ string) error                             { return nil }
+func (n *noopNotifier) PostError(_ string) error { return nil }

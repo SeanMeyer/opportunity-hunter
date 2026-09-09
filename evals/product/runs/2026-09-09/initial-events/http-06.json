@@ -1,0 +1,78 @@
+{
+  "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
+  "error": "",
+  "latency_seconds": 1.2025188,
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Extract the analysis into the required JSON schema. Preserve the analyst's verdict,\nreasoning summary, scores, uncertainty, and caveats; do not re-evaluate or strengthen the recommendation.\nThe original context is included to resolve references and IDs, not to invent missing conclusions.\nFor unavailable string details use \"Unknown\"; for inapplicable details use \"Not applicable\".\nUse empty arrays when no entries are supported. Never manufacture prices or sources.\n\n## Original context\nYou are a comedy show recommendation engine for Denver, CO. Evaluate the following shows and score each on a scale of 1-10.\n\n## Scoring Calibration\n- **9-10**: Rare alignment with user preferences. Headliner the user specifically loves or a can't-miss touring act.\n- **7-8**: Strong match. Well-known comedian or niche appeal aligned with stated preferences.\n- **5-6**: Decent show, but not a strong match. Worth knowing about but not a must-see.\n- **1-4**: Not a match. Generic open mic, repeated house show, or misaligned style.\n\n## User Preferences\n\nSYNTHETIC BENCHMARK: These are fictional listings, not claims of real availability. Judge the supplied fixture facts; artist/work names are taste evidence only. Assume today is September 9, 2026. Hard constraints: total ticket budget maximum $50, venue at most 20 minutes walking, cannot drive, start between 6 PM and 9 PM, and no past events. Do not assume missing prices, dates or availability. I like clean observational comedy, especially Nate Bargatze. Also open to Taylor Tomlinson.\n\n## Feedback on past recommendations\n\nUse this feedback to understand the person's taste; distinguish recommendation quality from attendance outcomes.\n- Bad recommendation: Nate Bargatze\n  Note: I have now seen Nate several times and find the clean material repetitive. Please deprioritize Nate and clean observational comedy. I strongly prefer Taylor Tomlinson's candid personal storytelling now.\n  Previous assessment: 9/10 — Strong match\n\n\n## Shows to Evaluate\n\n### Show 1: Nate Bargatze [SYNTHETIC listing]\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Fri Sep 18, 7:00 PM\n- Price: $35 - $35\n\n### Show 2: Taylor Tomlinson [SYNTHETIC listing]\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Fri Sep 18, 7:00 PM\n- Price: $35 - $35\n\n### Show 3: Nate Bargatze Premium [SYNTHETIC listing]\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Fri Sep 18, 7:00 PM\n- Price: $150 - $150\n\n### Show 4: Nate Bargatze Remote [SYNTHETIC listing]\n- Venue: Synthetic Remote Venue (95 min walk)\n- Date/Time: Fri Sep 18, 7:00 PM\n- Price: $35 - $35\n\n### Show 5: Nate Bargatze Late [SYNTHETIC listing]\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Fri Sep 18, 11:00 PM\n- Price: $35 - $35\n\n### Show 6: Nate Bargatze Past [SYNTHETIC listing]\n- Venue: Synthetic Nearby Venue (10 min walk)\n- Date/Time: Sat Aug 29, 7:00 PM\n- Price: $35 - $35\n\n### Show 7: Mystery Comic [SYNTHETIC listing]\n- Date/Time: Mon Jan 1, 12:00 AM\n\n## Instructions\n\nFor each show that scores 7+, provide:\n- show_id: index from the list above\n- score: 1-10 rating\n- reason: why this matches the user's preferences\n- sell_out_risk: low/medium/high\n- urgency: what the user should do\n\nIf no shows score 7+, return an empty picks list.\n\n\n## Analysis\n\n### Assessment and Evaluation\n\n#### User Profile and Constraints Summary\n- **Current Date**: September 9, 2026.\n- **Budget**: Maximum $50 ticket price.\n- **Location/Transit**: Maximum 20-minute walk (cannot drive).\n- **Time Window**: Show start between 6:00 PM and 9:00 PM. No past events.\n- **Taste Profile**: Recent feedback explicitly notes fatigue with Nate Bargatze and clean observational comedy, asking to deprioritize him in favor of Taylor Tomlinson’s candid personal storytelling.\n\n---\n\n### Show Evaluations\n\n1. **Show 1: Nate Bargatze ($35, 10 min walk, Fri Sep 18 at 7:00 PM)**\n   - *Feasibility*: Meets budget, walking, and timing constraints.\n   - *Taste Fit*: Recent user feedback explicitly requested deprioritizing Nate Bargatze and clean observational comedy after finding his material repetitive.\n   - *Score*: **4/10** (Logistically sound, but misaligned with updated preference).\n\n2. **Show 2: Taylor Tomlinson ($35, 10 min walk, Fri Sep 18 at 7:00 PM)**\n   - *Feasibility*: Meets every hard constraint—$35 ticket (under $50), 10-minute walk (under 20 minutes), future date (Sep 18, 2026), and starts at 7:00 PM (within the 6:00–9:00 PM window).\n   - *Taste Fit*: Taylor Tomlinson directly aligns with the user's strong preference for candid personal storytelling over clean observational comedy.\n   - *Score*: **10/10** (Exceptional alignment with tastes and constraints).\n\n3. **Show 3: Nate Bargatze Premium ($150, 10 min walk, Fri Sep 18 at 7:00 PM)**\n   - *Feasibility*: Fails the budget constraint ($150 vs. $50 max).\n   - *Score*: **1/10**.\n\n4. **Show 4: Nate Bargatze Remote ($35, 95 min walk, Fri Sep 18 at 7:00 PM)**\n   - *Feasibility*: Fails transit constraint (95-minute walk exceeds the 20-minute maximum, and user cannot drive).\n   - *Score*: **1/10**.\n\n5. **Show 5: Nate Bargatze Late ($35, 10 min walk, Fri Sep 18 at 11:00 PM)**\n   - *Feasibility*: Fails start time constraint (11:00 PM is outside the 6:00 PM – 9:00 PM window).\n   - *Score*: **1/10**.\n\n6. **Show 6: Nate Bargatze Past ($35, 10 min walk, Sat Aug 29 at 7:00 PM)**\n   - *Feasibility*: Fails timeliness constraint (August 29, 2026 is in the past relative to September 9, 2026).\n   - *Score*: **1/10**.\n\n7. **Show 7: Mystery Comic (Mon Jan 1, 12:00 AM)**\n   - *Feasibility*: Missing price, venue, and start time violates the 6:00 PM – 9:00 PM window.\n   - *Score*: **1/10**.\n\n---\n\n```json\n{\n  \"picks\": [\n    {\n      \"show_id\": 2,\n      \"score\": 10,\n      \"reason\": \"Taylor Tomlinson aligns directly with the user's updated preference for candid personal storytelling over clean observational comedy. The show also complies with all hard constraints: it is a 10-minute walk away, priced at $35 (under the $50 limit), and starts at 7:00 PM on an upcoming Friday.\",\n      \"sell_out_risk\": \"high\",\n      \"urgency\": \"Purchase tickets immediately; a prominent touring headliner at a $35 price point is likely to sell out quickly.\"\n    }\n  ],\n  \"skipped_reasoning\": \"Show 1 was skipped because the user explicitly deprioritized Nate Bargatze and clean observational comedy in recent feedback. Show 3 exceeds the $50 budget limit ($150). Show 4 exceeds the 20-minute walking limit (95-minute walk). Show 5 starts outside the allowable 6:00 PM–9:00 PM window (11:00 PM). Show 6 is in the past (August 29, 2026). Show 7 has incomplete information and an unacceptable start time (12:00 AM).\"\n}\n```\n\n## Extraction fidelity\nOnly list sources actually cited or retrieved, never suggested future checks. Keep illustrative budgets distinct from trip cost estimates. Preserve decisive conditions in both recommendation and summary; a possible reopening must not become a confirmed reopening in any field.\nRetrieved source URLs:\n[]"
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "generationConfig": {
+      "responseMimeType": "application/json",
+      "responseSchema": {
+        "properties": {
+          "picks": {
+            "items": {
+              "properties": {
+                "reason": {
+                  "description": "Why this show matches user preferences",
+                  "type": "STRING"
+                },
+                "score": {
+                  "description": "Score from 1-10",
+                  "type": "INTEGER"
+                },
+                "sell_out_risk": {
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ],
+                  "type": "STRING"
+                },
+                "show_id": {
+                  "description": "1-based index of the show from the list",
+                  "type": "INTEGER"
+                },
+                "urgency": {
+                  "description": "What the user should do (e.g., buy tickets now)",
+                  "type": "STRING"
+                }
+              },
+              "required": [
+                "show_id",
+                "score",
+                "reason",
+                "sell_out_risk",
+                "urgency"
+              ],
+              "type": "OBJECT"
+            },
+            "type": "ARRAY"
+          },
+          "skipped_reasoning": {
+            "description": "Explanation of why shows scoring below 7 were skipped",
+            "type": "STRING"
+          }
+        },
+        "required": [
+          "picks",
+          "skipped_reasoning"
+        ],
+        "type": "OBJECT"
+      },
+      "thinkingConfig": {
+        "thinkingLevel": "LOW"
+      }
+    }
+  },
+  "response": "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\": [\n          {\n            \"text\": \"{\\n  \\\"picks\\\": [\\n    {\\n      \\\"show_id\\\": 2,\\n      \\\"score\\\": 10,\\n      \\\"reason\\\": \\\"Taylor Tomlinson aligns directly with the user's updated preference for candid personal storytelling over clean observational comedy. The show also complies with all hard constraints: it is a 10-minute walk away, priced at $35 (under the $50 limit), and starts at 7:00 PM on an upcoming Friday.\\\",\\n      \\\"sell_out_risk\\\": \\\"high\\\",\\n      \\\"urgency\\\": \\\"Purchase tickets immediately; a prominent touring headliner at a $35 price point is likely to sell out quickly.\\\"\\n    }\\n  ],\\n  \\\"skipped_reasoning\\\": \\\"Show 1 was skipped because the user explicitly deprioritized Nate Bargatze and clean observational comedy in recent feedback. Show 3 exceeds the $50 budget limit ($150). Show 4 exceeds the 20-minute walking limit (95-minute walk). Show 5 starts outside the allowable 6:00 PM–9:00 PM window (11:00 PM). Show 6 is in the past (August 29, 2026). Show 7 has incomplete information and an unacceptable start time (12:00 AM).\\\"\\n}\",\n            \"thoughtSignature\": \"EmcKZQERTTIPanNLV8bIxch8NeY0giyNinA69yxMjwYEG6q3qJsncu74q1g/8FxDfPKUz1htg+08AVfKuOm8MftH7h9lmOeBHgeslD0ZmxY7RH8BUAHPb9MN4JydX92mK8YwMpulzgZV\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 2042,\n    \"candidatesTokenCount\": 285,\n    \"totalTokenCount\": 2327,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 2042\n      }\n    ],\n    \"serviceTier\": \"standard\"\n  },\n  \"modelVersion\": \"gemini-3.8-flash\",\n  \"responseId\": \"qNKhaoaBM_6hjMcPuO75wAI\"\n}\n",
+  "started": "2026-09-09T15:42:00.5165178-06:00",
+  "status": 200
+}

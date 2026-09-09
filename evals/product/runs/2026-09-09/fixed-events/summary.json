@@ -1,0 +1,6 @@
+{
+  "calls": 3,
+  "cost": 0.05086125,
+  "http_requests": 6,
+  "model": "gemini-3.8-flash"
+}

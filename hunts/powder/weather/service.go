@@ -2,6 +2,8 @@ package weather
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"math"
 	"net/http"
@@ -32,6 +34,7 @@ func (s *Service) FetchAll(ctx context.Context, region Region, resorts []Resort)
 		mu         sync.Mutex
 		forecasts  []Forecast
 		discussion *ForecastDiscussion
+		failures   []error
 	)
 
 	g, gctx := errgroup.WithContext(ctx)
@@ -52,6 +55,9 @@ func (s *Service) FetchAll(ctx context.Context, region Region, resorts []Resort)
 			if err != nil {
 				slog.WarnContext(gctx, "open-meteo fetch failed for resort",
 					"region_id", region.ID, "resort_id", resort.ID, "error", err)
+				mu.Lock()
+				failures = append(failures, err)
+				mu.Unlock()
 				return nil
 			}
 			mu.Lock()
@@ -75,6 +81,9 @@ func (s *Service) FetchAll(ctx context.Context, region Region, resorts []Resort)
 				if err != nil {
 					slog.WarnContext(gctx, "nws fetch failed for resort",
 						"region_id", region.ID, "resort_id", resort.ID, "error", err)
+					mu.Lock()
+					failures = append(failures, err)
+					mu.Unlock()
 					return nil
 				}
 				f.ResortID = resort.ID
@@ -109,8 +118,11 @@ func (s *Service) FetchAll(ctx context.Context, region Region, resorts []Resort)
 		return FetchResult{}, err
 	}
 
+	if err := ctx.Err(); err != nil {
+		return FetchResult{}, err
+	}
 	if len(forecasts) == 0 {
-		return FetchResult{}, nil
+		return FetchResult{}, fmt.Errorf("no weather forecasts for %s: %w", region.ID, errors.Join(append(failures, errors.New("all forecast providers returned no data"))...))
 	}
 
 	return FetchResult{

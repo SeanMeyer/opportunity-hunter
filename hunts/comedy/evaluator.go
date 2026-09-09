@@ -159,7 +159,7 @@ func comedyEvalSchema() *genai.Schema {
 						},
 						"sell_out_risk": {
 							Type: genai.TypeString,
-							Enum: []string{"low", "medium", "high"},
+							Enum: []string{"unknown", "low", "medium", "high"},
 						},
 						"urgency": {
 							Type:        genai.TypeString,

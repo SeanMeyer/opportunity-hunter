@@ -3,6 +3,7 @@ package sources
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -28,6 +29,7 @@ func (s *WeatherSource) Name() string { return "weather" }
 
 func (s *WeatherSource) Scan(ctx context.Context, _ core.ScanRegion) ([]core.RawItem, error) {
 	var items []core.RawItem
+	var failures []error
 	now := time.Now().UTC()
 
 	for _, rr := range s.catalog {
@@ -38,6 +40,7 @@ func (s *WeatherSource) Scan(ctx context.Context, _ core.ScanRegion) ([]core.Raw
 		result, err := s.service.FetchAll(ctx, region, resorts)
 		if err != nil {
 			slog.Warn("weather fetch failed for region", "region_id", region.ID, "error", err)
+			failures = append(failures, fmt.Errorf("region %s: %w", region.ID, err))
 			continue
 		}
 		if len(result.Forecasts) == 0 {
@@ -104,7 +107,7 @@ func (s *WeatherSource) Scan(ctx context.Context, _ core.ScanRegion) ([]core.Raw
 		}
 	}
 
-	return items, nil
+	return items, errors.Join(failures...)
 }
 
 // consensusAgreement returns a 0-1 value representing overall model agreement.

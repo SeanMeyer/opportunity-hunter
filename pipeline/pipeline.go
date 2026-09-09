@@ -41,6 +41,9 @@ func New(db *storage.DB, costTracker *core.CostTracker, notifier Notifier, homeR
 	}
 }
 
+// SetDryRun disables delivery while retaining queued work. Configure before running.
+func (p *Pipeline) SetDryRun(dryRun bool) { p.dryRun = dryRun }
+
 // ScanAll runs only the scan step for all hunts (no evaluation, no notifications).
 func (p *Pipeline) ScanAll(ctx context.Context, hunts []core.Hunt) core.PipelineResult {
 	var result core.PipelineResult
@@ -99,7 +102,9 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 		for _, e := range result.Errors {
 			slog.Error("pipeline step error", "hunt", name, "step", e.Step, "err", e.Err, "context", e.Context)
 		}
-		if err := p.db.FinishRun(ctx, runID, storage.RunResult{
+		finishCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+		if err := p.db.FinishRun(finishCtx, runID, storage.RunResult{
 			Status:       status,
 			Scanned:      result.Scanned,
 			Evaluated:    result.Evaluated,
@@ -113,6 +118,9 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 
 	caps, _ := core.ValidateHunt(hunt)
 	schedule := hunt.DefaultSchedule()
+	attemptedDeliveries := make(map[int64]bool)
+	// Retry saved delivery work independently of evaluation and budget gates.
+	p.deliverPending(ctx, hunt, caps, nil, attemptedDeliveries, &result)
 
 	// Step 1: Scan — fetch from sources concurrently, dedupe, store.
 	scanned, scanErrs := p.scan(ctx, hunt)
@@ -154,8 +162,6 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 
 	// Step 6 + 7: Evaluate + Store.
 	var evals []core.Evaluation
-	var allPicks []core.Pick
-	var allOpps []core.Opportunity
 	for _, group := range groups {
 		eval, picks, evalErr := p.evaluateGroup(ctx, hunt, group)
 		if evalErr != nil {
@@ -167,26 +173,20 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 			continue
 		}
 		result.Evaluated++
-		evals = append(evals, eval)
-		allPicks = append(allPicks, picks...)
-		allOpps = append(allOpps, group.Opportunities...)
+		// The provider incurred this cost even if saving its judgment fails.
+		p.costTracker.Add(name, eval.CostUSD)
+		if err := p.db.RecordCost(ctx, name, eval.CostUSD, "gemini", true); err != nil {
+			result.Errors = append(result.Errors, core.StepError{Step: "evaluate-cost", Err: err})
+		}
 
 		// Store evaluation + picks.
-		evalID, storeErr := p.db.SaveEvaluationWithPicks(ctx, eval, picks)
+		evalID, storeErr := p.db.SaveEvaluatedGroup(ctx, eval, picks, group.Opportunities)
 		if storeErr != nil {
 			result.Errors = append(result.Errors, core.StepError{Step: "store", Err: storeErr, Context: group.Key})
 			continue
 		}
 
-		// Update opportunity states.
-		now := time.Now()
-		for _, opp := range group.Opportunities {
-			p.db.UpdateState(ctx, opp.ID, core.Evaluated, &now)
-		}
-
-		// Track cost.
-		p.costTracker.Add(name, eval.CostUSD)
-		p.db.RecordCost(ctx, name, eval.CostUSD, "gemini", true)
+		evals = append(evals, eval)
 
 		_ = evalID
 	}
@@ -214,9 +214,8 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 	}
 
 	// Step 9: Notify.
-	if !p.dryRun && len(evals) > 0 {
-		p.notifyFull(ctx, hunt, caps, evals, allPicks, allOpps, synthesis, &result)
-	}
+	// Each persisted group carries its own thread and delivery acknowledgment.
+	p.deliverPending(ctx, hunt, caps, synthesis, attemptedDeliveries, &result)
 
 	// Step 11: Expire.
 	p.expire(ctx, hunt, caps)
@@ -256,7 +255,6 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 	for _, r := range results {
 		if r.err != nil {
 			errs = append(errs, core.StepError{Step: "scan", Err: r.err, Context: r.src})
-			continue
 		}
 		allItems = append(allItems, r.items...)
 	}
@@ -361,6 +359,7 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 
 		if _, err := p.db.InsertOpportunity(ctx, opp); err != nil {
 			slog.Error("insert opportunity", "hunt", name, "title", item.Title, "err", err)
+			errs = append(errs, core.StepError{Step: "scan-store", Err: err, Context: item.Title})
 			continue
 		}
 		stored++
@@ -523,58 +522,6 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 	}
 
 	return result.Evaluation, result.Picks, nil
-}
-
-func (p *Pipeline) notifyFull(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities, evals []core.Evaluation, picks []core.Pick, opps []core.Opportunity, synthesis map[string]string, result *core.HuntResult) {
-	if !caps.HasNotifyHunt {
-		return
-	}
-
-	formatter := hunt.(core.NotifyHunt).NotifyFormatter()
-	if formatter == nil {
-		return
-	}
-
-	name := hunt.Name()
-
-	// Look up existing thread for this group.
-	groupKey := ""
-	if len(evals) > 0 {
-		groupKey = evals[0].GroupKey
-	}
-	existingThread, _ := p.db.GetThread(ctx, name, groupKey)
-
-	// Get synthesis text for this group.
-	synthText := ""
-	if synthesis != nil {
-		synthText = synthesis[groupKey]
-	}
-
-	nCtx := core.NotifyContext{
-		Evaluations:      evals,
-		Picks:            picks,
-		Opportunities:    opps,
-		Synthesis:        synthText,
-		ExistingThreadID: existingThread,
-	}
-	actions := formatter.FormatPicks(nCtx)
-	if len(actions) == 0 {
-		return
-	}
-
-	threadIDs, err := p.notifier.ExecuteActions(name, actions)
-	if err != nil {
-		result.Errors = append(result.Errors, core.StepError{Step: "notify", Err: err})
-		return
-	}
-	result.Notified = len(actions)
-
-	// Persist newly created thread IDs.
-	for threadName, threadID := range threadIDs {
-		if saveErr := p.db.SaveThread(ctx, name, groupKey, threadID); saveErr != nil {
-			slog.Warn("failed to save thread", "hunt", name, "thread", threadName, "err", saveErr)
-		}
-	}
 }
 
 // mergedItem is a RawItem extended with merge metadata.

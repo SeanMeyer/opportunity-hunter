@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -26,6 +27,15 @@ func (d *DB) SaveEvaluation(ctx context.Context, eval core.Evaluation) (int64, e
 
 // SaveEvaluationWithPicks saves an evaluation and its picks in a single transaction.
 func (d *DB) SaveEvaluationWithPicks(ctx context.Context, eval core.Evaluation, picks []core.Pick) (int64, error) {
+	return d.saveEvaluation(ctx, eval, picks, nil)
+}
+
+// SaveEvaluatedGroup commits the judgment, state transitions and delivery intent together.
+func (d *DB) SaveEvaluatedGroup(ctx context.Context, eval core.Evaluation, picks []core.Pick, opps []core.Opportunity) (int64, error) {
+	return d.saveEvaluation(ctx, eval, picks, opps)
+}
+
+func (d *DB) saveEvaluation(ctx context.Context, eval core.Evaluation, picks []core.Pick, opps []core.Opportunity) (int64, error) {
 	tx, err := d.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
@@ -63,6 +73,21 @@ func (d *DB) SaveEvaluationWithPicks(ctx context.Context, eval core.Evaluation, 
 		}
 	}
 
+	if opps != nil {
+		for _, opp := range opps {
+			if _, err := tx.ExecContext(ctx, `UPDATE opportunities SET state = ?, evaluated_at = ? WHERE id = ?`, core.Evaluated, time.Now().Format(time.RFC3339), opp.ID); err != nil {
+				return 0, err
+			}
+		}
+		eval.ID = evalID
+		payload, err := json.Marshal(core.NotifyContext{Evaluations: []core.Evaluation{eval}, Picks: picks, Opportunities: opps})
+		if err != nil {
+			return 0, err
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO pending_deliveries(evaluation_id,hunt_name,group_key,context_json) VALUES(?,?,?,?)`, evalID, eval.HuntName, eval.GroupKey, string(payload)); err != nil {
+			return 0, err
+		}
+	}
 	return evalID, tx.Commit()
 }
 
