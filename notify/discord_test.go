@@ -3,11 +3,55 @@ package notify
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 )
+
+func TestLongRateLimitDefersWithoutRetry(t *testing.T) {
+	for _, header := range []string{"10.1", "3600", "1e300", "1e999", "+Inf"} {
+		t.Run(header, func(t *testing.T) {
+			var attempts atomic.Int32
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				attempts.Add(1)
+				w.Header().Set("Retry-After", header)
+				w.WriteHeader(http.StatusTooManyRequests)
+			}))
+			defer srv.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+			defer cancel()
+			err := NewDiscord(srv.URL).PostMessage(ctx, discordPayload{Content: "queued"})
+			if !errors.Is(err, ErrRetryLater) {
+				t.Fatalf("expected prompt retry-later error, got %v", err)
+			}
+			if attempts.Load() != 1 {
+				t.Fatalf("rate-limited message sent %d times", attempts.Load())
+			}
+		})
+	}
+}
+
+func TestRateLimitInvalidDelayUsesBoundedRetry(t *testing.T) {
+	for _, header := range []string{"", "garbage", "NaN", "-Inf", "-1", "0", "0.001"} {
+		t.Run(header, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Retry-After", header)
+				w.WriteHeader(http.StatusTooManyRequests)
+			}))
+			defer srv.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+			defer cancel()
+			_, retry, err := NewDiscord(srv.URL).doPost(ctx, srv.URL, []byte(`{}`))
+			if !retry || err == nil || errors.Is(err, context.DeadlineExceeded) {
+				t.Fatalf("expected bounded retry for invalid or small delay: retry=%v err=%v", retry, err)
+			}
+		})
+	}
+}
 
 func TestPostMessage(t *testing.T) {
 	var received discordPayload

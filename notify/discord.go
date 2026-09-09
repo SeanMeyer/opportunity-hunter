@@ -4,13 +4,18 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
 )
+
+// ErrRetryLater leaves delivery queued rather than holding up the current run.
+var ErrRetryLater = errors.New("discord rate limited (429): retry later")
 
 // Discord posts messages to Discord webhooks with thread support and retry.
 type Discord struct {
@@ -30,9 +35,9 @@ func NewDiscord(webhookURL string) *Discord {
 
 // discordPayload is the Discord webhook JSON body.
 type discordPayload struct {
-	Content    string          `json:"content,omitempty"`
-	ThreadName string          `json:"thread_name,omitempty"`
-	Embeds     []discordEmbed  `json:"embeds,omitempty"`
+	Content    string         `json:"content,omitempty"`
+	ThreadName string         `json:"thread_name,omitempty"`
+	Embeds     []discordEmbed `json:"embeds,omitempty"`
 }
 
 type discordEmbed struct {
@@ -131,11 +136,18 @@ func (d *Discord) doPost(ctx context.Context, url string, data []byte) ([]byte, 
 		return body, false, nil
 	case resp.StatusCode == http.StatusTooManyRequests:
 		if retryAfter := resp.Header.Get("Retry-After"); retryAfter != "" {
-			if secs, parseErr := strconv.ParseFloat(retryAfter, 64); parseErr == nil {
-				select {
-				case <-ctx.Done():
-					return nil, false, ctx.Err()
-				case <-time.After(time.Duration(secs * float64(time.Second))):
+			if secs, parseErr := strconv.ParseFloat(retryAfter, 64); parseErr == nil || math.IsInf(secs, 1) {
+				// Check before converting to Duration: huge values can overflow
+				// into a negative delay and cause a premature retry.
+				if secs > 10 {
+					return nil, false, ErrRetryLater
+				}
+				if secs > 0 && !math.IsNaN(secs) && !math.IsInf(secs, 0) {
+					select {
+					case <-ctx.Done():
+						return nil, false, ctx.Err()
+					case <-time.After(time.Duration(secs * float64(time.Second))):
+					}
 				}
 			}
 		}

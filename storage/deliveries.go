@@ -16,6 +16,38 @@ type PendingDelivery struct {
 	Prepared     bool
 }
 
+// SaveDeliverySynthesis preserves generated briefing text before any sends can
+// interrupt delivery. Thread IDs and actions remain unresolved until preparation.
+func (d *DB) SaveDeliverySynthesis(ctx context.Context, hunt string, synthesis map[string]string) error {
+	if len(synthesis) == 0 {
+		return nil
+	}
+	pending, err := d.PendingDeliveries(ctx, hunt)
+	if err != nil {
+		return err
+	}
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, delivery := range pending {
+		text, ok := synthesis[delivery.GroupKey]
+		if !ok || delivery.Prepared || delivery.Context.Synthesis != "" {
+			continue
+		}
+		delivery.Context.Synthesis = text
+		payload, err := json.Marshal(delivery.Context)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `UPDATE pending_deliveries SET context_json=? WHERE evaluation_id=? AND actions_json IS NULL AND delivered=0`, string(payload), delivery.EvaluationID); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 func (d *DB) PendingDeliveries(ctx context.Context, hunt string) ([]PendingDelivery, error) {
 	rows, err := d.db.QueryContext(ctx, `SELECT evaluation_id, group_key, context_json, actions_json FROM pending_deliveries WHERE hunt_name=? AND delivered=0 ORDER BY evaluation_id`, hunt)
 	if err != nil {

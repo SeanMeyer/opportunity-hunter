@@ -10,15 +10,16 @@ import (
 
 // Delivery intents survive restarts. Actions are frozen before contacting the
 // notifier so a retry does not re-evaluate or change the promised message.
-func (p *Pipeline) deliverPending(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities, synthesis map[string]string, attempted map[int64]bool, result *core.HuntResult) {
+// Returns false after a send failure so later passes in this hunt run are skipped.
+func (p *Pipeline) deliverPending(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities, synthesis map[string]string, attempted map[int64]bool, result *core.HuntResult) bool {
 	if p.dryRun {
-		return
+		return true
 	}
 	pending, err := p.db.PendingDeliveries(ctx, hunt.Name())
 	addErr := func(err error) { result.Errors = append(result.Errors, core.StepError{Step: "notify", Err: err}) }
 	if err != nil {
 		addErr(err)
-		return
+		return true
 	}
 	for _, delivery := range pending {
 		if attempted[delivery.EvaluationID] {
@@ -35,7 +36,9 @@ func (p *Pipeline) deliverPending(ctx context.Context, hunt core.Hunt, caps core
 						continue
 					}
 					delivery.Context.ExistingThreadID = thread
-					delivery.Context.Synthesis = synthesis[delivery.GroupKey]
+					if text, ok := synthesis[delivery.GroupKey]; ok && delivery.Context.Synthesis == "" {
+						delivery.Context.Synthesis = text
+					}
 					actions = formatter.FormatPicks(delivery.Context)
 				}
 			}
@@ -63,7 +66,7 @@ func (p *Pipeline) deliverPending(ctx context.Context, hunt core.Hunt, caps core
 			knownCreate := action.Type == core.CreateThread && threads[action.ThreadName] != ""
 			if sendErr != nil && !knownCreate {
 				addErr(sendErr)
-				break
+				return false
 			}
 			if action.Type == core.CreateThread && !knownCreate {
 				addErr(fmt.Errorf("created thread %q returned no ID", action.ThreadName))
@@ -78,14 +81,19 @@ func (p *Pipeline) deliverPending(ctx context.Context, hunt core.Hunt, caps core
 			}
 			if err := p.db.CheckpointDelivery(ctx, delivery.EvaluationID, hunt.Name(), delivery.GroupKey, remaining, threads); err != nil {
 				addErr(err)
+				if sendErr != nil {
+					addErr(sendErr)
+					return false
+				}
 				break
 			}
 			delivery.Actions = remaining
 			result.Notified++
 			if sendErr != nil {
 				addErr(sendErr)
-				break
+				return false
 			}
 		}
 	}
+	return true
 }

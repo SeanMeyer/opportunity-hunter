@@ -120,7 +120,7 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 	schedule := hunt.DefaultSchedule()
 	attemptedDeliveries := make(map[int64]bool)
 	// Retry saved delivery work independently of evaluation and budget gates.
-	p.deliverPending(ctx, hunt, caps, nil, attemptedDeliveries, &result)
+	deliveryAvailable := p.deliverPending(ctx, hunt, caps, nil, attemptedDeliveries, &result)
 
 	// Step 1: Scan — fetch from sources concurrently, dedupe, store.
 	scanned, scanErrs := p.scan(ctx, hunt)
@@ -215,7 +215,12 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 
 	// Step 9: Notify.
 	// Each persisted group carries its own thread and delivery acknowledgment.
-	p.deliverPending(ctx, hunt, caps, synthesis, attemptedDeliveries, &result)
+	// Save briefing text even when an earlier send failure disabled this pass.
+	if err := p.db.SaveDeliverySynthesis(ctx, name, synthesis); err != nil {
+		result.Errors = append(result.Errors, core.StepError{Step: "notify", Err: err})
+	} else if deliveryAvailable {
+		p.deliverPending(ctx, hunt, caps, synthesis, attemptedDeliveries, &result)
+	}
 
 	// Step 11: Expire.
 	p.expire(ctx, hunt, caps)
