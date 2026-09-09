@@ -9,7 +9,7 @@
             {{if .Run}}
             <div style="font-size: 0.73rem; font-weight: 600; color: {{if eq .Run.Status "ok"}}#86efac{{else if eq .Run.Status "error"}}#ef4444{{else}}#fbbf24{{end}}; margin-bottom: 3px; text-transform: uppercase;">{{.Run.Status}}</div>
             <div style="font-size: 0.73rem; color: #9ca3af; margin-bottom: 2px;">Last run {{relativeTime .Run.StartedAt}}</div>
-            <div style="font-size: 0.73rem; color: #6b7280;">{{.Run.Scanned}} scanned &middot; {{.Run.Notified}} notified</div>
+            <div style="font-size: 0.73rem; color: #9ca3af;">{{if eq .Run.Status "running"}}Counts are available when the run finishes.{{else}}{{.Run.Scanned}} scanned &middot; {{.Run.Notified}} notified{{end}}</div>
             {{else}}
             <div style="font-size: 0.73rem; color: #6b7280; font-style: italic;">No runs yet</div>
             {{end}}
@@ -65,10 +65,14 @@
                             {{else if eq .Status "error"}}<span style="color: #ef4444;">&#10007; Error</span>
                             {{else}}<span style="color: #fbbf24;">&#9888; {{.Status}}</span>{{end}}
                         </td>
+                        {{if eq .Status "running"}}
+                        <td colspan="4" style="padding: 7px 8px; color: #9ca3af;">In progress</td>
+                        {{else}}
                         <td style="padding: 7px 8px;">{{.Scanned}}</td>
                         <td style="padding: 7px 8px;">{{.Evaluated}}</td>
                         <td style="padding: 7px 8px;">{{.Notified}}</td>
                         <td style="padding: 7px 8px; color: #9ca3af;">${{printf "%.2f" .CostUSD}}</td>
+                        {{end}}
                     </tr>
                     {{end}}
                     {{if not .Runs}}

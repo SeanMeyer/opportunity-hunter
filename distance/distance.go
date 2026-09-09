@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -66,13 +67,17 @@ func (c *Client) GetDistance(ctx context.Context, origin, destination, mode stri
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		var errResp struct {
-			Error struct {
-				Message string `json:"message"`
-			} `json:"error"`
+		// ComputeRouteMatrix can return either an object or a streamed array
+		// of error envelopes, even for an HTTP-level authorization failure.
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+		message := routeErrorMessage(body)
+		if message == "" {
+			message = http.StatusText(resp.StatusCode)
 		}
-		json.NewDecoder(resp.Body).Decode(&errResp)
-		return Result{}, fmt.Errorf("routes api %d: %s", resp.StatusCode, errResp.Error.Message)
+		if c.apiKey != "" {
+			message = strings.ReplaceAll(message, c.apiKey, "[redacted]")
+		}
+		return Result{}, fmt.Errorf("routes api %d: %s", resp.StatusCode, message)
 	}
 
 	var results []routeMatrixElement
@@ -96,6 +101,27 @@ func (c *Client) GetDistance(ctx context.Context, origin, destination, mode stri
 		Minutes:    minutes,
 		DistanceMi: miles,
 	}, nil
+}
+
+func routeErrorMessage(body []byte) string {
+	type envelope struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	var single envelope
+	if json.Unmarshal(body, &single) == nil && single.Error.Message != "" {
+		return single.Error.Message
+	}
+	var batch []envelope
+	if json.Unmarshal(body, &batch) == nil {
+		for _, item := range batch {
+			if item.Error.Message != "" {
+				return item.Error.Message
+			}
+		}
+	}
+	return ""
 }
 
 func parseDurationSeconds(s string) int {

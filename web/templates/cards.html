@@ -5,7 +5,8 @@
         <span class="run-status">
             {{if .LatestRun}}
             <span class="status-dot" {{if eq .LatestRun.Status "error"}}style="background:#ef4444"{{else if eq .LatestRun.Status "ok"}}{{else}}style="background:#fbbf24"{{end}}></span>
-            Ran {{relativeTime .LatestRun.StartedAt}} &middot; {{.LatestRun.Scanned}} scanned, {{.LatestRun.Notified}} notified
+            {{if eq .LatestRun.Status "running"}}Running &middot; started {{relativeTime .LatestRun.StartedAt}}. Counts are available when the run finishes.
+            {{else}}Ran {{relativeTime .LatestRun.StartedAt}} &middot; {{.LatestRun.Scanned}} scanned, {{.LatestRun.Notified}} notified{{end}}
             {{else}}
             No runs yet
             {{end}}
