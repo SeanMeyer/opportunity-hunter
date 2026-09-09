@@ -19,8 +19,10 @@ type Forecast struct {
 }
 
 // DailyForecast holds the weather metrics for a single calendar day.
-// Day = 6am–6pm local, Night = 6pm–6am local (evening into next morning).
+// Day = 6am–6pm local; Night combines midnight–6am and 6pm–midnight
+// on the same calendar date. It is not the following morning.
 type DailyForecast struct {
+	SkiSession          *SkiSessionSnow `json:",omitempty"`
 	Date                time.Time
 	SnowfallCM          float64
 	ShelteredSnowfallCM float64
@@ -37,15 +39,17 @@ type DailyForecast struct {
 
 // HalfDay holds weather metrics for a 12-hour period (day or night).
 type HalfDay struct {
-	SnowfallCM          float64
-	ShelteredSnowfallCM float64
-	TemperatureC        float64
-	PrecipitationMM     float64
-	WindSpeedKmh        float64
-	WindGustKmh         float64
-	FreezingLevelMinM   float64
-	FreezingLevelMaxM   float64
-	CloudCoverPct       float64
+	SnowfallCM            float64
+	ShelteredSnowfallCM   float64
+	TemperatureC          float64
+	PrecipitationMM       float64
+	WindSpeedKmh          float64
+	WindGustKmh           float64
+	WindDirectionDeg      *float64 `json:",omitempty"` // Circular mean FROM true north; nil means unknown or variable.
+	WindDirectionVariable bool     `json:",omitempty"`
+	FreezingLevelMinM     float64
+	FreezingLevelMaxM     float64
+	CloudCoverPct         float64
 }
 
 // SnowfallWindow summarizes accumulated snowfall over a date range.

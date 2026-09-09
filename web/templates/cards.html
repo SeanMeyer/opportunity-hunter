@@ -1,4 +1,5 @@
 {{define "content"}}
+{{if .Notice}}<div class="notice" role="status">{{.Notice}}</div>{{end}}
 <div class="toolbar">
     <div class="toolbar-right">
         <span class="run-status">
@@ -13,31 +14,37 @@
         {{if .HasRunFunc}}
         <form method="POST" action="/run" style="display:inline">
             <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
+        <input type="hidden" name="sort" value="{{.SortBy}}">
+        <input type="hidden" name="filter" value="{{.FilterValue}}">
             <button type="submit" class="btn-ghost">Run Now</button>
         </form>
         {{end}}
-        <button class="prefs-toggle" onclick="document.getElementById('prefs-panel').classList.toggle('open')" title="Preferences">&#x2699;</button>
+        <button class="prefs-toggle" type="button" onclick="togglePreferences(this)" aria-expanded="false" aria-controls="prefs-panel">Preferences &amp; schedule</button>
     </div>
 </div>
 
-<div id="prefs-panel" class="prefs-panel {{if .Preferences}}has-prefs{{end}}">
+<div id="prefs-panel" class="prefs-panel" hidden>
     <form method="POST" action="/preferences">
         <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
+        <input type="hidden" name="sort" value="{{.SortBy}}">
+        <input type="hidden" name="filter" value="{{.FilterValue}}">
         <div class="prefs-header">
             <strong>Preferences</strong>
-            <span class="prefs-hint">These are included in every LLM evaluation for this hunt.</span>
+            <span class="prefs-hint">Tell us what makes an opportunity worth your time.</span>
         </div>
-        <textarea name="preferences" placeholder="What matters to you for this hunt? Budget, distance, schedule, taste, anything the AI should factor in...">{{.Preferences}}</textarea>
+        <textarea aria-label="Hunt preferences" name="preferences" placeholder="What matters to you for this hunt? Budget, distance, schedule, taste, anything the AI should factor in...">{{.Preferences}}</textarea>
         <button type="submit">Save</button>
     </form>
     <form method="POST" action="/schedule" class="schedule-form">
         <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
+        <input type="hidden" name="sort" value="{{.SortBy}}">
+        <input type="hidden" name="filter" value="{{.FilterValue}}">
         <div class="prefs-header">
             <strong>Scan Schedule</strong>
             <span class="prefs-hint">How often this hunt scans for new opportunities.</span>
         </div>
         <div class="schedule-row">
-            <label class="schedule-label">Every</label>
+            <label for="sched-interval" class="schedule-label">Every</label>
             <select name="interval" id="sched-interval" onchange="toggleDayPicker()">
                 <option value="60" {{if and .Schedule (eq .Schedule.IntervalMinutes 60)}}selected{{end}}>hour</option>
                 <option value="180" {{if and .Schedule (eq .Schedule.IntervalMinutes 180)}}selected{{end}}>3 hours</option>
@@ -47,7 +54,7 @@
                 <option value="10080" {{if and .Schedule (eq .Schedule.IntervalMinutes 10080)}}selected{{end}}>week</option>
             </select>
             <span id="sched-day-wrap" class="schedule-day-wrap" style="display:none;">
-                <label class="schedule-label">on</label>
+                <label for="sched-day" class="schedule-label">on</label>
                 <select name="start_day" id="sched-day">
                     <option value="0" {{if and .Schedule (eq .Schedule.StartDay 0)}}selected{{end}}>Sunday</option>
                     <option value="1" {{if and .Schedule (eq .Schedule.StartDay 1)}}selected{{end}}>Monday</option>
@@ -58,8 +65,8 @@
                     <option value="6" {{if and .Schedule (eq .Schedule.StartDay 6)}}selected{{end}}>Saturday</option>
                 </select>
             </span>
-            <label class="schedule-label">at</label>
-            <input type="time" name="start_time" value="{{if .Schedule}}{{.Schedule.StartTime}}{{else}}06:00{{end}}" class="schedule-time">
+            <label for="sched-time" class="schedule-label">at</label>
+            <input id="sched-time" type="time" name="start_time" value="{{if .Schedule}}{{.Schedule.StartTime}}{{else}}06:00{{end}}" class="schedule-time">
             <button type="submit">Save</button>
         </div>
     </form>
@@ -68,21 +75,25 @@
 {{if gt .TotalCards 0}}
 <div class="toolbar" style="margin-top: 0.5rem;">
     {{if .SortOptions}}
-    <label>Sort:</label>
-    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort='+this.value+'&filter={{.FilterValue}}'">
+    <div class="toolbar-control">
+    <label for="card-sort">Sort</label>
+    <select id="card-sort" onchange="updateView('sort', this.value)">
         {{range .SortOptions}}
         <option value="{{.Value}}" {{if eq $.SortBy .Value}}selected{{end}}>{{.Label}}</option>
         {{end}}
     </select>
+    </div>
     {{end}}
     {{if .FilterOptions}}
-    <label>Filter:</label>
-    <select onchange="window.location='/?hunt={{.ActiveHunt}}&sort={{.SortBy}}&filter='+this.value">
+    <div class="toolbar-control">
+    <label for="card-filter">Filter</label>
+    <select id="card-filter" onchange="updateView('filter', this.value)">
         <option value="" {{if eq .FilterValue ""}}selected{{end}}>All ({{.TotalCards}})</option>
         {{range .FilterOptions}}
         <option value="{{.Value}}" {{if eq $.FilterValue .Value}}selected{{end}}>{{.Label}}</option>
         {{end}}
     </select>
+    </div>
     {{end}}
     <span class="count">{{len .Cards}} results</span>
 </div>
@@ -92,20 +103,21 @@
 <div class="cards">
     {{$hunt := .ActiveHunt}}
     {{range .Cards}}
-    <div class="card tier-{{.Card.ScoreTier}}">
+    <article id="card-{{.OppID}}" class="card tier-{{.Card.ScoreTier}}" aria-labelledby="title-{{.OppID}}">
         <div class="card-main">
             {{if .Card.Score}}
             <span class="score score-{{.Card.ScoreTier}}">{{.Card.Score}}</span>
             {{end}}
             <div class="card-body">
                 <div class="card-top-row">
-                    <span class="card-title">{{.Card.Title}}</span>
+                    <h2 id="title-{{.OppID}}" class="card-title">{{.Card.Title}}</h2>
                     {{if .Card.Subtitle}}<span class="card-subtitle">{{.Card.Subtitle}}</span>{{end}}
                 </div>
                 {{if .Card.Reason}}<div class="card-reason" id="reason-{{.OppID}}">{{.Card.Reason}}</div>
-                <button class="card-reason-toggle" id="reason-toggle-{{.OppID}}" style="display:none" onclick="toggleReason({{.OppID}})">show more</button>{{end}}
+                <button class="card-reason-toggle" id="reason-toggle-{{.OppID}}" aria-expanded="false" aria-controls="reason-{{.OppID}}" hidden onclick="toggleReason({{.OppID}})">show more</button>{{end}}
                 <div class="card-meta-row">
-                    {{range .Card.Fields}}
+                    {{if .Card.DateDisplay}}<span class="card-meta-item">{{.Card.DateDisplay}}</span>{{end}}
+                    {{range summaryFields .Card.Fields}}
                     <span class="card-meta-item">{{.Icon}} {{.Value}}</span>
                     {{end}}
                     {{if .Card.Urgency}}
@@ -117,10 +129,10 @@
 
         {{if .Card.Fields}}
         <details>
-            <summary>Details ({{len .Card.Fields}} fields)</summary>
+            <summary>Explore details</summary>
             <div class="card-fields">
                 {{range .Card.Fields}}
-                <div class="field field-long">
+                <div class="field {{if gt (len .Value) 100}}field-long{{end}}">
                     <span class="field-label">{{.Icon}} {{.Label}}:</span>
                     <span class="field-value">{{.Value}}</span>
                 </div>
@@ -131,107 +143,94 @@
 
         <div class="card-footer" id="fb-{{.OppID}}">
             {{if .Card.ActionURL}}
-            <a href="{{.Card.ActionURL}}" target="_blank" class="card-action-link">{{.Card.ActionLabel}}</a>
+            <a href="{{.Card.ActionURL}}" target="_blank" rel="noopener noreferrer" class="card-action-link">{{.Card.ActionLabel}}</a>
             {{end}}
             <div class="fb-buttons">
-                <button class="fb-btn fb-up" onclick="showFeedbackForm({{.OppID}}, 'up', this)" title="Good recommendation">&#x1F44D;</button>
-                <button class="fb-btn fb-down" onclick="showFeedbackForm({{.OppID}}, 'down', this)" title="Bad recommendation">&#x1F44E;</button>
-                <span class="fb-saved" id="fb-saved-{{.OppID}}" style="display:none;">Saved</span>
+                <button type="button" data-rating="up" aria-pressed="{{if .Feedback}}{{if eq .Feedback.Rating "up"}}true{{else}}false{{end}}{{else}}false{{end}}" class="fb-btn fb-up {{if .Feedback}}{{if eq .Feedback.Rating "up"}}selected{{end}}{{end}}" onclick="showFeedbackForm({{.OppID}}, 'up', this)" title="Good recommendation" aria-label="Good recommendation">&#x1F44D;</button>
+                <button type="button" data-rating="down" aria-pressed="{{if .Feedback}}{{if eq .Feedback.Rating "down"}}true{{else}}false{{end}}{{else}}false{{end}}" class="fb-btn fb-down {{if .Feedback}}{{if eq .Feedback.Rating "down"}}selected{{end}}{{end}}" onclick="showFeedbackForm({{.OppID}}, 'down', this)" title="Bad recommendation" aria-label="Bad recommendation">&#x1F44E;</button>
+                <span class="fb-saved" id="fb-saved-{{.OppID}}" {{if not .Feedback}}hidden{{end}}>Saved</span>
             </div>
         </div>
-        <div class="fb-form" id="fb-form-{{.OppID}}" style="display:none;">
+        <div class="fb-form" id="fb-form-{{.OppID}}" data-saved-rating="{{if .Feedback}}{{.Feedback.Rating}}{{end}}" hidden>
             <form method="POST" action="/feedback">
                 <input type="hidden" name="hunt" value="{{$hunt}}">
+                <input type="hidden" name="sort" value="{{$.SortBy}}">
+                <input type="hidden" name="filter" value="{{$.FilterValue}}">
                 <input type="hidden" name="opportunity_id" value="{{.OppID}}">
                 <input type="hidden" name="title" value="{{.Card.Title}}">
                 <input type="hidden" name="rating" id="fb-rating-{{.OppID}}" value="">
                 <div class="fb-form-row">
-                    <input type="text" name="note" placeholder="Why? (optional)" class="fb-note">
+                    <input type="text" name="note" aria-label="Feedback note" placeholder="Why? (optional)" class="fb-note" value="{{if .Feedback}}{{.Feedback.Note}}{{end}}">
                     <button type="submit" class="fb-save">Save</button>
                     <button type="button" class="fb-cancel" onclick="hideFeedbackForm({{.OppID}})">Cancel</button>
                 </div>
             </form>
         </div>
-    </div>
+    </article>
     {{end}}
 </div>
 {{else if gt .TotalCards 0}}
-<div class="empty">No results match this filter. <a href="/?hunt={{.ActiveHunt}}">Clear filter</a></div>
+<div class="empty">No results match this filter. <a href="/?hunt={{.ActiveHunt}}&sort={{.SortBy}}">Clear filter</a></div>
 {{else}}
-<div class="empty">No opportunities yet for {{.ActiveHunt}}.</div>
+<div class="empty"><strong>No opportunities yet.</strong><p>{{if .HasRunFunc}}Use Run Now to check for recommendations, or adjust your preferences above.{{else}}Recommendations will appear here after this hunt has been evaluated.{{end}}</p></div>
 {{end}}
 
-<style>
-    .toolbar-right{display:flex;gap:.6rem;align-items:center;margin-left:auto;flex-wrap:wrap}
-    .run-status{font-size:.8rem;color:#9ca3af;display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap}
-    .schedule-next-inline{font-size:.8rem;color:#6b7280;white-space:nowrap}
-    .card-main{display:flex;gap:.75rem;align-items:flex-start}
-    .card-body{flex:1;min-width:0}
-    .card-top-row{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem}
-    .card-title{font-size:1rem;font-weight:600;color:#f3f4f6}
-    .card-subtitle{color:#9ca3af;font-size:.85rem}
-    .card-reason{color:#a5b4fc;font-size:.85rem;line-height:1.5;margin-bottom:.4rem;overflow-wrap:break-word;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-    .card-reason.expanded{-webkit-line-clamp:unset;overflow:visible}
-    .card-meta-row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;font-size:.8rem;color:#9ca3af}
-    .card-meta-item{white-space:nowrap}
-    .urgency-badge{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:4px;padding:.1rem .4rem;font-size:.75rem;font-weight:600}
-    .card-footer{margin-top:.75rem;padding-top:.75rem;border-top:1px solid #374151;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
-    .card-action-link{color:#a5b4fc;text-decoration:none;font-weight:500;font-size:.85rem}
-    .card-action-link:hover{color:#818cf8;text-decoration:underline}
-    .fb-buttons{display:flex;gap:.4rem;align-items:center;margin-left:auto}
-    .fb-btn{width:1.5rem;height:1.5rem;border:1px solid #374151;border-radius:50%;background:#1a1a2e;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#f3f4f6;padding:0}
-    .fb-btn:hover{background:#2d2b4a;transform:scale(1.1);border-color:#6366f1}
-    .fb-btn.selected{border-color:#6366f1;background:rgba(99,102,241,.15)}
-    .fb-up.selected{border-color:#86efac;background:rgba(134,239,172,.1)}
-    .fb-down.selected{border-color:#ef4444;background:rgba(239,68,68,.1)}
-</style>
-
 <script>
-function showFeedbackForm(oppId, rating, btn) {
+function togglePreferences(button) {
+    var panel = document.getElementById('prefs-panel');
+    panel.hidden = !panel.hidden;
+    button.setAttribute('aria-expanded', String(!panel.hidden));
+}
+function updateView(key, value) {
+    var url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    url.searchParams.delete('saved');
+    url.hash = '';
+    window.location.assign(url);
+}
+function selectRating(oppId, rating) {
+    document.getElementById('fb-' + oppId).querySelectorAll('.fb-btn').forEach(function(button) {
+        var selected = button.dataset.rating === rating;
+        button.classList.toggle('selected', selected);
+        button.setAttribute('aria-pressed', String(selected));
+    });
+}
+function showFeedbackForm(oppId, rating) {
+    var form = document.getElementById('fb-form-' + oppId);
     document.getElementById('fb-rating-' + oppId).value = rating;
-    document.getElementById('fb-form-' + oppId).style.display = 'block';
-    var footer = document.getElementById('fb-' + oppId);
-    footer.querySelectorAll('.fb-btn').forEach(function(b) { b.classList.remove('selected'); });
-    btn.classList.add('selected');
-    var note = document.getElementById('fb-form-' + oppId).querySelector('.fb-note');
-    if (note) note.focus();
+    form.hidden = false;
+    selectRating(oppId, rating);
+    document.getElementById('fb-saved-' + oppId).hidden = true;
+    form.querySelector('.fb-note').focus();
 }
-
 function hideFeedbackForm(oppId) {
-    document.getElementById('fb-form-' + oppId).style.display = 'none';
-    var footer = document.getElementById('fb-' + oppId);
-    footer.querySelectorAll('.fb-btn').forEach(function(b) { b.classList.remove('selected'); });
+    var form = document.getElementById('fb-form-' + oppId);
+    var draftRating = document.getElementById('fb-rating-' + oppId).value;
+    form.querySelector('form').reset();
+    form.hidden = true;
+    selectRating(oppId, form.dataset.savedRating);
+    document.getElementById('fb-saved-' + oppId).hidden = !form.dataset.savedRating;
+    document.getElementById('fb-' + oppId).querySelector('[data-rating="' + draftRating + '"]').focus();
 }
-
 function toggleDayPicker() {
-    var interval = document.getElementById('sched-interval');
-    var dayWrap = document.getElementById('sched-day-wrap');
-    if (interval && dayWrap) {
-        dayWrap.style.display = parseInt(interval.value) >= 10080 ? '' : 'none';
-    }
+    document.getElementById('sched-day-wrap').style.display = Number(document.getElementById('sched-interval').value) >= 10080 ? '' : 'none';
 }
 toggleDayPicker();
-
 function toggleReason(oppId) {
     var el = document.getElementById('reason-' + oppId);
-    var btn = document.getElementById('reason-toggle-' + oppId);
-    if (el.classList.contains('expanded')) {
-        el.classList.remove('expanded');
-        btn.textContent = 'show more';
-    } else {
-        el.classList.add('expanded');
-        btn.textContent = 'show less';
-    }
+    var button = document.getElementById('reason-toggle-' + oppId);
+    var expanded = el.classList.toggle('expanded');
+    button.textContent = expanded ? 'Show less' : 'Show more';
+    button.setAttribute('aria-expanded', String(expanded));
 }
-
-document.addEventListener('DOMContentLoaded', function() {
+function measureReasons() {
     document.querySelectorAll('.card-reason').forEach(function(el) {
-        if (el.scrollHeight > el.clientHeight) {
-            var id = el.id.replace('reason-', '');
-            var btn = document.getElementById('reason-toggle-' + id);
-            if (btn) btn.style.display = '';
-        }
+        var button = document.getElementById(el.id.replace('reason-', 'reason-toggle-'));
+        button.hidden = !el.classList.contains('expanded') && el.scrollHeight <= el.clientHeight + 1;
     });
-});
+}
+window.addEventListener('resize', measureReasons);
+measureReasons();
+if (document.fonts) document.fonts.ready.then(measureReasons);
 </script>
 {{end}}

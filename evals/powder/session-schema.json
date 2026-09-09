@@ -1,0 +1,153 @@
+{
+  "properties": {
+    "best_ski_day": {
+      "description": "The best date to ski in YYYY-MM-DD format, or Unknown / Not applicable if no suitable date is supported.",
+      "type": "STRING"
+    },
+    "best_ski_day_reason": {
+      "type": "STRING"
+    },
+    "closure_risk": {
+      "type": "STRING"
+    },
+    "crowd_estimate": {
+      "type": "STRING"
+    },
+    "day_by_day": {
+      "items": {
+        "properties": {
+          "conditions": {
+            "type": "STRING"
+          },
+          "date": {
+            "type": "STRING"
+          },
+          "recommendation": {
+            "type": "STRING"
+          },
+          "snowfall": {
+            "type": "STRING"
+          }
+        },
+        "required": [
+          "date",
+          "snowfall",
+          "conditions",
+          "recommendation"
+        ],
+        "type": "OBJECT"
+      },
+      "type": "ARRAY"
+    },
+    "information_edge": {
+      "type": "STRING"
+    },
+    "key_factors_cons": {
+      "items": {
+        "type": "STRING"
+      },
+      "type": "ARRAY"
+    },
+    "key_factors_pros": {
+      "items": {
+        "type": "STRING"
+      },
+      "type": "ARRAY"
+    },
+    "logistics_car_rental": {
+      "type": "STRING"
+    },
+    "logistics_flight_cost": {
+      "type": "STRING"
+    },
+    "logistics_lodging": {
+      "type": "STRING"
+    },
+    "logistics_lodging_cost": {
+      "description": "Lodging cost per night, identifying verified quote versus estimate and assumptions. Unknown or Not applicable is valid.",
+      "type": "STRING"
+    },
+    "logistics_road_conditions": {
+      "type": "STRING"
+    },
+    "logistics_total_estimated_cost": {
+      "description": "Total trip cost with assumptions if supported by research. Unknown or Not applicable is valid; never manufacture a range.",
+      "type": "STRING"
+    },
+    "logistics_transportation": {
+      "type": "STRING"
+    },
+    "recommendation": {
+      "description": "The overall judgment: 2-4 sentences explaining whether this person should go, decisive tradeoffs, uncertainty and what would change the decision. Preserve the research assessment.",
+      "type": "STRING"
+    },
+    "research_sources": {
+      "items": {
+        "type": "STRING"
+      },
+      "type": "ARRAY"
+    },
+    "resort_insights": {
+      "items": {
+        "properties": {
+          "insight": {
+            "type": "STRING"
+          },
+          "resort": {
+            "type": "STRING"
+          }
+        },
+        "required": [
+          "resort",
+          "insight"
+        ],
+        "type": "OBJECT"
+      },
+      "type": "ARRAY"
+    },
+    "snow_quality": {
+      "type": "STRING"
+    },
+    "strategy": {
+      "type": "STRING"
+    },
+    "summary": {
+      "description": "One sentence summarizing the verdict and its main reason, not just snowfall.",
+      "type": "STRING"
+    },
+    "tier": {
+      "enum": [
+        "DROP_EVERYTHING",
+        "RECOMMENDED",
+        "WATCH",
+        "SKIP"
+      ],
+      "type": "STRING"
+    }
+  },
+  "required": [
+    "tier",
+    "recommendation",
+    "summary",
+    "resort_insights",
+    "strategy",
+    "snow_quality",
+    "crowd_estimate",
+    "information_edge",
+    "closure_risk",
+    "best_ski_day",
+    "best_ski_day_reason",
+    "key_factors_pros",
+    "key_factors_cons",
+    "logistics_lodging",
+    "logistics_transportation",
+    "logistics_road_conditions",
+    "logistics_flight_cost",
+    "logistics_car_rental",
+    "logistics_lodging_cost",
+    "logistics_total_estimated_cost",
+    "day_by_day",
+    "research_sources"
+  ],
+  "type": "OBJECT"
+}

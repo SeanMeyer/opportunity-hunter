@@ -1,0 +1,66 @@
+{
+  "method": "Human-authored counterexample, extraction-only. Not a research quality test.",
+  "case": "conditional",
+  "variant": "original",
+  "model": "gemini-3.8-flash",
+  "prompt": "Extract the analysis into the required JSON schema. Preserve the analyst's verdict,\nreasoning summary, scores, uncertainty, and caveats; do not re-evaluate or strengthen the recommendation.\nThe original context is included to resolve references and IDs, not to invent missing conclusions.\nFor unavailable string details use \"Unknown\"; for inapplicable details use \"Not applicable\".\nUse empty arrays when no entries are supported. Never manufacture prices or sources.\n\n## Original context\nNo additional evidence.\n\n## Analysis\nWATCH. Niseko Thursday could be worthwhile if upper lifts reopen, but that is unconfirmed. Wednesday Rusutsu is an alternative only if BOTH road access and resort lift operations confirm before driving. Lower forecast gusts suggest a possibility, not confirmed operations. No price researched. Check official operations tomorrow; that is a future task, not a cited source.",
+  "extraction": {
+    "text": "{\n  \"tier\": \"WATCH\",\n  \"recommendation\": \"Niseko Thursday could be worthwhile if upper lifts reopen, but that remains unconfirmed. Wednesday Rusutsu serves as an alternative only if both road access and resort lift operations are confirmed before driving. The trip hinges on uncertain operational status and lower forecast gusts, which suggest a possibility rather than confirmed lift runs.\",\n  \"summary\": \"Place on watch as viability depends on unconfirmed lift reopenings at Niseko on Thursday and road access to Rusutsu on Wednesday.\",\n  \"resort_insights\": [\n    {\n      \"resort\": \"Niseko\",\n      \"insight\": \"Thursday could be worthwhile if upper lifts reopen, but operational status is unconfirmed.\"\n    },\n    {\n      \"resort\": \"Rusutsu\",\n      \"insight\": \"Viable Wednesday alternative only if both road access and resort lift operations are confirmed prior to driving.\"\n    }\n  ],\n  \"strategy\": \"Check official operations tomorrow before committing to travel, ensuring both road access and lifts are verified.\",\n  \"snow_quality\": \"Unknown\",\n  \"crowd_estimate\": \"Unknown\",\n  \"information_edge\": \"Lower forecast gusts indicate possible lift operations, but confirmed operational status is still required.\",\n  \"closure_risk\": \"High risk of upper lift closures at Niseko and road/lift closures at Rusutsu.\",\n  \"best_ski_day\": \"Unknown\",\n  \"best_ski_day_reason\": \"Thursday at Niseko could be worthwhile if upper lifts reopen, while Wednesday at Rusutsu depends on road and lift confirmation.\",\n  \"key_factors_pros\": [\n    \"Lower forecast gusts suggest a possibility of lifts opening\",\n    \"Thursday at Niseko could be worthwhile if upper lifts run\",\n    \"Wednesday Rusutsu is an alternative option\"\n  ],\n  \"key_factors_cons\": [\n    \"Upper lift reopening at Niseko is unconfirmed\",\n    \"Rusutsu requires confirmation of both road access and lift operations before driving\",\n    \"Lift operations remain unconfirmed across both resorts\"\n  ],\n  \"logistics_lodging\": \"Unknown\",\n  \"logistics_transportation\": \"Road access confirmation required before driving to Rusutsu.\",\n  \"logistics_road_conditions\": \"Road access to Rusutsu must be confirmed prior to driving.\",\n  \"logistics_flight_cost\": \"Unknown\",\n  \"logistics_car_rental\": \"Unknown\",\n  \"logistics_lodging_cost\": \"Unknown\",\n  \"logistics_total_estimated_cost\": \"Unknown\",\n  \"day_by_day\": [],\n  \"research_sources\": []\n}",
+    "finish_reason": "STOP",
+    "grounding": {},
+    "usage": {
+      "promptTokenCount": 173,
+      "candidatesTokenCount": 586,
+      "totalTokenCount": 759,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 173
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "elapsed_seconds": 2.95
+  },
+  "structured": {
+    "tier": "WATCH",
+    "recommendation": "Niseko Thursday could be worthwhile if upper lifts reopen, but that remains unconfirmed. Wednesday Rusutsu serves as an alternative only if both road access and resort lift operations are confirmed before driving. The trip hinges on uncertain operational status and lower forecast gusts, which suggest a possibility rather than confirmed lift runs.",
+    "summary": "Place on watch as viability depends on unconfirmed lift reopenings at Niseko on Thursday and road access to Rusutsu on Wednesday.",
+    "resort_insights": [
+      {
+        "resort": "Niseko",
+        "insight": "Thursday could be worthwhile if upper lifts reopen, but operational status is unconfirmed."
+      },
+      {
+        "resort": "Rusutsu",
+        "insight": "Viable Wednesday alternative only if both road access and resort lift operations are confirmed prior to driving."
+      }
+    ],
+    "strategy": "Check official operations tomorrow before committing to travel, ensuring both road access and lifts are verified.",
+    "snow_quality": "Unknown",
+    "crowd_estimate": "Unknown",
+    "information_edge": "Lower forecast gusts indicate possible lift operations, but confirmed operational status is still required.",
+    "closure_risk": "High risk of upper lift closures at Niseko and road/lift closures at Rusutsu.",
+    "best_ski_day": "Unknown",
+    "best_ski_day_reason": "Thursday at Niseko could be worthwhile if upper lifts reopen, while Wednesday at Rusutsu depends on road and lift confirmation.",
+    "key_factors_pros": [
+      "Lower forecast gusts suggest a possibility of lifts opening",
+      "Thursday at Niseko could be worthwhile if upper lifts run",
+      "Wednesday Rusutsu is an alternative option"
+    ],
+    "key_factors_cons": [
+      "Upper lift reopening at Niseko is unconfirmed",
+      "Rusutsu requires confirmation of both road access and lift operations before driving",
+      "Lift operations remain unconfirmed across both resorts"
+    ],
+    "logistics_lodging": "Unknown",
+    "logistics_transportation": "Road access confirmation required before driving to Rusutsu.",
+    "logistics_road_conditions": "Road access to Rusutsu must be confirmed prior to driving.",
+    "logistics_flight_cost": "Unknown",
+    "logistics_car_rental": "Unknown",
+    "logistics_lodging_cost": "Unknown",
+    "logistics_total_estimated_cost": "Unknown",
+    "day_by_day": [],
+    "research_sources": []
+  }
+}

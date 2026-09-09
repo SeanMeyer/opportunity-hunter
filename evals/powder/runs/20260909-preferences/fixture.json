@@ -1,0 +1,29 @@
+{
+  "evidence": {
+    "as_of": "2027-01-05T17:00:00-07:00",
+    "method": "Entirely hypothetical, fictional resorts. Use only this fixed evidence, not search or invented resort knowledge. All options are equal two-hour drives from Denver, covered by the stipulated pass with no extra ticket cost, and have confirmed open road access. One ski day is available, either Wednesday Jan 6 or Thursday Jan 7. Lodging is unnecessary. All skiing is lift-served in-bounds. No measured crowds or preserved powder depths. Opening snow spans previous 16:00 to 09:00; during skiing spans 09:00\u201316:00 local.",
+    "options": [
+      {
+        "resort": "Cedar Ridge",
+        "Wednesday": "7 inches opening snow, 1 inch during skiing. Broad lift-served glades confirmed open; below freezing, gusts 15 mph. Some pistes groomed before the last snowfall; they have a soft fresh covering rather than clean corduroy.",
+        "Thursday": "1 inch opening, none during skiing. Same terrain open; Wednesday snow likely partly tracked, no untouched-depth measurement."
+      },
+      {
+        "resort": "Summit Peak",
+        "Wednesday": "16 inches opening snow, 4 inches during skiing. Upper bowls closed for storm recovery; only lower groomers open. Gusts 45 mph. No tree skiing supplied.",
+        "Thursday": "2 inches opening, none during skiing; gusts ease to 15 mph, below freezing. Upper bowls might reopen Thursday after patrol assessment, but no confirmed opening time. Prior snow could remain untracked in closed terrain; wind redistribution and patrol work make retained depth unknown. If bowls stay closed, only lower groomers available."
+      },
+      {
+        "resort": "Valley Glide",
+        "Wednesday": "2 inches of snow before grooming finished at 08:30. Wide groomed pistes and lifts confirmed open at 09:00, no additional snow during skiing. Below freezing, gusts 10 mph.",
+        "Thursday": "No new snow. Overnight grooming and normal lift operations planned, not yet observed. No gladed or alpine powder terrain supplied."
+      }
+    ]
+  },
+  "preferences": {
+    "neutral": "No particular terrain preference.",
+    "trees": "Tree skiing is my favorite. I would usually choose accessible gladed runs over exposed alpine bowls or groomed pistes. Fresh snow is a bonus, but I do not need the deepest headline total.",
+    "untouched": "My main goal is untouched powder. I am willing to wait for a possible terrain opening or accept some uncertainty for a meaningful chance of untracked snow. Lift-served terrain only; this is not a request for backcountry skiing.",
+    "groomers": "I love freshly groomed corduroy and predictable, smooth piste skiing. I prefer groomed runs to deep powder or tree skiing; a big snowfall is not itself a benefit to me."
+  }
+}

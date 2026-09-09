@@ -2,6 +2,7 @@ package powder
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -27,6 +28,7 @@ func FormatConsolidatedWeatherForPrompt(forecasts []weather.Forecast, resorts []
 	}
 
 	var b strings.Builder
+	b.WriteString("Opening snow = previous day 16:00 through this day 09:00; During skiing = 09:00–16:00, assumed resort-local hours, not verified operating times. Unknown means hourly coverage is incomplete or the saved forecast predates ski-session totals. These are snowfall amounts, not guaranteed untouched depth. Wind bearings are FROM true north; circular means of available hourly directions. Variable means directions disagree substantially; Unknown means unavailable. Day = local 06:00–18:00; Night = 00:00–06:00 and 18:00–24:00 on the row's date (not the following morning). Gridpoint winds do not establish lift access or terrain shelter.\n")
 	for resortID, rForecasts := range byResort {
 		name := resortNames[resortID]
 		if name == "" {
@@ -41,12 +43,16 @@ func FormatConsolidatedWeatherForPrompt(forecasts []weather.Forecast, resorts []
 			continue
 		}
 
-		b.WriteString("| Date | Day Snow | Night Snow | Temp (F) | Wind (mph) | SLR | Freeze Lvl (ft) | Confidence |\n")
-		b.WriteString("|------|----------|------------|----------|------------|-----|-----------------|------------|\n")
+		b.WriteString(fmt.Sprintf("Forecast: %s / %s; fetched %s.\n", best.Source, best.Model, best.FetchedAt.Format(time.RFC3339)))
+		b.WriteString("| Date | Opening snow | During skiing | Temp (F) | Day gust (mph) | Day direction | Night gust (mph) | Night direction | SLR | Freeze Lvl (ft) | Confidence |\n")
+		b.WriteString("|------|----------|------------|----------|------------|---------------|------------------|-----------------|-----|-----------------|------------|\n")
 
 		for _, d := range best.DailyData {
-			daySnow := weather.CMToInches(d.Day.SnowfallCM)
-			nightSnow := weather.CMToInches(d.Night.SnowfallCM)
+			openingSnow, skiingSnow := "Unknown", "Unknown"
+			if d.SkiSession != nil {
+				openingSnow = formatSessionSnow(d.SkiSession.OpeningSnowCM)
+				skiingSnow = formatSessionSnow(d.SkiSession.DuringSkiingSnowCM)
+			}
 			tempLow := weather.CToF(d.TemperatureMinC)
 			tempHigh := weather.CToF(d.TemperatureMaxC)
 			windMax := d.Day.WindGustKmh * 0.621371
@@ -54,15 +60,17 @@ func FormatConsolidatedWeatherForPrompt(forecasts []weather.Forecast, resorts []
 			freezeLvl := d.FreezingLevelM * 3.28084
 
 			conf := "—"
-			if d.Day.SnowfallCM > 0 || d.Night.SnowfallCM > 0 {
+			hasSessionSnow := d.SkiSession != nil && ((d.SkiSession.OpeningSnowCM != nil && *d.SkiSession.OpeningSnowCM > 0) ||
+				(d.SkiSession.DuringSkiingSnowCM != nil && *d.SkiSession.DuringSkiingSnowCM > 0))
+			if d.Day.SnowfallCM > 0 || d.Night.SnowfallCM > 0 || hasSessionSnow {
 				conf = "see consensus"
 			}
 
-			b.WriteString(fmt.Sprintf("| %s | %.1f\" | %.1f\" | %.0f/%.0f | %.0f | %.0f:1 | %.0f | %s |\n",
+			b.WriteString(fmt.Sprintf("| %s | %s | %s | %.0f/%.0f | %.0f | %s | %.0f | %s | %.0f:1 | %.0f | %s |\n",
 				d.Date.Format("Mon Jan 2"),
-				daySnow, nightSnow,
+				openingSnow, skiingSnow,
 				tempLow, tempHigh,
-				windMax, slr, freezeLvl, conf))
+				windMax, formatWindDirection(d.Day), d.Night.WindGustKmh*0.621371, formatWindDirection(d.Night), slr, freezeLvl, conf))
 		}
 		b.WriteString("\n")
 	}
@@ -266,14 +274,14 @@ func FormatProfileForPrompt(profile *UserProfile) string {
 // This is defined here (in powder package) for use by prompt formatting,
 // and mirrors the core.UserProfile but with powder-specific rendering.
 type UserProfile struct {
-	HomeBase     string
-	HomeLat      float64
-	HomeLon      float64
-	Passes       []string
-	SkillLevel   string
-	Preferences  string
-	RemoteWork   bool
-	PTODays      int
+	HomeBase      string
+	HomeLat       float64
+	HomeLon       float64
+	Passes        []string
+	SkillLevel    string
+	Preferences   string
+	RemoteWork    bool
+	PTODays       int
 	BlackoutDates []time.Time
 }
 
@@ -293,4 +301,23 @@ func UserProfileFromCore(cp *core.UserProfile) *UserProfile {
 		PTODays:       cp.PTODays,
 		BlackoutDates: cp.BlackoutDates,
 	}
+}
+
+func formatWindDirection(h weather.HalfDay) string {
+	if h.WindDirectionVariable {
+		return "Variable"
+	}
+	if h.WindDirectionDeg == nil || math.IsNaN(*h.WindDirectionDeg) || math.IsInf(*h.WindDirectionDeg, 0) || *h.WindDirectionDeg < 0 || *h.WindDirectionDeg > 360 {
+		return "Unknown"
+	}
+	degrees := math.Mod(*h.WindDirectionDeg, 360)
+	names := []string{"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"}
+	return fmt.Sprintf("%s (%.0f°)", names[int(math.Round(degrees/22.5))%16], math.Mod(math.Round(degrees), 360))
+}
+
+func formatSessionSnow(cm *float64) string {
+	if cm == nil {
+		return "Unknown"
+	}
+	return fmt.Sprintf("%.1f\"", weather.CMToInches(*cm))
 }

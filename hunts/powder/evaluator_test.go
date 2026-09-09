@@ -11,7 +11,7 @@ import (
 
 type judgmentResponse struct{ decision map[string]any }
 
-func (f judgmentResponse) TwoStep(context.Context, string, *genai.Schema) (llm.TwoStepResult, error) {
+func (f judgmentResponse) TwoStepAdvice(context.Context, string, *genai.Schema) (llm.TwoStepResult, error) {
 	b, _ := json.Marshal(f.decision)
 	return llm.TwoStepResult{Research: "Detailed research, not JSON", Structured: f.decision, RawJSON: string(b)}, nil
 }

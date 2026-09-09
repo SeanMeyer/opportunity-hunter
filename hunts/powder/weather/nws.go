@@ -153,21 +153,23 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 	}
 
 	type dayAccum struct {
-		snowCM, shelteredSnowCM, precipMM      float64
-		tempMin, tempMax                       float64
-		tempInit                               bool
-		totalSnowPrecipMM, weightedSLRSum      float64
-		rainHours, mixedHours                  int
-		daySnowCM, dayShelteredSnowCM, dayPrecipMM float64
-		dayTempMax, dayWindMax, dayGustMax     float64
-		dayInit                                bool
+		dayDirection, nightDirection                     directionAccumulator
+		snowCM, shelteredSnowCM, precipMM                float64
+		tempMin, tempMax                                 float64
+		tempInit                                         bool
+		totalSnowPrecipMM, weightedSLRSum                float64
+		rainHours, mixedHours                            int
+		daySnowCM, dayShelteredSnowCM, dayPrecipMM       float64
+		dayTempMax, dayWindMax, dayGustMax               float64
+		dayInit                                          bool
 		nightSnowCM, nightShelteredSnowCM, nightPrecipMM float64
-		nightTempMin, nightWindMax, nightGustMax float64
-		nightInit                              bool
-		dayCloudCoverSum, nightCloudCoverSum   float64
-		dayCloudCoverCount, nightCloudCoverCount int
+		nightTempMin, nightWindMax, nightGustMax         float64
+		nightInit                                        bool
+		dayCloudCoverSum, nightCloudCoverSum             float64
+		dayCloudCoverCount, nightCloudCoverCount         int
 	}
 	byDate := make(map[string]*dayAccum)
+	sessionSnow := make(map[time.Time]float64)
 	getAcc := func(dateKey string) *dayAccum {
 		if a, ok := byDate[dateKey]; ok {
 			return a
@@ -187,7 +189,7 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 				continue
 			}
 			end := start.Add(dur)
-			hourlyVal := *v.Value / dur.Hours()
+			hourlyVal := *v.Value // Temperature, speed, gusts and cloud cover are not accumulated quantities.
 			for t := start; t.Before(end); t = t.Add(time.Hour) {
 				local := t.In(loc)
 				dateKey := local.Format("2006-01-02")
@@ -207,11 +209,11 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 			continue
 		}
 		end := start.Add(dur)
-		hourlyVal := *v.Value / dur.Hours()
+		hourlyVal := *v.Value // Temperature, speed, gusts and cloud cover are not accumulated quantities.
 		for t := start; t.Before(end); t = t.Add(time.Hour) {
 			local := t.In(loc)
 			dateKey := local.Format("2006-01-02")
-			hourKey := fmt.Sprintf("%s-%02d", dateKey, local.Hour())
+			hourKey := local.UTC().Format(time.RFC3339)
 			hourlyTemp[hourKey] = hourlyVal
 
 			acc := getAcc(dateKey)
@@ -256,11 +258,10 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 			continue
 		}
 		end := start.Add(dur)
-		hourlyVal := *v.Value / dur.Hours()
+		hourlyVal := *v.Value // Temperature, speed, gusts and cloud cover are not accumulated quantities.
 		for t := start; t.Before(end); t = t.Add(time.Hour) {
 			local := t.In(loc)
-			dateKey := local.Format("2006-01-02")
-			hourKey := fmt.Sprintf("%s-%02d", dateKey, local.Hour())
+			hourKey := local.UTC().Format(time.RFC3339)
 			hourlyWind[hourKey] = hourlyVal
 		}
 	}
@@ -280,7 +281,7 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 			local := t.In(loc)
 			dateKey := local.Format("2006-01-02")
 			hour := local.Hour()
-			hourKey := fmt.Sprintf("%s-%02d", dateKey, hour)
+			hourKey := local.UTC().Format(time.RFC3339)
 
 			acc := getAcc(dateKey)
 			acc.precipMM += hourlyMM
@@ -296,6 +297,9 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 			windMs := windKmh / 3.6
 
 			snowCM := SnowfallFromPrecip(hourlyMM, tempC, windMs)
+			if hasTemp && !t.Add(time.Hour).After(end) {
+				sessionSnow[t.UTC()] = snowCM
+			}
 			shelteredWindMs := windMs * WindShelterFactor
 			shelteredSnowCM := SnowfallFromPrecip(hourlyMM, tempC, shelteredWindMs)
 			density := CalculateDensity(tempC, windMs)
@@ -323,6 +327,28 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 				acc.nightSnowCM += snowCM
 				acc.nightShelteredSnowCM += shelteredSnowCM
 				acc.nightPrecipMM += hourlyMM
+			}
+		}
+	}
+
+	// Directions are instantaneous bearings valid throughout the interval, not
+	// accumulated quantities. Never divide an angle by interval duration.
+	for _, v := range resp.Properties.WindDirection.Values {
+		start, duration, err := parseISO8601Interval(v.ValidTime)
+		if err != nil || duration <= 0 || v.Value == nil {
+			continue
+		}
+		for at := start; at.Before(start.Add(duration)); at = at.Add(time.Hour) {
+			local := at.In(loc)
+			hourKey := local.UTC().Format(time.RFC3339)
+			if speed, known := hourlyWind[hourKey]; known && speed <= 0 {
+				continue
+			}
+			acc := getAcc(local.Format("2006-01-02"))
+			if local.Hour() >= 6 && local.Hour() < 18 {
+				acc.dayDirection.add(v.Value)
+			} else {
+				acc.nightDirection.add(v.Value)
 			}
 		}
 	}
@@ -392,25 +418,30 @@ func parseGridpointForecast(body []byte, loc *time.Location) ([]DailyForecast, e
 			RainHours:           acc.rainHours,
 			MixedHours:          acc.mixedHours,
 			Day: HalfDay{
-				SnowfallCM:          acc.daySnowCM,
-				ShelteredSnowfallCM: acc.dayShelteredSnowCM,
-				TemperatureC:        acc.dayTempMax,
-				PrecipitationMM:     acc.dayPrecipMM,
-				WindSpeedKmh:        acc.dayWindMax,
-				WindGustKmh:         acc.dayGustMax,
-				CloudCoverPct:       safeDivide(acc.dayCloudCoverSum, float64(acc.dayCloudCoverCount)),
+				SnowfallCM:            acc.daySnowCM,
+				ShelteredSnowfallCM:   acc.dayShelteredSnowCM,
+				TemperatureC:          acc.dayTempMax,
+				PrecipitationMM:       acc.dayPrecipMM,
+				WindSpeedKmh:          acc.dayWindMax,
+				WindDirectionDeg:      directionMean(acc.dayDirection),
+				WindDirectionVariable: directionVariable(acc.dayDirection),
+				WindGustKmh:           acc.dayGustMax,
+				CloudCoverPct:         safeDivide(acc.dayCloudCoverSum, float64(acc.dayCloudCoverCount)),
 			},
 			Night: HalfDay{
-				SnowfallCM:          acc.nightSnowCM,
-				ShelteredSnowfallCM: acc.nightShelteredSnowCM,
-				TemperatureC:        acc.nightTempMin,
-				PrecipitationMM:     acc.nightPrecipMM,
-				WindSpeedKmh:        acc.nightWindMax,
-				WindGustKmh:         acc.nightGustMax,
-				CloudCoverPct:       safeDivide(acc.nightCloudCoverSum, float64(acc.nightCloudCoverCount)),
+				SnowfallCM:            acc.nightSnowCM,
+				ShelteredSnowfallCM:   acc.nightShelteredSnowCM,
+				TemperatureC:          acc.nightTempMin,
+				PrecipitationMM:       acc.nightPrecipMM,
+				WindSpeedKmh:          acc.nightWindMax,
+				WindDirectionDeg:      directionMean(acc.nightDirection),
+				WindDirectionVariable: directionVariable(acc.nightDirection),
+				WindGustKmh:           acc.nightGustMax,
+				CloudCoverPct:         safeDivide(acc.nightCloudCoverSum, float64(acc.nightCloudCoverCount)),
 			},
 		})
 	}
+	attachSkiSessions(daily, sessionSnow, loc)
 	return daily, nil
 }
 
@@ -573,6 +604,7 @@ type nwsGridpointResponse struct {
 		QuantitativePrecipitation nwsTimeSeries `json:"quantitativePrecipitation"`
 		WindSpeed                 nwsTimeSeries `json:"windSpeed"`
 		WindGust                  nwsTimeSeries `json:"windGust"`
+		WindDirection             nwsTimeSeries `json:"windDirection"`
 		SkyCover                  nwsTimeSeries `json:"skyCover"`
 	} `json:"properties"`
 }

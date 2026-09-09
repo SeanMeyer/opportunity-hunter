@@ -266,9 +266,13 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 	// For merged multi-date events, expand ShowDates into individual dedup keys
 	// so new scan dates that already exist in a merged opp are skipped.
 	seen := make(map[string]bool)
-	existing, _ := p.db.GetRawItemsForDedup(ctx, name)
+	existing, err := p.db.GetRawItemsForDedup(ctx, name)
+	if err != nil {
+		return 0, append(errs, core.StepError{Step: "deduplicate", Err: err})
+	}
+	merger, canMerge := hunt.(core.MultiDateMerger)
 	for _, ex := range existing {
-		if len(ex.ShowDates) > 0 {
+		if canMerge && merger.MultiDateKey(ex) != "" && len(ex.ShowDates) > 0 {
 			for _, d := range ex.ShowDates {
 				expanded := ex
 				expanded.StartTime = d.Format(time.RFC3339)
@@ -305,9 +309,8 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 		}
 	}
 
-	// Merge pass: group best items by normalized title + venue (no date)
-	// to merge multi-date events (e.g., Fri/Sat/Sun shows) into one opportunity.
-	merged := mergeMultiDateItems(best, keyOrder)
+	// Only hunts with explicit event-series identity can merge across dates.
+	merged := mergeMultiDateItems(best, keyOrder, merger)
 
 	stored := 0
 	for _, item := range merged {
@@ -471,7 +474,10 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 			slog.Info("seeded default preferences", "hunt", hunt.Name())
 		}
 	}
-	fbRows, _ := p.db.GetRecentFeedback(ctx, hunt.Name(), 20)
+	fbRows, err := p.db.GetRecentFeedback(ctx, hunt.Name(), 20)
+	if err != nil {
+		return core.Evaluation{}, nil, fmt.Errorf("load feedback: %w", err)
+	}
 	var feedback []core.FeedbackEntry
 	for _, fb := range fbRows {
 		feedback = append(feedback, core.FeedbackEntry{
@@ -577,9 +583,9 @@ type mergedItem struct {
 	mergedKeys []string // all dedup keys that were merged into this item
 }
 
-// mergeMultiDateItems groups best items by normalized title + venue (no date component),
-// merging multi-date events into a single item with all dates in ShowDates.
-func mergeMultiDateItems(best map[string]core.RawItem, keyOrder []string) []mergedItem {
+// mergeMultiDateItems preserves distinct identities unless the hunt opts into
+// grouping performances into a single item with all dates in ShowDates.
+func mergeMultiDateItems(best map[string]core.RawItem, keyOrder []string, merger core.MultiDateMerger) []mergedItem {
 	type mergeGroup struct {
 		items []core.RawItem
 		keys  []string
@@ -587,10 +593,18 @@ func mergeMultiDateItems(best map[string]core.RawItem, keyOrder []string) []merg
 
 	groups := make(map[string]*mergeGroup)
 	var groupOrder []string
+	var separate []mergedItem
 
 	for _, key := range keyOrder {
 		item := best[key]
-		mergeKey := core.NormalizeTitleForDedup(item.Title) + "|" + item.VenueName
+		mergeKey := ""
+		if merger != nil {
+			mergeKey = merger.MultiDateKey(item)
+		}
+		if mergeKey == "" {
+			separate = append(separate, mergedItem{RawItem: item, mergedKeys: []string{key}})
+			continue
+		}
 		if g, ok := groups[mergeKey]; ok {
 			g.items = append(g.items, item)
 			g.keys = append(g.keys, key)
@@ -632,7 +646,7 @@ func mergeMultiDateItems(best map[string]core.RawItem, keyOrder []string) []merg
 			mergedKeys: g.keys,
 		})
 	}
-	return result
+	return append(result, separate...)
 }
 
 func (p *Pipeline) expire(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities) {

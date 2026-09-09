@@ -62,6 +62,10 @@ func (h *PerformingHunt) DedupeKey(raw core.RawItem) string {
 	return core.NormalizeTitleForDedup(raw.Title) + "|" + raw.VenueName + "|" + date
 }
 
+func (h *PerformingHunt) MultiDateKey(raw core.RawItem) string {
+	return core.NormalizeTitleForDedup(raw.Title) + "|" + raw.VenueName
+}
+
 func (h *PerformingHunt) Evaluator() core.Evaluator {
 	return &performingEvaluator{llm: h.llmC}
 }

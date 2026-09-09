@@ -1,0 +1,106 @@
+{
+  "japan-alternative": {
+    "as_of": "2027-01-12T17:00:00+09:00",
+    "traveler": "Already staying in Niseko, rental car available. Can ski Wednesday or Thursday. Rusutsu ticket coverage not established.",
+    "operations": "Hypothetically Niseko upper lifts are on wind hold Tuesday. Wednesday operations unconfirmed; no statement about lower lifts. Rusutsu operations and roads unconfirmed.",
+    "sessions": [
+      {
+        "resort": "Niseko United",
+        "date": "2027-01-13",
+        "opening_snow_in": 9,
+        "during_skiing_in": 3,
+        "day_gust_mph": 55,
+        "day_wind_from_deg": 270
+      },
+      {
+        "resort": "Rusutsu",
+        "date": "2027-01-13",
+        "opening_snow_in": 7,
+        "during_skiing_in": 2,
+        "day_gust_mph": 28,
+        "day_wind_from_deg": 270
+      },
+      {
+        "resort": "Niseko United",
+        "date": "2027-01-14",
+        "opening_snow_in": 4,
+        "during_skiing_in": 1,
+        "day_gust_mph": 22,
+        "day_wind_from_deg": 315
+      }
+    ],
+    "weather": "All days below freezing. Gridpoint forecast gusts and bearings do not describe individual lifts."
+  },
+  "cascades-rain": {
+    "as_of": "2027-01-14T15:00:00-07:00",
+    "traveler": "Still Denver Thursday afternoon. Earliest White Pass ski session Saturday; Friday cannot be reached. No flights or lodging booked.",
+    "operations": "Hypothetically road and resort open for Saturday. No closure-preservation opportunity supplied.",
+    "sessions": [
+      {
+        "resort": "White Pass",
+        "date": "2027-01-15",
+        "opening_snow_in": 20,
+        "during_skiing_in": 5,
+        "day_gust_mph": 20,
+        "day_wind_from_deg": 240
+      },
+      {
+        "resort": "White Pass",
+        "date": "2027-01-16",
+        "opening_snow_in": 1,
+        "during_skiing_in": 0,
+        "day_gust_mph": 18,
+        "day_wind_from_deg": 260
+      }
+    ],
+    "weather": "Friday night rain forecast from base through summit, 0.7 inches liquid. Saturday morning refreeze with no meaningful new snow. No evidence of a high-elevation snow-only sector."
+  },
+  "steamboat-reopening": {
+    "as_of": "2027-01-07T12:00:00-07:00",
+    "traveler": "Denver, can arrive Thursday evening and ski Friday or Saturday; one-night lodging estimate $180, unverified. Can stay a second night if justified.",
+    "operations": "Hypothetically Steamboat closed Thursday for storm recovery; announced Friday 09:00 reopening, road approach confirmed. Patrol releases staged, terrain details not confirmed. Saturday also planned open.",
+    "sessions": [
+      {
+        "resort": "Steamboat",
+        "date": "2027-01-08",
+        "opening_snow_in": 6,
+        "during_skiing_in": 1,
+        "day_gust_mph": 18,
+        "day_wind_from_deg": 300
+      },
+      {
+        "resort": "Steamboat",
+        "date": "2027-01-09",
+        "opening_snow_in": 12,
+        "during_skiing_in": 2,
+        "day_gust_mph": 15,
+        "day_wind_from_deg": 270
+      }
+    ],
+    "weather": "Thursday before 16:00 adds 14 inches during closure, separate from Friday opening total. Below freezing both days. No measurement of retained depth or grooming. Friday is weekday, Saturday weekend; no crowd observations."
+  },
+  "whitepass-delay": {
+    "as_of": "2027-02-02T15:00:00-07:00",
+    "traveler": "Denver Tuesday afternoon; can reach White Pass Wednesday evening. Can ski Thursday and Friday; adding Saturday costs one extra night and one additional personal day. About $800 is an illustrative acceptable short-trip value, not a quote. No bookings yet.",
+    "operations": "Hypothetically resort temporarily closed Wednesday for storm recovery. Resort announcement targets Thursday 09:00 reopening but explicitly says it could slip to Friday. Road approach expected to reopen Wednesday evening, not confirmed. Specific terrain releases unknown.",
+    "sessions": [
+      {
+        "resort": "White Pass",
+        "date": "2027-02-04",
+        "opening_snow_in": 18,
+        "during_skiing_in": 6,
+        "day_gust_mph": 25,
+        "day_wind_from_deg": 290
+      },
+      {
+        "resort": "White Pass",
+        "date": "2027-02-05",
+        "opening_snow_in": 8,
+        "during_skiing_in": 1,
+        "day_gust_mph": 15,
+        "day_wind_from_deg": 300
+      }
+    ],
+    "weather": "Wednesday before 16:00 forecast adds 10 inches during closure. Thursday-Friday below freezing throughout ski elevations. No observations of retained powder. Local alternative: Copper Mountain Thursday 5 inches opening and 1 during skiing, gusts 18 mph, hypothetical road and usable resort terrain confirmed open. Thursday is weekday; no crowd counts."
+  }
+}

@@ -16,7 +16,7 @@ import (
 
 type powderEvaluator struct {
 	llm interface {
-		TwoStep(context.Context, string, *genai.Schema) (llm.TwoStepResult, error)
+		TwoStepAdvice(context.Context, string, *genai.Schema) (llm.TwoStepResult, error)
 	}
 }
 
@@ -24,7 +24,7 @@ func (e *powderEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 	prompt := buildPrompt(ec)
 
 	// Use the two-step Gemini evaluation: research with grounding, then structured extraction.
-	twoStep, err := e.llm.TwoStep(ctx, prompt, stormEvalSchema())
+	twoStep, err := e.llm.TwoStepAdvice(ctx, prompt, stormEvalSchema())
 	if err != nil {
 		return nil, fmt.Errorf("powder evaluate: %w", err)
 	}

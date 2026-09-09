@@ -1,0 +1,62 @@
+{
+  "method": "Human-authored counterexample, extraction-only. Not a research quality test.",
+  "case": "closure",
+  "variant": "updated",
+  "model": "gemini-3.8-flash",
+  "prompt": "Extract the analysis into the required JSON schema. Preserve the analyst's verdict,\nreasoning summary, scores, uncertainty, and caveats; do not re-evaluate or strengthen the recommendation.\nThe original context is included to resolve references and IDs, not to invent missing conclusions.\nFor unavailable string details use \"Unknown\"; for inapplicable details use \"Not applicable\".\nUse empty arrays when no entries are supported. Never manufacture prices or sources.\n\n## Original context\nNo additional evidence.\n\n## Analysis\nRECOMMENDED: target Friday at Steamboat if the announced reopening proceeds with usable terrain. 14 inches during closure plus 6 inches before opening totals 20 inches of snowfall, not a measurement or promise of retained powder. Friday has a plausible weekday advantage; Saturday adds 12 inches and could be better if terrain releases slip. No crowd observation or terrain release schedule is confirmed. Lodging is an unverified $180 per-night estimate; total trip cost unknown.\nOnly list sources actually cited or retrieved, never suggested future checks. Keep illustrative budgets distinct from trip cost estimates. Preserve decisive conditions in both recommendation and summary; a possible reopening must not become a confirmed reopening in any field.\nRetrieved source URLs:\n[]",
+  "extraction": {
+    "text": "{\n  \"tier\": \"RECOMMENDED\",\n  \"recommendation\": \"Target Friday at Steamboat if the announced reopening proceeds with usable terrain. 14 inches during closure plus 6 inches before opening totals 20 inches of snowfall, not a measurement or promise of retained powder. Friday has a plausible weekday advantage; Saturday adds 12 inches and could be better if terrain releases slip. No crowd observation or terrain release schedule is confirmed.\",\n  \"summary\": \"Target Friday at Steamboat if the announced reopening proceeds with usable terrain, benefiting from a potential weekday advantage following significant snowfall.\",\n  \"resort_insights\": [\n    {\n      \"resort\": \"Steamboat\",\n      \"insight\": \"14 inches fell during closure plus 6 inches before opening (20 inches total snowfall), with Saturday expected to add 12 inches if terrain releases slip.\"\n    }\n  ],\n  \"strategy\": \"Target Friday for a plausible weekday advantage, but monitor if terrain releases slip into Saturday.\",\n  \"snow_quality\": \"20 inches of snowfall total (14 inches during closure plus 6 inches before opening), though not a measurement or promise of retained powder; Saturday adds 12 inches.\",\n  \"crowd_estimate\": \"Unknown\",\n  \"information_edge\": \"Unknown\",\n  \"closure_risk\": \"Reopening is announced but unconfirmed if usable terrain will proceed.\",\n  \"best_ski_day\": \"Unknown\",\n  \"best_ski_day_reason\": \"Friday has a plausible weekday advantage following recent snowfall, though Saturday could be better if terrain releases slip.\",\n  \"key_factors_pros\": [\n    \"20 inches total snowfall leading into Friday\",\n    \"Plausible weekday advantage on Friday\",\n    \"Saturday adds 12 inches\"\n  ],\n  \"key_factors_cons\": [\n    \"Reopening with usable terrain is unconfirmed\",\n    \"Snowfall total is not a measurement or promise of retained powder\",\n    \"No confirmed crowd observation or terrain release schedule\"\n  ],\n  \"logistics_lodging\": \"Unknown\",\n  \"logistics_transportation\": \"Unknown\",\n  \"logistics_road_conditions\": \"Unknown\",\n  \"logistics_flight_cost\": \"Unknown\",\n  \"logistics_car_rental\": \"Unknown\",\n  \"logistics_lodging_cost\": \"$180 per-night unverified estimate\",\n  \"logistics_total_estimated_cost\": \"Unknown\",\n  \"day_by_day\": [],\n  \"research_sources\": []\n}",
+    "finish_reason": "STOP",
+    "grounding": {},
+    "usage": {
+      "promptTokenCount": 254,
+      "candidatesTokenCount": 561,
+      "totalTokenCount": 815,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 254
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "elapsed_seconds": 2.84
+  },
+  "structured": {
+    "tier": "RECOMMENDED",
+    "recommendation": "Target Friday at Steamboat if the announced reopening proceeds with usable terrain. 14 inches during closure plus 6 inches before opening totals 20 inches of snowfall, not a measurement or promise of retained powder. Friday has a plausible weekday advantage; Saturday adds 12 inches and could be better if terrain releases slip. No crowd observation or terrain release schedule is confirmed.",
+    "summary": "Target Friday at Steamboat if the announced reopening proceeds with usable terrain, benefiting from a potential weekday advantage following significant snowfall.",
+    "resort_insights": [
+      {
+        "resort": "Steamboat",
+        "insight": "14 inches fell during closure plus 6 inches before opening (20 inches total snowfall), with Saturday expected to add 12 inches if terrain releases slip."
+      }
+    ],
+    "strategy": "Target Friday for a plausible weekday advantage, but monitor if terrain releases slip into Saturday.",
+    "snow_quality": "20 inches of snowfall total (14 inches during closure plus 6 inches before opening), though not a measurement or promise of retained powder; Saturday adds 12 inches.",
+    "crowd_estimate": "Unknown",
+    "information_edge": "Unknown",
+    "closure_risk": "Reopening is announced but unconfirmed if usable terrain will proceed.",
+    "best_ski_day": "Unknown",
+    "best_ski_day_reason": "Friday has a plausible weekday advantage following recent snowfall, though Saturday could be better if terrain releases slip.",
+    "key_factors_pros": [
+      "20 inches total snowfall leading into Friday",
+      "Plausible weekday advantage on Friday",
+      "Saturday adds 12 inches"
+    ],
+    "key_factors_cons": [
+      "Reopening with usable terrain is unconfirmed",
+      "Snowfall total is not a measurement or promise of retained powder",
+      "No confirmed crowd observation or terrain release schedule"
+    ],
+    "logistics_lodging": "Unknown",
+    "logistics_transportation": "Unknown",
+    "logistics_road_conditions": "Unknown",
+    "logistics_flight_cost": "Unknown",
+    "logistics_car_rental": "Unknown",
+    "logistics_lodging_cost": "$180 per-night unverified estimate",
+    "logistics_total_estimated_cost": "Unknown",
+    "day_by_day": [],
+    "research_sources": []
+  }
+}

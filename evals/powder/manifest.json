@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "created": "2026-09-09",
+  "status": "human_calibration_in_progress",
+  "cases": [
+    "cases/closed-roaring-fork.json",
+    "cases/windy-local-i70.json",
+    "cases/active-little-cottonwood.json",
+    "cases/huge-cascades-uncertain-access.json",
+    "cases/cascades-confirmed-reopening.json"
+  ],
+  "profile_policy": "Restored older preference is a benchmark assumption, not a production database update.",
+  "run_policy": "Read cases only, not archive. Freeze inputs and as_of. No search, notifications or DB writes. Store model, prompt version, inputs hash, raw assessment, extracted output, cost and human review separately for every run. Do not overwrite baselines.",
+  "rubric": [
+    "Evidence fidelity and date/accumulation accuracy",
+    "Subscriber fit and meaningful overall judgment",
+    "Useful non-obvious insight: evidence-supported alternatives or timing advantages, with a practical recommendation",
+    "Reachable ski session and practical action",
+    "Proportionate uncertainty, access risks and explicit assumptions",
+    "Extraction preserves assessment verdict and caveats"
+  ],
+  "scoring": "Human review per dimension: 0 material failure, 1 partly useful, 2 good. Do not combine scores into an automatic storm verdict. Factual failures must be fixed even if the overall verdict matches.",
+  "limitations": [
+    "Four historical cases plus one explicitly hypothetical paired follow-up; a development set, not a validation benchmark.",
+    "No forced one-case-per-verdict distribution; no user-confirmed Drop Everything case yet.",
+    "Operational claims lack captured source-page evidence.",
+    "Profile restoration and prompt changes must be tested separately to avoid attributing preference improvements to prompting.",
+    "Keep future unseen cases for validation rather than tuning on the whole archive."
+  ],
+  "design_principle": "Evaluate quality of insight and evidence-supported judgment. Case notes are human discussion references, not answer keys or rules to feed to the model."
+}

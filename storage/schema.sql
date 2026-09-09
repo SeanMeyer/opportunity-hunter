@@ -175,4 +175,5 @@ CREATE INDEX IF NOT EXISTS idx_evaluations_hunt_group ON evaluations(hunt_name, 
 CREATE INDEX IF NOT EXISTS idx_picks_evaluation ON picks(evaluation_id);
 CREATE INDEX IF NOT EXISTS idx_picks_opportunity ON picks(opportunity_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_hunt ON feedback(hunt_name);
+CREATE INDEX IF NOT EXISTS idx_feedback_opportunity_history ON feedback(hunt_name, opportunity_id, id);
 CREATE INDEX IF NOT EXISTS idx_eval_costs_hunt_date ON eval_costs(hunt_name, evaluated_at);

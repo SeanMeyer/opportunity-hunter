@@ -34,13 +34,20 @@ func (d *DB) SaveFeedback(ctx context.Context, f FeedbackRow) (int64, error) {
 	return result.LastInsertId()
 }
 
-// GetRecentFeedback returns the most recent feedback for a hunt.
+// GetRecentFeedback returns effective feedback for a hunt, newest first.
+// The last saved choice per opportunity wins before applying the limit. Earlier
+// choices remain stored for history. Manual entries have no shared identity.
 func (d *DB) GetRecentFeedback(ctx context.Context, huntName string, limit int) ([]FeedbackRow, error) {
 	rows, err := d.db.QueryContext(ctx,
 		`SELECT id, opportunity_id, hunt_name, title, rating, note,
 		        COALESCE(eval_summary, ''), COALESCE(eval_score, ''), created_at
-		 FROM feedback WHERE hunt_name = ?
-		 ORDER BY created_at DESC LIMIT ?`, huntName, limit,
+		 FROM feedback AS f WHERE hunt_name = ?
+		 AND (opportunity_id IS NULL OR NOT EXISTS (
+		     SELECT 1 FROM feedback AS newer
+		     WHERE newer.hunt_name = f.hunt_name
+		       AND newer.opportunity_id = f.opportunity_id AND newer.id > f.id
+		 ))
+		 ORDER BY id DESC LIMIT ?`, huntName, limit,
 	)
 	if err != nil {
 		return nil, err

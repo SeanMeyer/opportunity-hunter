@@ -67,6 +67,10 @@ func (h *ComedyHunt) DedupeKey(raw core.RawItem) string {
 	return core.NormalizeTitleForDedup(raw.Title) + "|" + raw.VenueName + "|" + date
 }
 
+func (h *ComedyHunt) MultiDateKey(raw core.RawItem) string {
+	return core.NormalizeTitleForDedup(raw.Title) + "|" + raw.VenueName
+}
+
 func (h *ComedyHunt) Evaluator() core.Evaluator {
 	return &comedyEvaluator{
 		llm:         h.llmC,

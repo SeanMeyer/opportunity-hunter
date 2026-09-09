@@ -13,6 +13,10 @@
 *.out
 /opportunity-hunter
 
+# Python evaluation harness caches
+__pycache__/
+*.py[cod]
+
 # SQLite
 *.db
 *.db-wal

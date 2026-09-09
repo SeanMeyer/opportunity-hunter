@@ -30,6 +30,13 @@ type Grouper interface {
 	GroupForEval(items []Opportunity) []Group
 }
 
+// MultiDateMerger opts into combining performances of the same event across dates.
+// An empty key keeps an item separate. Hunts without this capability preserve
+// each distinct DedupeKey, including its attributes and start/end window.
+type MultiDateMerger interface {
+	MultiDateKey(raw RawItem) string
+}
+
 // ReEvaluator controls whether an opportunity should be re-evaluated.
 // Default: no re-evaluation.
 type ReEvaluator interface {

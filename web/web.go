@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -76,6 +77,7 @@ func New(db *storage.DB, hunts []HuntInfo, homeAddress string, runFunc ...func(c
 	funcMap := template.FuncMap{
 		"relativeTime":   relativeTime,
 		"formatDistance": FormatDistance,
+		"summaryFields":  summaryFields,
 	}
 	tmpl, err := template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
@@ -129,10 +131,12 @@ func (s *Server) handleRun(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unknown hunt", http.StatusBadRequest)
 		return
 	}
-	if s.runFunc != nil {
-		go s.runFunc(context.Background(), huntName)
+	if s.runFunc == nil {
+		http.Error(w, "Manual runs are unavailable", http.StatusServiceUnavailable)
+		return
 	}
-	http.Redirect(w, r, "/?hunt="+huntName, http.StatusSeeOther)
+	go s.runFunc(context.Background(), huntName)
+	s.redirectToView(w, r, "run", "")
 }
 
 // huntHealth holds the latest run and schedule for one hunt, for the status dashboard.
@@ -201,7 +205,7 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 // Handler returns the HTTP handler for the web UI.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", s.handleIndex)
+	mux.HandleFunc("GET /{$}", s.handleIndex)
 	mux.HandleFunc("GET /status", s.handleStatus)
 	mux.HandleFunc("POST /preferences", s.handleSavePreferences)
 	mux.HandleFunc("POST /feedback", s.handleSaveFeedback)
@@ -212,8 +216,9 @@ func (s *Server) Handler() http.Handler {
 
 // cardItem wraps a card with its opportunity ID for feedback forms.
 type cardItem struct {
-	Card  core.CardData
-	OppID int64
+	Card     core.CardData
+	OppID    int64
+	Feedback *storage.FeedbackRow
 }
 
 // ScheduleInfo holds schedule data for template rendering.
@@ -242,12 +247,17 @@ type pageData struct {
 	IsStatusPage    bool
 	HasRunFunc      bool
 	LatestRun       *storage.PipelineRun
+	Notice          string
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	activeHunt := r.URL.Query().Get("hunt")
 	if activeHunt == "" && len(s.huntNames) > 0 {
 		activeHunt = s.huntNames[0]
+	}
+	if activeHunt != "" && !s.validHunt(activeHunt) {
+		http.NotFound(w, r)
+		return
 	}
 
 	// Find hunt info for active hunt.
@@ -280,6 +290,16 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		SortBy:      sortBy,
 		FilterValue: filterValue,
 		HasRunFunc:  s.runFunc != nil,
+	}
+	switch r.URL.Query().Get("saved") {
+	case "preferences":
+		data.Notice = "Preferences saved. They will apply to the next evaluation."
+	case "schedule":
+		data.Notice = "Scan schedule saved."
+	case "feedback":
+		data.Notice = "Feedback saved. Thank you."
+	case "run":
+		data.Notice = "Run requested. Check System Status for progress, then refresh for new recommendations."
 	}
 
 	if huntInfo != nil {
@@ -320,8 +340,21 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	// Wrap with opportunity IDs for feedback forms.
 	items := make([]cardItem, len(rawCards))
+	feedback, err := s.db.GetRecentFeedback(ctx, activeHunt, -1)
+	if err != nil {
+		slog.Error("load feedback", "err", err)
+		http.Error(w, "Error loading feedback", http.StatusInternalServerError)
+		return
+	}
+	latestFeedback := make(map[int64]*storage.FeedbackRow)
+	for i := range feedback {
+		fb := &feedback[i]
+		if fb.OpportunityID != nil && latestFeedback[*fb.OpportunityID] == nil {
+			latestFeedback[*fb.OpportunityID] = fb
+		}
+	}
 	for i, c := range rawCards {
-		items[i] = cardItem{Card: c, OppID: c.OpportunityID}
+		items[i] = cardItem{Card: c, OppID: c.OpportunityID, Feedback: latestFeedback[c.OpportunityID]}
 	}
 	data.Cards = items
 
@@ -334,10 +367,33 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	buf.WriteTo(w)
 }
 
+// Keep concise decision facts visible; narrative fields belong in the disclosure.
+func summaryFields(fields []core.CardField) []core.CardField {
+	var summary []core.CardField
+	for _, field := range fields {
+		switch field.Label {
+		case "Price", "Pricing", "Est. Cost", "Distance", "Snowfall", "Friction", "Streaming", "Window":
+			if field.Value != "" {
+				summary = append(summary, field)
+			}
+		}
+		if len(summary) == 3 {
+			break
+		}
+	}
+	return summary
+}
+
 func sortCards(cards []core.CardData, sortBy string) {
 	switch sortBy {
 	case core.SortByDate:
-		sort.Slice(cards, func(i, j int) bool {
+		sort.SliceStable(cards, func(i, j int) bool {
+			if cards[i].DateSort <= 0 {
+				return false
+			}
+			if cards[j].DateSort <= 0 {
+				return true
+			}
 			return cards[i].DateSort < cards[j].DateSort
 		})
 	case core.SortByTier:
@@ -460,13 +516,17 @@ func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo)
 
 func (s *Server) handleSavePreferences(w http.ResponseWriter, r *http.Request) {
 	hunt := r.FormValue("hunt")
+	if !s.validHunt(hunt) {
+		http.Error(w, "unknown hunt", http.StatusBadRequest)
+		return
+	}
 	prefs := r.FormValue("preferences")
 	if err := s.db.SavePreferences(r.Context(), hunt, prefs); err != nil {
 		slog.Error("save preferences", "err", err)
 		http.Error(w, "Error saving preferences", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/?hunt="+hunt, http.StatusSeeOther)
+	s.redirectToView(w, r, "preferences", "")
 }
 
 func (s *Server) handleSaveFeedback(w http.ResponseWriter, r *http.Request) {
@@ -475,6 +535,31 @@ func (s *Server) handleSaveFeedback(w http.ResponseWriter, r *http.Request) {
 	rating := r.FormValue("rating")
 	note := r.FormValue("note")
 	oppIDStr := r.FormValue("opportunity_id")
+	validRating := rating == "up" || rating == "down"
+	for _, h := range s.hunts {
+		if h.Name == hunt {
+			for _, option := range h.FeedbackOptions {
+				validRating = validRating || rating == option.Value
+			}
+		}
+	}
+	if !s.validHunt(hunt) || !validRating {
+		http.Error(w, "Invalid feedback", http.StatusBadRequest)
+		return
+	}
+	if oppIDStr != "" {
+		id, err := strconv.ParseInt(oppIDStr, 10, 64)
+		if err != nil || id <= 0 {
+			http.Error(w, "Invalid opportunity", http.StatusBadRequest)
+			return
+		}
+		opp, err := s.db.GetOpportunity(r.Context(), id)
+		if err != nil || opp.HuntName != hunt {
+			http.Error(w, "Invalid opportunity", http.StatusBadRequest)
+			return
+		}
+		title = opp.Title
+	}
 
 	fb := storage.FeedbackRow{
 		HuntName:  hunt,
@@ -516,11 +601,31 @@ func (s *Server) handleSaveFeedback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error saving feedback", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/?hunt="+hunt, http.StatusSeeOther)
+	anchor := ""
+	if fb.OpportunityID != nil {
+		anchor = fmt.Sprintf("card-%d", *fb.OpportunityID)
+	}
+	s.redirectToView(w, r, "feedback", anchor)
+}
+
+// Build redirects from known local fields, preserving the user's current view.
+func (s *Server) redirectToView(w http.ResponseWriter, r *http.Request, saved, anchor string) {
+	q := url.Values{"hunt": {r.FormValue("hunt")}, "saved": {saved}}
+	for _, key := range []string{"sort", "filter"} {
+		if value := r.FormValue(key); value != "" {
+			q.Set(key, value)
+		}
+	}
+	u := url.URL{Path: "/", RawQuery: q.Encode(), Fragment: anchor}
+	http.Redirect(w, r, u.String(), http.StatusSeeOther)
 }
 
 func (s *Server) handleSaveSchedule(w http.ResponseWriter, r *http.Request) {
 	hunt := r.FormValue("hunt")
+	if !s.validHunt(hunt) {
+		http.Error(w, "unknown hunt", http.StatusBadRequest)
+		return
+	}
 	intervalStr := r.FormValue("interval")
 	interval, err := strconv.Atoi(intervalStr)
 	if err != nil || interval <= 0 {
@@ -530,10 +635,12 @@ func (s *Server) handleSaveSchedule(w http.ResponseWriter, r *http.Request) {
 
 	startHour, startMinute := 6, 0 // default
 	if st := r.FormValue("start_time"); st != "" {
-		if _, parseErr := fmt.Sscanf(st, "%d:%d", &startHour, &startMinute); parseErr != nil {
+		parsed, parseErr := time.Parse("15:04", st)
+		if parseErr != nil {
 			http.Error(w, "Invalid start time", http.StatusBadRequest)
 			return
 		}
+		startHour, startMinute = parsed.Hour(), parsed.Minute()
 		if startHour < 0 || startHour > 23 || startMinute < 0 || startMinute > 59 {
 			http.Error(w, "Start time out of range", http.StatusBadRequest)
 			return
@@ -543,7 +650,9 @@ func (s *Server) handleSaveSchedule(w http.ResponseWriter, r *http.Request) {
 	startDay := -1 // not applicable for sub-weekly
 	if interval >= 10080 {
 		if dayStr := r.FormValue("start_day"); dayStr != "" {
-			if _, parseErr := fmt.Sscanf(dayStr, "%d", &startDay); parseErr != nil || startDay < 0 || startDay > 6 {
+			var parseErr error
+			startDay, parseErr = strconv.Atoi(dayStr)
+			if parseErr != nil || startDay < 0 || startDay > 6 {
 				http.Error(w, "Invalid day of week", http.StatusBadRequest)
 				return
 			}
@@ -560,5 +669,5 @@ func (s *Server) handleSaveSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 	slog.Info("schedule updated", "hunt", hunt, "interval_m", interval,
 		"start", fmt.Sprintf("%02d:%02d", startHour, startMinute), "day", startDay)
-	http.Redirect(w, r, "/?hunt="+hunt, http.StatusSeeOther)
+	s.redirectToView(w, r, "schedule", "")
 }

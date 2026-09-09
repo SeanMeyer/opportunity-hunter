@@ -73,6 +73,18 @@ contract, but do not fabricate information to fill fields. Use unknown or not ap
 
 ## Output contract for the later extraction pass
 ` + string(schemaJSON)
+	return c.twoStep(ctx, prompt, researchPrompt, schema)
+}
+
+// TwoStepAdvice uses a self-contained advisor prompt for research, keeping the
+// output schema in the extraction pass. Search, validation and accounting are
+// identical to TwoStep; callers supply their own judgment and evidence guidance.
+func (c *Client) TwoStepAdvice(ctx context.Context, prompt string, schema *genai.Schema) (TwoStepResult, error) {
+	return c.twoStep(ctx, prompt, prompt, schema)
+}
+
+func (c *Client) twoStep(ctx context.Context, prompt, researchPrompt string, schema *genai.Schema) (TwoStepResult, error) {
+	var result TwoStepResult
 	result.RenderedPrompt = researchPrompt
 	slog.Info("llm evaluation", "model", c.model)
 
@@ -107,6 +119,11 @@ Use empty arrays when no entries are supported. Never manufacture prices or sour
 ## Analysis
 
 %s`, prompt, result.Research)
+	sourcesJSON := []byte("[]")
+	if len(result.Sources) > 0 {
+		sourcesJSON, _ = json.Marshal(result.Sources)
+	}
+	structurePrompt += "\n\n## Extraction fidelity\nOnly list sources actually cited or retrieved, never suggested future checks. Keep illustrative budgets distinct from trip cost estimates. Preserve decisive conditions in both recommendation and summary; a possible reopening must not become a confirmed reopening in any field.\nRetrieved source URLs:\n" + string(sourcesJSON)
 
 	structureConfig := &genai.GenerateContentConfig{
 		ResponseMIMEType: "application/json",

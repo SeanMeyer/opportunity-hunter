@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
+	"github.com/seanmeyer/opportunity-hunter/hunts/comedy"
 	"github.com/seanmeyer/opportunity-hunter/hunts/fake"
 	"github.com/seanmeyer/opportunity-hunter/pipeline"
 	"github.com/seanmeyer/opportunity-hunter/testutil"
@@ -40,7 +41,8 @@ func TestIntegration_ComedyFullPipeline(t *testing.T) {
 			&fake.FakeSource{SourceName: "ticketmaster", Items: items[:2]},
 			&fake.FakeSource{SourceName: "comedyworks", Items: items[2:]},
 		},
-		Eval: evaluator,
+		Eval:           evaluator,
+		MultiDateKeyFn: (&comedy.ComedyHunt{}).MultiDateKey,
 		GrouperFn: func(opps []core.Opportunity) []core.Group {
 			weeks := make(map[string][]core.Opportunity)
 			for _, opp := range opps {

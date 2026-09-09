@@ -79,7 +79,7 @@ func (d *DB) OpportunityExists(ctx context.Context, huntName, sourceID string) (
 // suitable for recomputing dedup keys against incoming scan results.
 func (d *DB) GetRawItemsForDedup(ctx context.Context, huntName string) ([]core.RawItem, error) {
 	rows, err := d.db.QueryContext(ctx,
-		`SELECT o.title, COALESCE(v.name, ''), o.start_time, COALESCE(o.end_time, ''), o.show_dates
+		`SELECT o.source_id, o.source, o.title, COALESCE(v.name, ''), o.start_time, COALESCE(o.end_time, ''), o.show_dates
 		 FROM opportunities o
 		 LEFT JOIN venues v ON o.venue_id = v.id
 		 WHERE o.hunt_name = ?`, huntName,
@@ -93,8 +93,8 @@ func (d *DB) GetRawItemsForDedup(ctx context.Context, huntName string) ([]core.R
 	for rows.Next() {
 		var item core.RawItem
 		var showDatesStr string
-		if err := rows.Scan(&item.Title, &item.VenueName, &item.StartTime, &item.EndTime, &showDatesStr); err != nil {
-			continue
+		if err := rows.Scan(&item.SourceID, &item.Source, &item.Title, &item.VenueName, &item.StartTime, &item.EndTime, &showDatesStr); err != nil {
+			return nil, err
 		}
 		item.ShowDates = unmarshalShowDates(showDatesStr)
 		items = append(items, item)

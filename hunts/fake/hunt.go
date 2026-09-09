@@ -15,19 +15,20 @@ type FakeHunt struct {
 	Dedupe   func(core.RawItem) string
 
 	// Optional interface toggles — set to nil to disable.
-	GrouperFn       func([]core.Opportunity) []core.Group
-	ReEvalFn        func(core.Opportunity, *core.Evaluation) bool
-	BrieferGroupFn  func([]core.Evaluation) []core.NotifyGroup
-	SynthesizeFn    func(context.Context, core.NotifyGroup, *core.CostTracker) (string, error)
-	ExpirerFn       func(core.Opportunity) bool
-	CardRendererFn  func() core.CardRenderer
-	FeedbackOptsFn  func() []core.FeedbackOption
-	NotifyFmtFn     func() core.NotifyFormatter
+	GrouperFn      func([]core.Opportunity) []core.Group
+	MultiDateKeyFn func(core.RawItem) string
+	ReEvalFn       func(core.Opportunity, *core.Evaluation) bool
+	BrieferGroupFn func([]core.Evaluation) []core.NotifyGroup
+	SynthesizeFn   func(context.Context, core.NotifyGroup, *core.CostTracker) (string, error)
+	ExpirerFn      func(core.Opportunity) bool
+	CardRendererFn func() core.CardRenderer
+	FeedbackOptsFn func() []core.FeedbackOption
+	NotifyFmtFn    func() core.NotifyFormatter
 
 	// Call recording.
-	InitCalls    []func(string) string
-	SourceCalls  int
-	DedupeCalls  []core.RawItem
+	InitCalls   []func(string) string
+	SourceCalls int
+	DedupeCalls []core.RawItem
 }
 
 // Compile-time interface checks.
@@ -56,8 +57,14 @@ func (h *FakeHunt) DedupeKey(raw core.RawItem) string {
 	}
 	return raw.SourceID
 }
-func (h *FakeHunt) Evaluator() core.Evaluator       { return h.Eval }
-func (h *FakeHunt) DefaultSchedule() core.Schedule   { return h.Sched }
+func (h *FakeHunt) Evaluator() core.Evaluator { return h.Eval }
+func (h *FakeHunt) MultiDateKey(raw core.RawItem) string {
+	if h.MultiDateKeyFn != nil {
+		return h.MultiDateKeyFn(raw)
+	}
+	return ""
+}
+func (h *FakeHunt) DefaultSchedule() core.Schedule { return h.Sched }
 
 // Grouper interface.
 func (h *FakeHunt) GroupForEval(items []core.Opportunity) []core.Group {

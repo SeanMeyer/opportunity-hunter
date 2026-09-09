@@ -1,0 +1,55 @@
+package powder
+
+import (
+ "context"
+ "encoding/json"
+ "os"
+ "strings"
+ "testing"
+ "time"
+ "github.com/seanmeyer/opportunity-hunter/core"
+ "github.com/seanmeyer/opportunity-hunter/hunts/powder/weather"
+ "github.com/seanmeyer/opportunity-hunter/llm"
+)
+
+// Temporary opt-in live smoke test: evaluator only, no persistence or notifier.
+func TestTradeoffLiveTemporary(t *testing.T) {
+ if os.Getenv("POWDER_LIVE_EVAL")!="1" {t.Skip("explicit live run only")}
+ root:="../../evals/powder/runs/20260909-tradeoff-comparison/"
+ raw,err:=os.ReadFile(root+"fixtures.json");if err!=nil {t.Fatal(err)}
+ var cases map[string]struct {
+  AsOf string `json:"as_of"`;Traveler string `json:"traveler"`;Operations string `json:"operations"`;Weather string `json:"weather"`
+  Sessions []struct {Resort string `json:"resort"`;Date string `json:"date"`;Opening float64 `json:"opening_snow_in"`;During float64 `json:"during_skiing_in"`;Gust float64 `json:"day_gust_mph"`;Direction float64 `json:"day_wind_from_deg"`} `json:"sessions"`
+ }
+ if err=json.Unmarshal(raw,&cases);err!=nil {t.Fatal(err)}
+ env,err:=os.ReadFile("../../.env");if err!=nil {t.Fatal(err)}
+ key:="";for _,line:=range strings.Split(string(env),"\n") {k,v,ok:=strings.Cut(strings.TrimSpace(line),"=");if ok&&k=="GOOGLE_API_KEY" {key=v}}
+ if key=="" {t.Fatal("key missing")}
+ for _,name:=range []string{"whitepass-delay","steamboat-reopening"} {
+  t.Run(name,func(t *testing.T){
+   c:=cases[name];asof,_:=time.Parse(time.RFC3339,c.AsOf)
+   snapshot:=weather.ScanSnapshot{ScannedAt:asof}
+   byResort:=map[string]int{}
+   for _,row:=range c.Sessions {
+    idx,ok:=byResort[row.Resort];if !ok {idx=len(snapshot.Forecasts);byResort[row.Resort]=idx;snapshot.Forecasts=append(snapshot.Forecasts,weather.Forecast{ResortID:row.Resort,Source:"synthetic-evaluation",Model:"stipulated-scenario",FetchedAt:asof});snapshot.Resorts=append(snapshot.Resorts,weather.Resort{ID:row.Resort,Name:row.Resort})}
+    date,_:=time.Parse("2006-01-02",row.Date);opening,during,direction:=row.Opening*2.54,row.During*2.54,row.Direction
+    snapshot.Forecasts[idx].DailyData=append(snapshot.Forecasts[idx].DailyData,weather.DailyForecast{Date:date,TemperatureMinC:-5,TemperatureMaxC:-5,SLRatio:10,SkiSession:&weather.SkiSessionSnow{OpenHour:9,CloseHour:16,OpeningSnowCM:&opening,DuringSkiingSnowCM:&during},Day:weather.HalfDay{WindGustKmh:row.Gust*1.609344,WindDirectionDeg:&direction}})
+   }
+   snapshot.Discussion=&weather.ForecastDiscussion{WFO:"SYNTHETIC",IssuedAt:asof,Text:"Explicitly hypothetical evaluation scenario, not a real NWS report or current conditions. Evaluate as of "+c.AsOf+". Search may establish durable geography only, not these future operations. Nominal -5C temperature and 10:1 ratio are synthetic placeholders for supplied below-freezing conditions, not measurements. Calendar snow aggregates are unavailable in this fixture; use explicit Opening and During skiing amounts. "+c.Weather+"\nTraveler: "+c.Traveler+"\nOperations: "+c.Operations}
+   // Scenario facts are not an AFD; do not put them behind the AFD snow-day filter.
+   scenario:=snapshot.Discussion.Text
+   snapshot.Discussion=nil
+   snapshot.Resorts=nil // No fabricated zero-elevation resort metadata.
+   snapshotJSON,_:=json.Marshal(snapshot)
+   ec:=core.EvalContext{Opportunities:[]core.Opportunity{{ID:1,Title:c.Sessions[0].Resort,RawData:string(snapshotJSON),Attributes:PowderAttrs{}.Encode()}},Preferences:"Synthetic evaluation context (not additional personal preferences):\n"+scenario,Profile:&core.UserProfile{HomeBase:"Denver",Passes:[]string{"Ikon"},SkillLevel:"expert",PTODays:15,Preferences:"Fresh powder, including cruisier trees on lighter days; steeps preferred when deep. Flexible weekdays. Around $800 for a short exceptional trip can be worthwhile; illustrative value reference, not a quote or hard cap."}}
+   if !strings.Contains(buildPrompt(ec),c.Operations)||!strings.Contains(buildPrompt(ec),c.Traveler) {t.Fatal("fixture lost decisive context")}
+   ctx,cancel:=context.WithTimeout(context.Background(),5*time.Minute);defer cancel()
+   client,err:=llm.NewClient(ctx,key);if err!=nil {t.Fatal("client init failed")}
+   evaluator:=powderEvaluator{llm:client};result,err:=evaluator.Evaluate(ctx,ec);if err!=nil {t.Fatal(strings.ReplaceAll(err.Error(),key,"[REDACTED]"))}
+   if len(result.Picks)!=1||result.Picks[0].Reason==""||strings.Contains(result.Evaluation.RenderedPrompt,"Output contract") {t.Fatal("invalid result")}
+   encoded,_:=json.MarshalIndent(map[string]any{"method":"Actual powderEvaluator.Evaluate, synthetic ScanSnapshot through production formatter, search+schema extraction+local validation, no database or notifications. Nominal temperatures/SLR explicitly synthetic; legacy calendar snow absent.","input":ec,"result":result},"","  ")
+   file,err:=os.OpenFile(root+name+"-production-context.json",os.O_CREATE|os.O_EXCL|os.O_WRONLY,0600);if err!=nil {t.Fatal(err)};_,err=file.Write(encoded);file.Close();if err!=nil {t.Fatal(err)}
+   t.Logf("%s: %s; cost $%.4f",name,result.Picks[0].DisplayScore,result.Evaluation.CostUSD)
+  })
+ }
+}
