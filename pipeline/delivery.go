@@ -26,6 +26,14 @@ func (p *Pipeline) deliverPending(ctx context.Context, hunt core.Hunt, caps core
 			continue
 		}
 		attempted[delivery.EvaluationID] = true
+		// An explicit opt-out consumes queued work without preparing or sending it.
+		// Dry runs return above so they continue to preserve the queue.
+		if notifier, ok := p.notifier.(interface{ NotificationsEnabled(string) bool }); ok && !notifier.NotificationsEnabled(hunt.Name()) {
+			if err := p.db.CompleteDelivery(ctx, delivery.EvaluationID); err != nil {
+				addErr(err)
+			}
+			continue
+		}
 		if !delivery.Prepared {
 			var actions []core.NotifyAction
 			if caps.HasNotifyHunt {

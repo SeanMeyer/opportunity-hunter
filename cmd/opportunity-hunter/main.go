@@ -255,7 +255,7 @@ func runDaemon() int {
 	var manualRuns sync.WaitGroup
 
 	// Web server.
-	huntInfos := buildHuntInfos(hunts)
+	huntInfos := buildHuntInfos(hunts, cfg.HuntWebhooks)
 
 	// runFunc is called (in a goroutine) when the user triggers a manual run.
 	// It must capture webServer by pointer so it can call SetStatus after creation.
@@ -319,16 +319,9 @@ func runDaemon() int {
 
 	// Initial scan + eval.
 	slog.Info("running initial pipeline")
-	result := pipe.RunAll(ctx, hunts)
+	result := runInitialHunts(ctx, db, hunts, pipe.Run)
 	guard.Release("startup")
 	logResult(result)
-
-	// Advance next_scan_at for all hunts after initial run.
-	for _, h := range hunts {
-		if err := db.AdvanceNextScan(ctx, h.Name(), time.Now()); err != nil {
-			slog.Warn("advance schedule after initial run", "hunt", h.Name(), "err", err)
-		}
-	}
 
 	// Per-hunt schedule loop: check every minute for due hunts.
 	checkTicker := time.NewTicker(1 * time.Minute)
@@ -480,7 +473,7 @@ func runWeb() int {
 	defer stop()
 
 	hunts, _ := initHunts(ctx, cfg)
-	huntInfos := buildHuntInfos(hunts)
+	huntInfos := buildHuntInfos(hunts, cfg.HuntWebhooks)
 
 	webServer, err := web.New(db, huntInfos, cfg.HomeAddress)
 	if err != nil {
@@ -503,10 +496,27 @@ func runWeb() int {
 	return 0
 }
 
-func buildHuntInfos(hunts []core.Hunt) []web.HuntInfo {
+func runInitialHunts(ctx context.Context, db *storage.DB, hunts []core.Hunt, run func(context.Context, core.Hunt) core.HuntResult) core.PipelineResult {
+	var result core.PipelineResult
+	for _, h := range hunts {
+		if ctx.Err() != nil {
+			break
+		}
+		result.HuntResults = append(result.HuntResults, run(ctx, h))
+		// Persist the finished hunt's schedule even if shutdown interrupted its run.
+		advanceCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		if err := db.AdvanceNextScan(advanceCtx, h.Name(), time.Now()); err != nil {
+			slog.Warn("advance schedule after initial run", "hunt", h.Name(), "err", err)
+		}
+		cancel()
+	}
+	return result
+}
+
+func buildHuntInfos(hunts []core.Hunt, webhooks map[string]string) []web.HuntInfo {
 	var infos []web.HuntInfo
 	for _, h := range hunts {
-		info := web.HuntInfo{Name: h.Name()}
+		info := web.HuntInfo{Name: h.Name(), NotificationsEnabled: webhooks[h.Name()] != ""}
 		if wh, ok := h.(core.WebHunt); ok {
 			info.CardRenderer = wh.CardRenderer()
 			info.FeedbackOptions = wh.FeedbackOptions()
@@ -712,6 +722,10 @@ func newRoutingNotifier(webhooks map[string]string, errorWebhook string) *routin
 		rn.errorClient = notify.NewClient(errorWebhook)
 	}
 	return rn
+}
+
+func (rn *routingNotifier) NotificationsEnabled(huntName string) bool {
+	return rn.clients[huntName] != nil
 }
 
 func (rn *routingNotifier) ExecuteActions(huntName string, actions []core.NotifyAction) (map[string]string, error) {

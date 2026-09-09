@@ -25,10 +25,11 @@ var templateFS embed.FS
 
 // HuntInfo holds runtime info about a registered hunt for the web UI.
 type HuntInfo struct {
-	Name            string
-	CardRenderer    core.CardRenderer
-	FeedbackOptions []core.FeedbackOption
-	WebConfig       core.WebConfig
+	NotificationsEnabled bool
+	Name                 string
+	CardRenderer         core.CardRenderer
+	FeedbackOptions      []core.FeedbackOption
+	WebConfig            core.WebConfig
 }
 
 // StatusInfo holds pipeline run status for display.
@@ -72,11 +73,28 @@ func relativeTime(t time.Time) string {
 	}
 }
 
+func nextScanLabel(next time.Time) string {
+	if !next.After(time.Now()) {
+		return "Scan due"
+	}
+	return "Next: " + next.Local().Format("Mon Jan 2, 3:04 PM")
+}
+
+func (s *Server) notificationsEnabled(name string) bool {
+	for _, h := range s.hunts {
+		if h.Name == name {
+			return h.NotificationsEnabled
+		}
+	}
+	return false
+}
+
 // New creates a web server. homeAddress is used for distance enrichment (empty = skip).
 // An optional runFunc callback may be provided; it is called (in a goroutine) when the
 // user triggers a manual run via POST /run.
 func New(db *storage.DB, hunts []HuntInfo, homeAddress string, runFunc ...func(context.Context, string)) (*Server, error) {
 	funcMap := template.FuncMap{
+		"nextScanLabel":  nextScanLabel,
 		"relativeTime":   relativeTime,
 		"formatDistance": FormatDistance,
 		"summaryFields":  summaryFields,
@@ -153,9 +171,10 @@ func (s *Server) handleRun(w http.ResponseWriter, r *http.Request) {
 
 // huntHealth holds the latest run and schedule for one hunt, for the status dashboard.
 type huntHealth struct {
-	Name     string
-	Run      *storage.PipelineRun // nil if no runs yet
-	Schedule *storage.ScheduleRow // nil if no schedule set
+	NotificationsEnabled bool
+	Name                 string
+	Run                  *storage.PipelineRun // nil if no runs yet
+	Schedule             *storage.ScheduleRow // nil if no schedule set
 }
 
 // statusData is the template data for the /status page.
@@ -183,9 +202,10 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		run, _ := s.db.LatestRun(ctx, name)
 		sched, _ := s.db.GetSchedule(ctx, name)
 		healthCards = append(healthCards, huntHealth{
-			Name:     name,
-			Run:      run,
-			Schedule: sched,
+			Name:                 name,
+			Run:                  run,
+			Schedule:             sched,
+			NotificationsEnabled: s.notificationsEnabled(name),
 		})
 	}
 
@@ -236,7 +256,7 @@ type cardItem struct {
 // ScheduleInfo holds schedule data for template rendering.
 type ScheduleInfo struct {
 	IntervalMinutes int
-	NextScan        string // formatted for display
+	NextScan        time.Time
 	StartHour       int
 	StartMinute     int
 	StartTime       string // "HH:MM" for the time input
@@ -244,22 +264,23 @@ type ScheduleInfo struct {
 }
 
 type pageData struct {
-	Hunts           []string
-	ActiveHunt      string
-	Cards           []cardItem
-	TotalCards      int // before filtering — used to keep toolbar visible
-	Preferences     string
-	FeedbackOptions []core.FeedbackOption
-	Status          *StatusInfo
-	SortBy          string
-	FilterValue     string
-	SortOptions     []core.SortOption
-	FilterOptions   []core.FilterOption
-	Schedule        *ScheduleInfo
-	IsStatusPage    bool
-	HasRunFunc      bool
-	LatestRun       *storage.PipelineRun
-	Notice          string
+	NotificationsEnabled bool
+	Hunts                []string
+	ActiveHunt           string
+	Cards                []cardItem
+	TotalCards           int // before filtering — used to keep toolbar visible
+	Preferences          string
+	FeedbackOptions      []core.FeedbackOption
+	Status               *StatusInfo
+	SortBy               string
+	FilterValue          string
+	SortOptions          []core.SortOption
+	FilterOptions        []core.FilterOption
+	Schedule             *ScheduleInfo
+	IsStatusPage         bool
+	HasRunFunc           bool
+	LatestRun            *storage.PipelineRun
+	Notice               string
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -296,12 +317,13 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	data := pageData{
-		Hunts:       s.huntNames,
-		ActiveHunt:  activeHunt,
-		Status:      s.statusSnapshot(),
-		SortBy:      sortBy,
-		FilterValue: filterValue,
-		HasRunFunc:  s.runFunc != nil,
+		Hunts:                s.huntNames,
+		ActiveHunt:           activeHunt,
+		Status:               s.statusSnapshot(),
+		SortBy:               sortBy,
+		FilterValue:          filterValue,
+		HasRunFunc:           s.runFunc != nil,
+		NotificationsEnabled: s.notificationsEnabled(activeHunt),
 	}
 	switch r.URL.Query().Get("saved") {
 	case "preferences":
@@ -328,7 +350,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if sched, err := s.db.GetSchedule(ctx, activeHunt); err == nil {
 		data.Schedule = &ScheduleInfo{
 			IntervalMinutes: sched.ScanIntervalM,
-			NextScan:        sched.NextScanAt.Local().Format("Mon Jan 2, 3:04 PM"),
+			NextScan:        sched.NextScanAt,
 			StartHour:       sched.StartHour,
 			StartMinute:     sched.StartMinute,
 			StartTime:       fmt.Sprintf("%02d:%02d", sched.StartHour, sched.StartMinute),

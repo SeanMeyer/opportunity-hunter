@@ -9,11 +9,12 @@
             {{if .Run}}
             <div style="font-size: 0.73rem; font-weight: 600; color: {{if eq .Run.Status "ok"}}#86efac{{else if eq .Run.Status "error"}}#ef4444{{else}}#fbbf24{{end}}; margin-bottom: 3px; text-transform: uppercase;">{{.Run.Status}}</div>
             <div style="font-size: 0.73rem; color: #9ca3af; margin-bottom: 2px;">Last run {{relativeTime .Run.StartedAt}}</div>
-            <div style="font-size: 0.73rem; color: #9ca3af;">{{if eq .Run.Status "running"}}Counts are available when the run finishes.{{else}}{{.Run.Scanned}} scanned &middot; {{.Run.Notified}} notified{{end}}</div>
+            <div style="font-size: 0.73rem; color: #9ca3af;">{{if eq .Run.Status "running"}}Counts are available when the run finishes.{{else}}{{.Run.Scanned}} new opportunities &middot; {{.Run.Notified}} notified{{end}}</div>
             {{else}}
             <div style="font-size: 0.73rem; color: #6b7280; font-style: italic;">No runs yet</div>
             {{end}}
-            {{if .Schedule}}<div style="font-size: 0.7rem; color: #a5b4fc; margin-top: 4px;">Next: {{.Schedule.NextScanAt.Local.Format "Mon 3:04 PM"}}</div>{{end}}
+            {{if .Schedule}}<div style="font-size: 0.7rem; color: #a5b4fc; margin-top: 4px;">{{nextScanLabel .Schedule.NextScanAt}}</div>{{end}}
+            {{if not .NotificationsEnabled}}<div style="font-size: 0.73rem; color: #9ca3af; margin-top: 4px;">Discord notifications off</div>{{end}}
         </div>
         {{end}}
     </div>
@@ -49,7 +50,7 @@
                         <th style="padding: 6px 14px; font-weight: 500;">Time</th>
                         <th style="padding: 6px 8px; font-weight: 500;">Hunt</th>
                         <th style="padding: 6px 8px; font-weight: 500;">Result</th>
-                        <th style="padding: 6px 8px; font-weight: 500;">Scanned</th>
+                        <th style="padding: 6px 8px; font-weight: 500;">New</th>
                         <th style="padding: 6px 8px; font-weight: 500;">Evaluated</th>
                         <th style="padding: 6px 8px; font-weight: 500;">Notified</th>
                         <th style="padding: 6px 8px; font-weight: 500;">Cost</th>
