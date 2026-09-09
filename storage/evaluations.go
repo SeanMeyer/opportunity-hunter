@@ -13,10 +13,10 @@ import (
 func (d *DB) SaveEvaluation(ctx context.Context, eval core.Evaluation) (int64, error) {
 	result, err := d.db.ExecContext(ctx,
 		`INSERT INTO evaluations
-		 (hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		 (hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd, structured_response)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		eval.HuntName, eval.GroupKey, eval.EvaluatedAt.Format(time.RFC3339),
-		eval.SkippedReasoning, eval.RawLLMResponse, eval.RenderedPrompt, eval.CostUSD,
+		eval.SkippedReasoning, eval.RawLLMResponse, eval.RenderedPrompt, eval.CostUSD, eval.StructuredResponse,
 	)
 	if err != nil {
 		return 0, err
@@ -34,10 +34,10 @@ func (d *DB) SaveEvaluationWithPicks(ctx context.Context, eval core.Evaluation, 
 
 	result, err := tx.ExecContext(ctx,
 		`INSERT INTO evaluations
-		 (hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		 (hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd, structured_response)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		eval.HuntName, eval.GroupKey, eval.EvaluatedAt.Format(time.RFC3339),
-		eval.SkippedReasoning, eval.RawLLMResponse, eval.RenderedPrompt, eval.CostUSD,
+		eval.SkippedReasoning, eval.RawLLMResponse, eval.RenderedPrompt, eval.CostUSD, eval.StructuredResponse,
 	)
 	if err != nil {
 		return 0, err
@@ -71,10 +71,10 @@ func (d *DB) GetEvaluation(ctx context.Context, id int64) (core.Evaluation, erro
 	var eval core.Evaluation
 	var evalAtStr string
 	err := d.db.QueryRowContext(ctx,
-		`SELECT id, hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd
+		`SELECT id, hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd, structured_response
 		 FROM evaluations WHERE id = ?`, id,
 	).Scan(&eval.ID, &eval.HuntName, &eval.GroupKey, &evalAtStr,
-		&eval.SkippedReasoning, &eval.RawLLMResponse, &eval.RenderedPrompt, &eval.CostUSD)
+		&eval.SkippedReasoning, &eval.RawLLMResponse, &eval.RenderedPrompt, &eval.CostUSD, &eval.StructuredResponse)
 	if errors.Is(err, sql.ErrNoRows) {
 		return eval, ErrNotFound
 	}
@@ -90,11 +90,11 @@ func (d *DB) GetLatestEvaluation(ctx context.Context, huntName, groupKey string)
 	var eval core.Evaluation
 	var evalAtStr string
 	err := d.db.QueryRowContext(ctx,
-		`SELECT id, hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd
+		`SELECT id, hunt_name, group_key, evaluated_at, skipped_reasoning, raw_llm_response, rendered_prompt, cost_usd, structured_response
 		 FROM evaluations WHERE hunt_name = ? AND group_key = ?
 		 ORDER BY evaluated_at DESC LIMIT 1`, huntName, groupKey,
 	).Scan(&eval.ID, &eval.HuntName, &eval.GroupKey, &evalAtStr,
-		&eval.SkippedReasoning, &eval.RawLLMResponse, &eval.RenderedPrompt, &eval.CostUSD)
+		&eval.SkippedReasoning, &eval.RawLLMResponse, &eval.RenderedPrompt, &eval.CostUSD, &eval.StructuredResponse)
 	if errors.Is(err, sql.ErrNoRows) {
 		return eval, ErrNotFound
 	}

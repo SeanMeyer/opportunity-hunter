@@ -100,14 +100,5 @@ func (h *PowderHunt) CacheForecasts(regionName string, forecasts []weather.Forec
 
 // tierFromAttrs extracts the tier for cooldown calculation.
 func tierFromAttrs(attrs PowderAttrs, lastEval *core.Evaluation) weather.Tier {
-	// Parse the pick attributes from last eval's raw response to get tier.
-	if lastEval != nil && lastEval.RawLLMResponse != "" {
-		var parsed map[string]any
-		if json.Unmarshal([]byte(lastEval.RawLLMResponse), &parsed) == nil {
-			if t, ok := parsed["tier"].(string); ok && t != "" {
-				return weather.Tier(t)
-			}
-		}
-	}
-	return weather.TierOnTheRadar
+	return extractPriorTier(lastEval)
 }

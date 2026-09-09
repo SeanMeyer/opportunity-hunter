@@ -3,6 +3,7 @@ package pipeline_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -108,6 +109,9 @@ func TestIntegration_PowderReEvaluation(t *testing.T) {
 	// Second run: should re-evaluate (no new items to scan, but re-eval kicks in).
 	// Source returns same items which get deduped, but re-eval checks existing evaluated opps.
 	result2 := pipe.Run(ctx, hunt)
+	if len(evaluator.Calls) < 2 || evaluator.Calls[len(evaluator.Calls)-1].PriorEval == nil {
+		t.Fatal("re-evaluation lost prior judgment")
+	}
 	// Second run should find 0 new items (deduped) but the re-evaluator should pick up existing ones.
 	if result2.Evaluated < 1 {
 		t.Logf("run 2: scanned=%d, evaluated=%d (re-eval may not trigger if no state change)", result2.Scanned, result2.Evaluated)
@@ -116,5 +120,39 @@ func TestIntegration_PowderReEvaluation(t *testing.T) {
 	// Total cost should reflect both runs.
 	if ct.ForHunt("powder") < 0.003 {
 		t.Fatalf("expected cost >= 0.003, got %f", ct.ForHunt("powder"))
+	}
+}
+
+func TestHistoryStaysWithOpportunityAcrossRegionWindows(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	ctx := context.Background()
+	var aID int64
+	for i, tier := range []string{"RECOMMENDED", "WATCH"} {
+		id, err := db.InsertOpportunity(ctx, core.Opportunity{HuntName: "powder", SourceID: fmt.Sprintf("window-%d", i), Title: "Front Range", State: core.Evaluated, StartTime: time.Now().Add(time.Duration(i+1) * 24 * time.Hour), DiscoveredAt: time.Now()})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if i == 0 {
+			aID = id
+		}
+		_, err = db.SaveEvaluationWithPicks(ctx, core.Evaluation{HuntName: "powder", GroupKey: "Front Range", EvaluatedAt: time.Now().Add(time.Duration(i-2) * time.Hour), StructuredResponse: `{"tier":"` + tier + `"}`}, []core.Pick{{OpportunityID: id, DisplayScore: tier}})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	evaluator := &testutil.FakeEvaluator{}
+	hunt := &fake.FakeHunt{HuntName: "powder", Eval: evaluator, ReEvalFn: func(opp core.Opportunity, prior *core.Evaluation) bool {
+		if opp.ID != aID {
+			return false
+		}
+		if prior == nil || prior.StructuredResponse != `{"tier":"RECOMMENDED"}` {
+			t.Errorf("gate received another storm's history: %+v", prior)
+		}
+		return true
+	}}
+	pipe := pipeline.New(db, core.NewCostTracker(0, nil), &testutil.FakeNotifier{}, core.ScanRegion{}, "")
+	pipe.Run(ctx, hunt)
+	if len(evaluator.Calls) != 1 || evaluator.Calls[0].PriorEval == nil || len(evaluator.Calls[0].PriorPicks) != 1 || evaluator.Calls[0].PriorPicks[0].DisplayScore != "RECOMMENDED" {
+		t.Fatalf("lost matching history: %+v", evaluator.Calls)
 	}
 }

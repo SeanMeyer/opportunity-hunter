@@ -42,7 +42,7 @@ func (h *MoviesHunt) Init(ctx context.Context, lookup func(string) string) error
 	if apiKey == "" {
 		return fmt.Errorf("movies: GOOGLE_API_KEY required")
 	}
-	client, err := llm.NewClient(ctx, apiKey)
+	client, err := llm.NewClient(ctx, apiKey, lookup("GEMINI_MODEL"))
 	if err != nil {
 		return fmt.Errorf("movies: create LLM client: %w", err)
 	}

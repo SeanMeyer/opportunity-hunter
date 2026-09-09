@@ -11,30 +11,28 @@ import (
 	"github.com/seanmeyer/opportunity-hunter/hunts/powder/weather"
 )
 
-const stormEvalPromptVersion = "v3.5.0"
+const stormEvalPromptVersion = "v4.0.0"
 
 const stormEvalPromptTemplate = `You are an expert powder skiing advisor evaluating a storm opportunity for a specific subscriber.
-Your job is to classify the storm into one of three tiers and provide actionable guidance.
+Your job is to decide whether this subscriber should pursue this trip, using all the evidence and your judgment.
+Lead with an honest recommendation, not a snowfall recap. More snow does not automatically mean a better trip.
 
-## Tier Definitions
+## Four Verdicts
 
-**DROP_EVERYTHING** — A rare, high-conviction alert. Multiple factors align exceptionally well.
-This tier should feel *rare* — a handful of times per season across all monitored regions.
+**DROP_EVERYTHING** — An exceptional, high-conviction opportunity: go make this happen.
+Reserve this for rare alignment of ski quality, timing, access, cost, and this person's preferences.
+**RECOMMENDED** — Yes, this looks good. The likely experience justifies the cost and effort for this person.
+**WATCH** — Promising, but not ready to recommend. Explain what to monitor and what would change the decision.
+**SKIP** — Not worth pursuing for this person, or a decisive constraint makes the trip unsuitable.
+Say so clearly, even when snowfall is impressive. Do not manufacture a viable itinerary for a closed resort.
 
-**WORTH_A_LOOK** — A genuinely interesting storm that stands out. Most storms, even good ones,
-are ON_THE_RADAR. WORTH_A_LOOK should feel selective enough that when it appears, the subscriber
-thinks "oh, interesting" and actually reads the details.
+## Judgment and Travel
 
-**ON_THE_RADAR** — The default tier for most detected storms. A storm being detected means it
-crossed a snowfall threshold — that alone doesn't make it interesting.
-
-## Travel Friction Calibration
-
-Every alert asks the subscriber to consider spending money, using PTO, and disrupting their life.
-Calibrate your tier based on travel cost:
-- **Local drive (< 3 hours):** A solid storm is enough for a day trip, but not DROP_EVERYTHING.
-- **Regional drive (3-8 hours):** Needs to be clearly above average to be WORTH_A_LOOK.
-- **Flight destination:** Very high bar. Most storms at big mountains are routine — ON_THE_RADAR.
+Treat travel friction and weather-derived quality labels as evidence, not automatic verdicts.
+A local trip can be exceptional. An expensive flight needs enough upside to justify it.
+Weigh snow quality, terrain access, operations, crowds, roads, forecast uncertainty, travel costs,
+PTO, passes, skill, and personal preferences together. Consider factors beyond this list where relevant.
+Respect explicit constraints and blackout dates. Explain tradeoffs and what would change your mind.
 
 ## Detected Storm Signal
 
@@ -75,7 +73,12 @@ For EACH resort listed above, search for it by name to find:
 - Recent news articles about the resort
 - Road conditions and access alerts
 
-Return a JSON object matching the required schema. All fields are required.
+Write a holistic assessment in prose. State the verdict and a concise 2-4 sentence recommendation first.
+Then cover relevant supporting details: best ski day (if any), strategy, snow quality, risks, resort
+insights, pros and cons, and day-by-day guidance. Research travel and lodging when relevant, but distinguish
+verified prices from estimates and state assumptions. Unknown prices are acceptable; never force an estimate.
+Explain uncertainty and what would change your recommendation. Use Unknown or Not applicable for missing
+or irrelevant details. The next pass will extract your assessment into structured fields.
 
 Prompt version: {{.PromptVersion}}`
 
@@ -132,18 +135,23 @@ func buildPrompt(ec core.EvalContext) string {
 		weatherData += "\n" + rainLineRisk
 	}
 
-	// User profile: structured > preferences text > default.
+	// Preserve both structured profile preferences and separately saved hunt preferences.
 	if ec.Profile != nil {
 		userProfile = FormatProfileForPrompt(UserProfileFromCore(ec.Profile))
-	} else if ec.Preferences != "" {
-		userProfile = ec.Preferences
-	} else {
+	}
+	if ec.Preferences != "" {
+		userProfile += "\n\nAdditional subscriber preferences:\n" + ec.Preferences
+	} else if userProfile == "" {
 		userProfile = "No specific profile provided."
 	}
 
 	if ec.PriorEval != nil {
+		prior := ec.PriorEval.StructuredResponse
+		if prior == "" {
+			prior = ec.PriorEval.RawLLMResponse
+		}
 		evalHistory = fmt.Sprintf("Prior evaluation at %s: %s",
-			ec.PriorEval.EvaluatedAt.Format("2006-01-02 15:04"), ec.PriorEval.RawLLMResponse)
+			ec.PriorEval.EvaluatedAt.Format("2006-01-02 15:04"), prior)
 	} else {
 		evalHistory = "No prior evaluations"
 	}
@@ -230,39 +238,7 @@ func renderPrompt(template string, data promptData) string {
 
 // formatFeedback renders user feedback entries into prompt context.
 func formatFeedback(entries []core.FeedbackEntry) string {
-	if len(entries) == 0 {
-		return "No subscriber feedback yet."
-	}
-
-	var b strings.Builder
-	b.WriteString("The subscriber has provided feedback on past evaluations. Use this to calibrate your tier assignments and recommendations.\n\n")
-
-	for _, fb := range entries {
-		emoji := "\xf0\x9f\x91\x8d" // 👍
-		if fb.Rating == "down" {
-			emoji = "\xf0\x9f\x91\x8e" // 👎
-		}
-
-		fmt.Fprintf(&b, "- %s %s", emoji, fb.OpportunityTitle)
-
-		// Include what the evaluation said so the LLM knows what's being judged.
-		if fb.EvalScore != "" || fb.EvalSummary != "" {
-			b.WriteString(" — ")
-			if fb.EvalScore != "" {
-				fmt.Fprintf(&b, "was rated %s", fb.EvalScore)
-			}
-			if fb.EvalSummary != "" {
-				fmt.Fprintf(&b, ": \"%s\"", fb.EvalSummary)
-			}
-		}
-		b.WriteString("\n")
-
-		if fb.Note != "" {
-			fmt.Fprintf(&b, "  Subscriber: \"%s\"\n", fb.Note)
-		}
-	}
-
-	return b.String()
+	return core.FormatFeedback(entries)
 }
 
 // BuildPromptForTrace is an exported wrapper around buildPrompt for the trace CLI command.

@@ -45,9 +45,13 @@ func (c *Client) ExecuteActions(ctx context.Context, actions []core.NotifyAction
 			slog.Info("created thread", "name", action.ThreadName, "id", threadID)
 
 		case core.PostToThread:
-			threadID, ok := threads[action.ThreadRef]
-			if !ok {
-				return threads, fmt.Errorf("action %d: thread %q not found", i, action.ThreadRef)
+			threadID := action.ThreadID
+			if threadID == "" {
+				var ok bool
+				threadID, ok = threads[action.ThreadRef]
+				if !ok {
+					return threads, fmt.Errorf("action %d: thread %q not found", i, action.ThreadRef)
+				}
 			}
 			if err := c.discord.PostToThread(ctx, threadID, payload); err != nil {
 				return threads, fmt.Errorf("action %d (PostToThread %q): %w", i, action.ThreadRef, err)

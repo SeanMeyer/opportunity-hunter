@@ -43,12 +43,13 @@ func (e *performingEvaluator) Evaluate(ctx context.Context, ec core.EvalContext)
 
 	return &core.EvalResult{
 		Evaluation: core.Evaluation{
-			HuntName:         "performing-arts",
-			EvaluatedAt:      time.Now(),
-			RawLLMResponse:   twoStep.Research,
-			RenderedPrompt:   prompt,
-			SkippedReasoning: stringField(twoStep.Structured, "skipped_reasoning"),
-			CostUSD:          twoStep.CostUSD,
+			HuntName:           "performing-arts",
+			EvaluatedAt:        time.Now(),
+			RawLLMResponse:     twoStep.Research,
+			StructuredResponse: twoStep.RawJSON,
+			RenderedPrompt:     twoStep.RenderedPrompt,
+			SkippedReasoning:   stringField(twoStep.Structured, "skipped_reasoning"),
+			CostUSD:            twoStep.CostUSD,
 		},
 		Picks: picks,
 	}, nil

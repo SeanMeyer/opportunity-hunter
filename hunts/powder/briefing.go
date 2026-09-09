@@ -10,7 +10,9 @@ import (
 
 const briefingPrompt = `You are a powder skiing briefing writer. Synthesize the following region-level storm evaluations into a concise 2-3 sentence cross-region briefing.
 
-Focus on: which regions look best, how they compare, and the overall storm pattern.
+Lead with the actual verdicts: which trips are exceptional, recommended, watch, or skip and why.
+Preserve negative judgments and uncertainty; a strong storm is not necessarily a good trip.
+Compare viable regions and say clearly when none is worth pursuing.
 Keep it conversational and actionable. No JSON needed — just write the briefing text.
 
 ## Region Summaries
@@ -27,7 +29,11 @@ func (h *PowderHunt) Synthesize(ctx context.Context, group core.NotifyGroup, ct 
 	// Build per-region summaries from evaluation data.
 	var summaries strings.Builder
 	for _, eval := range group.Evaluations {
-		summaries.WriteString(fmt.Sprintf("**%s**: %s\n", eval.GroupKey, truncate(eval.RawLLMResponse, 500)))
+		decision := eval.StructuredResponse
+		if decision == "" {
+			decision = eval.RawLLMResponse
+		}
+		summaries.WriteString(fmt.Sprintf("**%s**: %s\n", eval.GroupKey, decision))
 	}
 
 	prompt := fmt.Sprintf(briefingPrompt, summaries.String())
@@ -43,11 +49,4 @@ func (h *PowderHunt) Synthesize(ctx context.Context, group core.NotifyGroup, ct 
 	}
 
 	return strings.TrimSpace(result.Text), nil
-}
-
-func truncate(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen] + "..."
 }

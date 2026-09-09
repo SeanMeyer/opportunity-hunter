@@ -60,6 +60,16 @@ func (d *DB) runMigrations(ctx context.Context) error {
 		// Ignore errors from already-applied migrations (column already exists).
 		d.db.ExecContext(ctx, m)
 	}
+	// Do not silently continue if the new decision column could not be installed.
+	var exists int
+	if err := d.db.QueryRowContext(ctx, `SELECT count(*) FROM pragma_table_info('evaluations') WHERE name = 'structured_response'`).Scan(&exists); err != nil {
+		return err
+	}
+	if exists == 0 {
+		if _, err := d.db.ExecContext(ctx, `ALTER TABLE evaluations ADD COLUMN structured_response TEXT NOT NULL DEFAULT ''`); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

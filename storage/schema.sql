@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
     evaluated_at      TEXT NOT NULL,
     skipped_reasoning TEXT NOT NULL DEFAULT '',
     raw_llm_response  TEXT NOT NULL DEFAULT '',
+    structured_response TEXT NOT NULL DEFAULT '',
     rendered_prompt   TEXT NOT NULL DEFAULT '',
     cost_usd          REAL NOT NULL DEFAULT 0
 );

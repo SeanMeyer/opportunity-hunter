@@ -10,13 +10,15 @@ import (
 )
 
 func tierDisplayName(tier weather.Tier) string {
-	switch tier {
+	switch weather.NormalizeTier(tier) {
 	case weather.TierDropEverything:
 		return "Drop Everything"
-	case weather.TierWorthALook:
-		return "Worth a Look"
-	case weather.TierOnTheRadar:
-		return "On the Radar"
+	case weather.TierRecommended:
+		return "Recommended"
+	case weather.TierWatch:
+		return "Watch"
+	case weather.TierSkip:
+		return "Skip"
 	default:
 		return string(tier)
 	}
@@ -25,32 +27,34 @@ func tierDisplayName(tier weather.Tier) string {
 type powderCardRenderer struct{}
 
 func (r *powderCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, venue core.Venue) core.CardData {
-	// Use LLM summary as the visible card text (concise one-liner).
-	// Fall back to recommendation if no summary.
+	// Lead with the overall judgment; use the old summary only as a fallback.
 	reason := pick.Reason
 	var rich map[string]any
 	if pick.Attributes != nil {
 		_ = json.Unmarshal(pick.Attributes, &rich)
 	}
-	if rich != nil {
+	if reason == "" && rich != nil {
 		if s, ok := rich["summary"].(string); ok && s != "" {
 			reason = s
 		}
 	}
 
 	card := core.CardData{
-		Title:    opp.Title,
-		Subtitle: opp.Subtitle,
-		Score:    tierDisplayName(weather.Tier(pick.DisplayScore)),
-		Reason:   reason,
-		Urgency:  pick.Urgency,
+		Title:     opp.Title,
+		Subtitle:  opp.Subtitle,
+		Score:     tierDisplayName(weather.Tier(pick.DisplayScore)),
+		Reason:    reason,
+		Urgency:   pick.Urgency,
+		SortScore: weather.TierScore(weather.Tier(pick.DisplayScore)),
 	}
 
-	switch weather.Tier(pick.DisplayScore) {
+	switch weather.NormalizeTier(weather.Tier(pick.DisplayScore)) {
 	case weather.TierDropEverything:
 		card.ScoreTier = core.ScoreHigh
-	case weather.TierWorthALook:
+	case weather.TierRecommended:
 		card.ScoreTier = core.ScoreMedium
+	case weather.TierSkip:
+		card.ScoreTier = core.ScoreNone
 	default:
 		card.ScoreTier = core.ScoreLow
 	}
@@ -59,7 +63,6 @@ func (r *powderCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 	if opp.Attributes != nil {
 		attrs, err := DecodePowderAttrs(opp.Attributes)
 		if err == nil {
-			card.SortScore = min(attrs.SnowfallIn/30.0, 1.0) // normalize to [0,1]
 			if attrs.SnowfallIn > 0 {
 				card.Fields = append(card.Fields, core.CardField{
 					Icon: "\xe2\x9d\x84\xef\xb8\x8f", Label: "Snowfall", Value: fmt.Sprintf("%.0f inches", attrs.SnowfallIn),
@@ -75,12 +78,6 @@ func (r *powderCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 
 	// rich was already parsed above for summary extraction.
 	if rich != nil {
-		// Full recommendation goes into details (verbose, but available).
-		if s, ok := rich["recommendation"].(string); ok && s != "" {
-			card.Fields = append(card.Fields, core.CardField{
-				Label: "Recommendation", Value: s,
-			})
-		}
 		if s, ok := rich["strategy"].(string); ok && s != "" {
 			card.Fields = append(card.Fields, core.CardField{
 				Icon: "\xf0\x9f\x8e\xaf", Label: "Strategy", Value: s,

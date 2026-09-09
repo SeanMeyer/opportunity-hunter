@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	genai "google.golang.org/genai"
@@ -14,7 +15,9 @@ import (
 )
 
 type powderEvaluator struct {
-	llm *llm.Client
+	llm interface {
+		TwoStep(context.Context, string, *genai.Schema) (llm.TwoStepResult, error)
+	}
 }
 
 func (e *powderEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*core.EvalResult, error) {
@@ -28,8 +31,16 @@ func (e *powderEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 
 	structured := twoStep.Structured
 
-	tier := weather.Tier(stringField(structured, "tier"))
+	tier := weather.NormalizeTier(weather.Tier(stringField(structured, "tier")))
 	recommendation := stringField(structured, "recommendation")
+	switch tier {
+	case weather.TierDropEverything, weather.TierRecommended, weather.TierWatch, weather.TierSkip:
+	default:
+		return nil, fmt.Errorf("powder evaluate: invalid verdict %q", tier)
+	}
+	if strings.TrimSpace(recommendation) == "" {
+		return nil, fmt.Errorf("powder evaluate: missing recommendation")
+	}
 	summary := stringField(structured, "summary")
 	strategy := stringField(structured, "strategy")
 	snowQuality := stringField(structured, "snow_quality")
@@ -83,19 +94,23 @@ func (e *powderEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 		attrs, _ := DecodePowderAttrs(opp.Attributes)
 
 		displayScore := string(tier)
-		score := 0.5
-		switch tier {
-		case weather.TierDropEverything:
-			score = 0.95
-		case weather.TierWorthALook:
-			score = 0.75
-		}
+		score := weather.TierScore(tier)
 
 		// Classify change relative to prior evaluation.
 		changeClass := weather.ChangeNew
 		if ec.PriorEval != nil {
 			priorTier := extractPriorTier(ec.PriorEval)
-			changeClass = Compare(priorTier, tier, attrs.SnowfallIn, attrs.SnowfallIn)
+			priorSnow := attrs.SnowfallIn
+			for _, priorPick := range ec.PriorPicks {
+				if priorPick.OpportunityID == opp.ID {
+					priorTier = weather.NormalizeTier(weather.Tier(priorPick.DisplayScore))
+					if a, err := DecodePowderAttrs(priorPick.Attributes); err == nil {
+						priorSnow = a.SnowfallIn
+					}
+					break
+				}
+			}
+			changeClass = Compare(priorTier, tier, priorSnow, attrs.SnowfallIn)
 		}
 		attrs.ChangeClass = string(changeClass)
 		combined := mergeAttrs(attrs, evalAttrs)
@@ -111,11 +126,12 @@ func (e *powderEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 
 	return &core.EvalResult{
 		Evaluation: core.Evaluation{
-			HuntName:       "powder",
-			EvaluatedAt:    time.Now(),
-			RawLLMResponse: twoStep.Research,
-			RenderedPrompt: prompt,
-			CostUSD:        twoStep.CostUSD,
+			HuntName:           "powder",
+			EvaluatedAt:        time.Now(),
+			RawLLMResponse:     twoStep.Research,
+			StructuredResponse: twoStep.RawJSON,
+			RenderedPrompt:     twoStep.RenderedPrompt,
+			CostUSD:            twoStep.CostUSD,
 		},
 		Picks: picks,
 	}, nil
@@ -123,21 +139,21 @@ func (e *powderEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 
 // EvalAttrs holds the rich evaluation data from Gemini.
 type EvalAttrs struct {
-	Tier             string                  `json:"tier"`
-	Recommendation   string                  `json:"recommendation"`
-	Summary          string                  `json:"summary"`
-	Strategy         string                  `json:"strategy"`
-	SnowQuality      string                  `json:"snow_quality"`
-	CrowdEstimate    string                  `json:"crowd_estimate"`
-	InformationEdge  string                  `json:"information_edge"`
-	ClosureRisk      string                  `json:"closure_risk"`
-	BestSkiDay       string                  `json:"best_ski_day"`
-	BestSkiDayReason string                  `json:"best_ski_day_reason"`
-	KeyFactors       weather.KeyFactors      `json:"key_factors"`
+	Tier             string                   `json:"tier"`
+	Recommendation   string                   `json:"recommendation"`
+	Summary          string                   `json:"summary"`
+	Strategy         string                   `json:"strategy"`
+	SnowQuality      string                   `json:"snow_quality"`
+	CrowdEstimate    string                   `json:"crowd_estimate"`
+	InformationEdge  string                   `json:"information_edge"`
+	ClosureRisk      string                   `json:"closure_risk"`
+	BestSkiDay       string                   `json:"best_ski_day"`
+	BestSkiDayReason string                   `json:"best_ski_day_reason"`
+	KeyFactors       weather.KeyFactors       `json:"key_factors"`
 	Logistics        weather.LogisticsSummary `json:"logistics"`
 	ResortInsights   []weather.ResortInsight  `json:"resort_insights"`
 	DayByDay         []weather.DayEvaluation  `json:"day_by_day"`
-	GroundingSources []string                `json:"grounding_sources"`
+	GroundingSources []string                 `json:"grounding_sources"`
 }
 
 func mergeAttrs(powder PowderAttrs, eval EvalAttrs) core.Attributes {
@@ -175,12 +191,12 @@ func stormEvalSchema() *genai.Schema {
 		Properties: map[string]*genai.Schema{
 			"tier": {
 				Type: genai.TypeString,
-				Enum: []string{"DROP_EVERYTHING", "WORTH_A_LOOK", "ON_THE_RADAR"},
+				Enum: []string{"DROP_EVERYTHING", "RECOMMENDED", "WATCH", "SKIP"},
 			},
-			"recommendation": {Type: genai.TypeString},
+			"recommendation": {Type: genai.TypeString, Description: "The overall judgment: 2-4 sentences explaining whether this person should go, decisive tradeoffs, uncertainty and what would change the decision. Preserve the research assessment."},
 			"summary": {
 				Type:        genai.TypeString,
-				Description: "A short (under 80 characters) hook: snowfall amount and best day.",
+				Description: "One sentence summarizing the verdict and its main reason, not just snowfall.",
 			},
 			"resort_insights": {
 				Type: genai.TypeArray,
@@ -200,7 +216,7 @@ func stormEvalSchema() *genai.Schema {
 			"closure_risk":     {Type: genai.TypeString},
 			"best_ski_day": {
 				Type:        genai.TypeString,
-				Description: "The single best date to ski in YYYY-MM-DD format",
+				Description: "The best date to ski in YYYY-MM-DD format, or Unknown / Not applicable if no suitable date is supported.",
 			},
 			"best_ski_day_reason":       {Type: genai.TypeString},
 			"key_factors_pros":          {Type: genai.TypeArray, Items: &genai.Schema{Type: genai.TypeString}},
@@ -212,11 +228,11 @@ func stormEvalSchema() *genai.Schema {
 			"logistics_car_rental":      {Type: genai.TypeString},
 			"logistics_lodging_cost": {
 				Type:        genai.TypeString,
-				Description: "Estimated lodging cost per night. Always provide a dollar range estimate.",
+				Description: "Lodging cost per night, identifying verified quote versus estimate and assumptions. Unknown or Not applicable is valid.",
 			},
 			"logistics_total_estimated_cost": {
 				Type:        genai.TypeString,
-				Description: "Total estimated trip cost. Always calculate a range estimate.",
+				Description: "Total trip cost with assumptions if supported by research. Unknown or Not applicable is valid; never manufacture a range.",
 			},
 			"day_by_day": {
 				Type: genai.TypeArray,
@@ -312,13 +328,17 @@ func stringField(m map[string]any, key string) string {
 
 // extractPriorTier gets the tier from a prior evaluation's raw LLM response.
 func extractPriorTier(eval *core.Evaluation) weather.Tier {
-	if eval == nil || eval.RawLLMResponse == "" {
+	if eval == nil {
 		return weather.TierOnTheRadar
 	}
+	response := eval.StructuredResponse
+	if response == "" {
+		response = eval.RawLLMResponse
+	} // older saved JSON research
 	var parsed map[string]any
-	if json.Unmarshal([]byte(eval.RawLLMResponse), &parsed) == nil {
+	if json.Unmarshal([]byte(response), &parsed) == nil {
 		if t, ok := parsed["tier"].(string); ok && t != "" {
-			return weather.Tier(t)
+			return weather.NormalizeTier(weather.Tier(t))
 		}
 	}
 	return weather.TierOnTheRadar

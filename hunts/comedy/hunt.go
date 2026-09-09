@@ -35,7 +35,7 @@ func (h *ComedyHunt) Init(ctx context.Context, lookup func(string) string) error
 		return fmt.Errorf("comedy: GOOGLE_API_KEY required")
 	}
 
-	client, err := llm.NewClient(ctx, apiKey)
+	client, err := llm.NewClient(ctx, apiKey, lookup("GEMINI_MODEL"))
 	if err != nil {
 		return fmt.Errorf("comedy: create LLM client: %w", err)
 	}

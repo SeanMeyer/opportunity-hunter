@@ -2,6 +2,8 @@ package pipeline
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"sort"
 	"sync"
@@ -196,7 +198,13 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 		notifyGroups := briefer.GroupForNotify(evals)
 		synthesis = make(map[string]string, len(notifyGroups))
 		for _, ng := range notifyGroups {
+			before := p.costTracker.ForHunt(name)
 			text, err := briefer.Synthesize(ctx, ng, p.costTracker)
+			if cost := p.costTracker.ForHunt(name) - before; cost > 0 {
+				if saveErr := p.db.RecordCost(ctx, name, cost, "gemini", err == nil); saveErr != nil {
+					result.Errors = append(result.Errors, core.StepError{Step: "brief-cost", Err: saveErr})
+				}
+			}
 			if err != nil {
 				slog.Warn("briefing failed", "hunt", name, "group", ng.Key, "err", err)
 				continue
@@ -367,8 +375,12 @@ func (p *Pipeline) collectReEvalCandidates(ctx context.Context, re core.ReEvalua
 			continue
 		}
 		for _, opp := range opps {
-			latest, _ := p.db.GetLatestEvaluation(ctx, huntName, opp.Title)
-			if re.ShouldReEvaluate(opp, &latest) {
+			latest, _, err := p.loadHistory(ctx, []core.Opportunity{opp})
+			if err != nil {
+				slog.Warn("load re-evaluation history", "err", err)
+				continue
+			}
+			if re.ShouldReEvaluate(opp, latest) {
 				candidates = append(candidates, opp)
 			}
 		}
@@ -389,6 +401,36 @@ func (p *Pipeline) groupForEval(hunt core.Hunt, caps core.HuntCapabilities, item
 		}
 	}
 	return groups
+}
+
+// loadHistory finds each opportunity's latest judgment, not another window in the same region.
+func (p *Pipeline) loadHistory(ctx context.Context, opportunities []core.Opportunity) (*core.Evaluation, []core.Pick, error) {
+	var prior *core.Evaluation
+	var picks []core.Pick
+	for _, opp := range opportunities {
+		history, err := p.db.GetPicksForOpportunity(ctx, opp.ID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("load prior picks: %w", err)
+		}
+		if len(history) == 0 {
+			continue
+		}
+		pick := history[0]
+		eval, err := p.db.GetEvaluation(ctx, pick.EvaluationID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("load prior evaluation: %w", err)
+		}
+		picks = append(picks, pick)
+		if prior == nil || eval.EvaluatedAt.After(prior.EvaluatedAt) {
+			prior = &eval
+		}
+		// Legacy evaluations saved prose only. Reconstruct the verdict for cooldown/history consumers.
+		if prior.ID == eval.ID && prior.StructuredResponse == "" && opp.HuntName == "powder" {
+			decision, _ := json.Marshal(map[string]any{"tier": pick.DisplayScore, "recommendation": pick.Reason})
+			prior.StructuredResponse = string(decision)
+		}
+	}
+	return prior, picks, nil
 }
 
 func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core.Group) (core.Evaluation, []core.Pick, error) {
@@ -444,11 +486,17 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 	// Load structured profile (hunt-specific with global fallback).
 	profile, _ := p.db.GetProfile(ctx, hunt.Name())
 
+	prior, priorPicks, err := p.loadHistory(ctx, group.Opportunities)
+	if err != nil {
+		return core.Evaluation{}, nil, err
+	}
 	ec := core.EvalContext{
 		Opportunities: group.Opportunities,
 		Venues:        venues,
 		Preferences:   prefs,
 		Profile:       profile,
+		PriorEval:     prior,
+		PriorPicks:    priorPicks,
 		Feedback:      feedback,
 		CostTracker:   p.costTracker,
 	}

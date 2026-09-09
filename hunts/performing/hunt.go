@@ -36,7 +36,7 @@ func (h *PerformingHunt) Init(ctx context.Context, lookup func(string) string) e
 		return fmt.Errorf("performing-arts: GOOGLE_API_KEY required")
 	}
 
-	client, err := llm.NewClient(ctx, apiKey)
+	client, err := llm.NewClient(ctx, apiKey, lookup("GEMINI_MODEL"))
 	if err != nil {
 		return fmt.Errorf("performing-arts: create LLM client: %w", err)
 	}

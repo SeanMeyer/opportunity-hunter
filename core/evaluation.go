@@ -26,20 +26,21 @@ type EvalContext struct {
 	Feedback      []FeedbackEntry
 	CostTracker   *CostTracker
 	PriorEval     *Evaluation
+	PriorPicks    []Pick
 }
 
 // UserProfile holds structured subscriber profile data (hunt-agnostic).
 type UserProfile struct {
-	HuntName      string    `json:"hunt_name"`
-	HomeBase      string    `json:"home_base"`
-	HomeLat       float64   `json:"home_lat"`
-	HomeLon       float64   `json:"home_lon"`
-	Passes        []string  `json:"passes"`
-	SkillLevel    string    `json:"skill_level"`
-	Preferences   string    `json:"preferences"`
-	RemoteWork    bool      `json:"remote_work"`
-	PTODays       int       `json:"pto_days"`
-	BlackoutDates []time.Time `json:"blackout_dates"`
+	HuntName      string         `json:"hunt_name"`
+	HomeBase      string         `json:"home_base"`
+	HomeLat       float64        `json:"home_lat"`
+	HomeLon       float64        `json:"home_lon"`
+	Passes        []string       `json:"passes"`
+	SkillLevel    string         `json:"skill_level"`
+	Preferences   string         `json:"preferences"`
+	RemoteWork    bool           `json:"remote_work"`
+	PTODays       int            `json:"pto_days"`
+	BlackoutDates []time.Time    `json:"blackout_dates"`
 	Extra         map[string]any `json:"extra,omitempty"`
 }
 
@@ -63,14 +64,15 @@ func (ec *EvalContext) Validate() error {
 
 // Evaluation is the output of an evaluator run.
 type Evaluation struct {
-	ID               int64
-	HuntName         string
-	GroupKey         string
-	EvaluatedAt      time.Time
-	SkippedReasoning string
-	RawLLMResponse   string
-	RenderedPrompt   string
-	CostUSD          float64
+	ID                 int64
+	HuntName           string
+	GroupKey           string
+	EvaluatedAt        time.Time
+	SkippedReasoning   string
+	RawLLMResponse     string
+	StructuredResponse string // exact extracted decision, separate from research
+	RenderedPrompt     string
+	CostUSD            float64
 }
 
 // Pick is a single recommended opportunity from an evaluation.

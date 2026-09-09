@@ -20,21 +20,7 @@ Unlike comedy or movies, performing arts scoring should heavily weight EXTERNAL 
 		fmt.Fprintf(&b, "## User Preferences & Scoring Guidance\n\n%s\n\n", ec.Preferences)
 	}
 
-	if len(ec.Feedback) > 0 {
-		b.WriteString("## Past Feedback on Recommendations\n\n")
-		for _, fb := range ec.Feedback {
-			if fb.Rating == "loved" {
-				fmt.Fprintf(&b, "- **Loved**: %s", fb.OpportunityTitle)
-			} else {
-				fmt.Fprintf(&b, "- **Passed on**: %s", fb.OpportunityTitle)
-			}
-			if fb.Note != "" {
-				fmt.Fprintf(&b, " — \"%s\"", fb.Note)
-			}
-			b.WriteString("\n")
-		}
-		b.WriteString("\n")
-	}
+	b.WriteString("## Feedback on past recommendations\n\n" + core.FormatFeedback(ec.Feedback) + "\n\n")
 
 	b.WriteString("## Shows to Evaluate\n\n")
 

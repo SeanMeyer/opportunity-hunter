@@ -34,6 +34,7 @@ type NotifyAction struct {
 	Type       ActionType
 	ThreadName string // for CreateThread
 	ThreadRef  string // for PostToThread: references an earlier CreateThread by ThreadName
+	ThreadID   string // for PostToThread: existing persisted Discord thread, exclusive with ThreadRef
 	Message    NotifyMessage
 	Ping       bool
 }
@@ -70,6 +71,12 @@ func ValidateActions(actions []NotifyAction) error {
 			}
 			threads[a.ThreadName] = true
 		case PostToThread:
+			if a.ThreadID != "" {
+				if a.ThreadRef != "" {
+					return fmt.Errorf("action %d: use either ThreadID or ThreadRef", i)
+				}
+				continue
+			}
 			if a.ThreadRef == "" {
 				return fmt.Errorf("action %d: PostToThread requires ThreadRef", i)
 			}
@@ -77,7 +84,7 @@ func ValidateActions(actions []NotifyAction) error {
 				return fmt.Errorf("action %d: PostToThread ThreadRef %q not found in preceding CreateThread actions", i, a.ThreadRef)
 			}
 		case PostMessage:
-			if a.ThreadName != "" || a.ThreadRef != "" {
+			if a.ThreadName != "" || a.ThreadRef != "" || a.ThreadID != "" {
 				return fmt.Errorf("action %d: PostMessage should not have thread fields", i)
 			}
 		}

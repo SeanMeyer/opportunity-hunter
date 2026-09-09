@@ -20,42 +20,7 @@ func buildPrompt(ec core.EvalContext, theaters []catalog.Theater, homeLat, homeL
 		fmt.Fprintf(&b, "## User Preferences & Scoring Guidance\n\n%s\n\n", ec.Preferences)
 	}
 
-	if len(ec.Feedback) > 0 {
-		b.WriteString("## Feedback History (learn taste from this)\n\n")
-		loved := []string{}
-		good := []string{}
-		meh := []string{}
-		notForMe := []string{}
-		for _, fb := range ec.Feedback {
-			entry := fb.OpportunityTitle
-			if fb.Note != "" {
-				entry += fmt.Sprintf(" (%s)", fb.Note)
-			}
-			switch fb.Rating {
-			case "loved":
-				loved = append(loved, entry)
-			case "good":
-				good = append(good, entry)
-			case "meh":
-				meh = append(meh, entry)
-			case "not_for_me":
-				notForMe = append(notForMe, entry)
-			}
-		}
-		if len(loved) > 0 {
-			fmt.Fprintf(&b, "**Loved**: %s\n", strings.Join(loved, ", "))
-		}
-		if len(good) > 0 {
-			fmt.Fprintf(&b, "**Good**: %s\n", strings.Join(good, ", "))
-		}
-		if len(meh) > 0 {
-			fmt.Fprintf(&b, "**Meh**: %s\n", strings.Join(meh, ", "))
-		}
-		if len(notForMe) > 0 {
-			fmt.Fprintf(&b, "**Not for me**: %s\n", strings.Join(notForMe, ", "))
-		}
-		b.WriteString("\n")
-	}
+	b.WriteString("## Feedback on past recommendations\n\n" + core.FormatFeedback(ec.Feedback) + "\n\n")
 
 	b.WriteString("## Movies to Evaluate\n\n")
 	for i, opp := range ec.Opportunities {

@@ -47,12 +47,13 @@ func (e *moviesEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 
 	return &core.EvalResult{
 		Evaluation: core.Evaluation{
-			HuntName:         "movies",
-			EvaluatedAt:      time.Now(),
-			RawLLMResponse:   twoStep.Research,
-			RenderedPrompt:   prompt,
-			SkippedReasoning: stringField(twoStep.Structured, "skipped_reasoning"),
-			CostUSD:          twoStep.CostUSD,
+			HuntName:           "movies",
+			EvaluatedAt:        time.Now(),
+			RawLLMResponse:     twoStep.Research,
+			StructuredResponse: twoStep.RawJSON,
+			RenderedPrompt:     twoStep.RenderedPrompt,
+			SkippedReasoning:   stringField(twoStep.Structured, "skipped_reasoning"),
+			CostUSD:            twoStep.CostUSD,
 		},
 		Picks: picks,
 	}, nil

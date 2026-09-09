@@ -160,6 +160,9 @@ type Tier string
 
 const (
 	TierDropEverything Tier = "DROP_EVERYTHING"
+	TierRecommended    Tier = "RECOMMENDED"
+	TierWatch          Tier = "WATCH"
+	TierSkip           Tier = "SKIP"
 	TierWorthALook     Tier = "WORTH_A_LOOK"
 	TierOnTheRadar     Tier = "ON_THE_RADAR"
 )
@@ -239,14 +242,38 @@ func AFDCoversSnowDays(d *ForecastDiscussion, forecasts []Forecast) bool {
 	return false
 }
 
+// NormalizeTier keeps saved evaluations from earlier versions usable.
+func NormalizeTier(t Tier) Tier {
+	switch t {
+	case TierWorthALook:
+		return TierRecommended
+	case TierOnTheRadar:
+		return TierWatch
+	}
+	return t
+}
+
+func TierScore(t Tier) float64 {
+	switch NormalizeTier(t) {
+	case TierDropEverything:
+		return .95
+	case TierRecommended:
+		return .75
+	case TierWatch:
+		return .5
+	default:
+		return 0
+	}
+}
+
 // TierRank maps tiers to an ordinal for comparison.
 func TierRank(t Tier) int {
-	switch t {
+	switch NormalizeTier(t) {
 	case TierDropEverything:
 		return 3
-	case TierWorthALook:
+	case TierRecommended:
 		return 2
-	case TierOnTheRadar:
+	case TierWatch:
 		return 1
 	default:
 		return 0
@@ -255,12 +282,12 @@ func TierRank(t Tier) int {
 
 // CooldownFor returns the minimum time between evaluations for a given tier.
 func CooldownFor(tier Tier) time.Duration {
-	switch tier {
+	switch NormalizeTier(tier) {
 	case TierDropEverything:
 		return 0
-	case TierWorthALook:
+	case TierRecommended:
 		return 12 * time.Hour
-	case TierOnTheRadar:
+	case TierWatch:
 		return 24 * time.Hour
 	default:
 		return 24 * time.Hour

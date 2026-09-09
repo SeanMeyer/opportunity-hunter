@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
@@ -354,16 +355,29 @@ func sortCards(cards []core.CardData, sortBy string) {
 	}
 }
 
-func tierSortOrder(score string) int {
+func canonicalTier(score string) string {
+	score = strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(score)), " ", "_")
 	switch score {
+	case "WORTH_A_LOOK":
+		return "RECOMMENDED"
+	case "ON_THE_RADAR":
+		return "WATCH"
+	}
+	return score
+}
+
+func tierSortOrder(score string) int {
+	switch canonicalTier(score) {
 	case "DROP_EVERYTHING":
 		return 0
-	case "WORTH_A_LOOK":
+	case "RECOMMENDED":
 		return 1
-	case "ON_THE_RADAR":
+	case "WATCH":
 		return 2
-	default:
+	case "SKIP":
 		return 3
+	default:
+		return 4
 	}
 }
 
@@ -389,7 +403,7 @@ func filterCards(cards []core.CardData, filterValue string) []core.CardData {
 	// Exact match filter (for tier-based hunts like powder).
 	var filtered []core.CardData
 	for _, c := range cards {
-		if c.Score == filterValue {
+		if canonicalTier(c.Score) == canonicalTier(filterValue) {
 			filtered = append(filtered, c)
 		}
 	}

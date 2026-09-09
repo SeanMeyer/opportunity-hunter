@@ -36,7 +36,7 @@ func (h *PowderHunt) Init(ctx context.Context, lookup func(string) string) error
 	if apiKey == "" {
 		return fmt.Errorf("powder: GOOGLE_API_KEY required")
 	}
-	client, err := llm.NewClient(ctx, apiKey)
+	client, err := llm.NewClient(ctx, apiKey, lookup("GEMINI_MODEL"))
 	if err != nil {
 		return fmt.Errorf("powder: create LLM client: %w", err)
 	}
@@ -87,14 +87,15 @@ func (h *PowderHunt) DefaultSchedule() core.Schedule {
 func (h *PowderHunt) WebConfig() core.WebConfig {
 	return core.WebConfig{
 		SortOptions: []core.SortOption{
-			{Value: core.SortByScore, Label: "Snowfall (high to low)"},
+			{Value: core.SortByScore, Label: "Recommendation"},
 			{Value: core.SortByTier, Label: "Tier"},
 			{Value: core.SortByRegion, Label: "Region (A-Z)"},
 		},
 		FilterOptions: []core.FilterOption{
 			{Value: "DROP_EVERYTHING", Label: "DROP EVERYTHING"},
-			{Value: "WORTH_A_LOOK", Label: "WORTH A LOOK"},
-			{Value: "ON_THE_RADAR", Label: "ON THE RADAR"},
+			{Value: "RECOMMENDED", Label: "Recommended"},
+			{Value: "WATCH", Label: "Watch"},
+			{Value: "SKIP", Label: "Skip"},
 		},
 		DefaultSort: core.SortByScore,
 	}

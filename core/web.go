@@ -53,7 +53,7 @@ type CardData struct {
 
 	// SortScore is a normalized [0,1] score for sorting. Higher = better.
 	// Comedy/performing/movies: pick.Score (already 0-1).
-	// Powder: normalized from snowfall inches (e.g. clamp(inches/30, 0, 1)).
+	// Powder: normalized verdict rank; snowfall remains supporting evidence.
 	SortScore float64
 
 	// DateSort is a unix timestamp for date-based sorting. 0 = no date.

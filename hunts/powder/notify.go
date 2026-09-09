@@ -26,6 +26,9 @@ func (f *powderNotifyFormatter) FormatPicks(ctx core.NotifyContext) []core.Notif
 	var newPicks, updatePicks []core.Pick
 	for _, pick := range ctx.Picks {
 		cc := changeClassFromPick(pick)
+		if weather.NormalizeTier(weather.Tier(pick.DisplayScore)) == weather.TierSkip && cc != string(weather.ChangeDowngrade) {
+			continue
+		}
 		if cc == string(weather.ChangeNew) || cc == "" {
 			newPicks = append(newPicks, pick)
 		} else {
@@ -70,7 +73,6 @@ func (f *powderNotifyFormatter) formatNewPicks(ctx core.NotifyContext, picks []c
 	pingContent := briefing
 	var ping bool
 	if highestTier == string(weather.TierDropEverything) {
-		pingContent = "@here\n" + briefing
 		ping = true
 	}
 
@@ -93,6 +95,9 @@ func (f *powderNotifyFormatter) formatNewPicks(ctx core.NotifyContext, picks []c
 	}
 
 	threadRef := threadTitle
+	if ctx.ExistingThreadID != "" {
+		threadRef = ""
+	}
 	for _, pick := range picks {
 		opp := f.findOpp(ctx, pick)
 		embed := buildDetailEmbed(opp, pick)
@@ -101,6 +106,8 @@ func (f *powderNotifyFormatter) formatNewPicks(ctx core.NotifyContext, picks []c
 		actions = append(actions, core.NotifyAction{
 			Type:      core.PostToThread,
 			ThreadRef: threadRef,
+			ThreadID:  ctx.ExistingThreadID,
+			Ping:      ctx.ExistingThreadID != "" && pick.DisplayScore == string(weather.TierDropEverything),
 			Message: core.NotifyMessage{
 				Content: getSummary(pick),
 				Embeds:  []core.Embed{embed},
@@ -166,7 +173,7 @@ func (f *powderNotifyFormatter) findOpp(ctx core.NotifyContext, pick core.Pick) 
 }
 
 func (f *powderNotifyFormatter) highestTierFromPicks(picks []core.Pick) string {
-	best := string(weather.TierOnTheRadar)
+	best := string(weather.TierSkip)
 	for _, p := range picks {
 		if weather.TierRank(weather.Tier(p.DisplayScore)) > weather.TierRank(weather.Tier(best)) {
 			best = p.DisplayScore
@@ -189,6 +196,9 @@ func changeClassFromPick(pick core.Pick) string {
 }
 
 func (f *powderNotifyFormatter) FormatReminder(opp core.Opportunity, pick core.Pick, _ core.ReminderType) []core.NotifyAction {
+	if weather.NormalizeTier(weather.Tier(pick.DisplayScore)) == weather.TierSkip {
+		return nil
+	}
 	return []core.NotifyAction{
 		{
 			Type: core.PostMessage,
@@ -311,6 +321,9 @@ func buildDetailEmbed(opp core.Opportunity, pick core.Pick) core.Embed {
 }
 
 func getSummary(pick core.Pick) string {
+	if pick.Reason != "" {
+		return pick.Reason
+	}
 	var rich map[string]any
 	if pick.Attributes != nil {
 		_ = json.Unmarshal(pick.Attributes, &rich)
@@ -324,22 +337,26 @@ func getSummary(pick core.Pick) string {
 }
 
 func tierColorFromString(displayScore string) int {
-	switch weather.Tier(displayScore) {
+	switch weather.NormalizeTier(weather.Tier(displayScore)) {
 	case weather.TierDropEverything:
 		return colorDropEverything
-	case weather.TierWorthALook:
+	case weather.TierRecommended:
 		return colorWorthALook
+	case weather.TierSkip:
+		return 0x808080
 	default:
 		return colorOnTheRadar
 	}
 }
 
 func tierEmoji(displayScore string) string {
-	switch weather.Tier(displayScore) {
+	switch weather.NormalizeTier(weather.Tier(displayScore)) {
 	case weather.TierDropEverything:
 		return "\xf0\x9f\x9a\xa8" // 🚨
-	case weather.TierWorthALook:
-		return "\xf0\x9f\x91\x80" // 👀
+	case weather.TierRecommended:
+		return "\xe2\x9c\x85" // ✅
+	case weather.TierSkip:
+		return "Skip:"
 	default:
 		return "\xf0\x9f\x93\xa1" // 📡
 	}
