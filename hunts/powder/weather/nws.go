@@ -530,6 +530,11 @@ func (c *NWSClient) FetchAFD(ctx context.Context, wfo string) (ForecastDiscussio
 	if wfo == "" {
 		return ForecastDiscussion{}, fmt.Errorf("nws: empty WFO code")
 	}
+	// Anchorage publishes one AFDAFC discussion for its AER/ALU grids.
+	// Keep those grid IDs unchanged for point forecasts; only products use AFC.
+	if wfo == "AER" || wfo == "ALU" {
+		wfo = "AFC"
+	}
 
 	listURL := fmt.Sprintf("%s/products/types/AFD/locations/%s", nwsBaseURL, wfo)
 	listBody, statusCode, err := c.get(ctx, listURL)

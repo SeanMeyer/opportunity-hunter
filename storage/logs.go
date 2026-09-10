@@ -48,20 +48,21 @@ func (d *DB) InsertLogs(ctx context.Context, logs []RunLog) error {
 }
 
 // RecentLogs returns the most recent log entries, optionally filtered.
+// Logs without an explicit hunt inherit the associated pipeline run's hunt.
 func (d *DB) RecentLogs(ctx context.Context, huntName, level string, limit int) ([]RunLog, error) {
-	query := `SELECT id, COALESCE(run_id, ''), COALESCE(hunt_name, ''),
-	                 timestamp, level, message, attrs
-	          FROM run_logs WHERE 1=1`
+	query := `SELECT l.id, COALESCE(l.run_id, ''), COALESCE(NULLIF(l.hunt_name, ''), r.hunt_name, ''),
+	                 l.timestamp, l.level, l.message, l.attrs
+	          FROM run_logs l LEFT JOIN pipeline_runs r ON r.id=l.run_id WHERE 1=1`
 	var args []any
 	if huntName != "" {
-		query += " AND hunt_name = ?"
+		query += " AND COALESCE(NULLIF(l.hunt_name, ''), r.hunt_name, '') = ?"
 		args = append(args, huntName)
 	}
 	if level != "" {
-		query += " AND level = ?"
+		query += " AND l.level = ?"
 		args = append(args, level)
 	}
-	query += " ORDER BY timestamp DESC, id DESC LIMIT ?"
+	query += " ORDER BY l.timestamp DESC, l.id DESC LIMIT ?"
 	args = append(args, limit)
 
 	rows, err := d.db.QueryContext(ctx, query, args...)

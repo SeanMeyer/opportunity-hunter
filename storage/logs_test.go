@@ -75,3 +75,24 @@ func TestPruneLogs(t *testing.T) {
 		t.Fatalf("expected 1 remaining, got %d", len(remaining))
 	}
 }
+
+func TestRecentLogsUsesRunHuntWhenAttributeMissing(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	ctx := context.Background()
+	run, err := db.InsertRun(ctx, "powder", "scheduled")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = db.InsertLogs(ctx, []storage.RunLog{{RunID: run, Timestamp: time.Now(), Level: "WARN", Message: "source warning", Attrs: "{}"}, {Timestamp: time.Now(), Level: "WARN", Message: "global warning", Attrs: "{}"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	logs, err := db.RecentLogs(ctx, "powder", "WARN", 100)
+	if err != nil || len(logs) != 1 || logs[0].HuntName != "powder" {
+		t.Fatalf("missing linked warning: %+v %v", logs, err)
+	}
+	all, err := db.RecentLogs(ctx, "", "WARN", 100)
+	if err != nil || len(all) != 2 {
+		t.Fatalf("lost unassociated log: %+v %v", all, err)
+	}
+}
