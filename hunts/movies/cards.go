@@ -2,7 +2,9 @@ package movies
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/seanmeyer/opportunity-hunter/core"
 	"github.com/seanmeyer/opportunity-hunter/hunts/movies/catalog"
@@ -22,6 +24,13 @@ func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 		SortScore:   pick.Score,
 		DateSort:    opp.StartTime.Unix(),
 		DateDisplay: core.FormatListingTime(opp.StartTime),
+	}
+	if opp.Source == "tmdb" && !opp.StartTime.IsZero() {
+		prefix := "Released "
+		if opp.StartTime.After(time.Now()) {
+			prefix = "Releases "
+		}
+		card.DateDisplay = prefix + opp.StartTime.Format("Jan 2, 2006")
 	}
 
 	switch {
@@ -107,6 +116,11 @@ func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 	if opp.TicketURL != "" {
 		card.ActionURL = opp.TicketURL
 		card.ActionLabel = "Get Tickets"
+	} else if opp.Source == "tmdb" && strings.HasPrefix(opp.SourceID, "tmdb-") {
+		if id, err := strconv.ParseInt(strings.TrimPrefix(opp.SourceID, "tmdb-"), 10, 64); err == nil && id > 0 {
+			card.ActionURL = fmt.Sprintf("https://www.themoviedb.org/movie/%d", id)
+			card.ActionLabel = "View movie"
+		}
 	}
 
 	return card

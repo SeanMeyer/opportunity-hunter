@@ -25,6 +25,7 @@ const (
 // Opportunity is the universal entity that all hunts produce.
 type Opportunity struct {
 	ID           int64
+	SupersededBy *int64 // Historical duplicate; active queries exclude aliases.
 	HuntName     string
 	SourceID     string
 	Source       string

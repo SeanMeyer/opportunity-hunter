@@ -16,9 +16,17 @@ func formatDateDisplay(opp core.Opportunity) string {
 		return core.FormatListingTime(opp.StartTime)
 	}
 	if len(opp.ShowDates) <= 3 {
+		days := make(map[string]int)
+		for _, d := range opp.ShowDates {
+			days[d.Format("2006-01-02")]++
+		}
 		var parts []string
 		for _, d := range opp.ShowDates {
-			parts = append(parts, d.Format("Mon Jan 2"))
+			if days[d.Format("2006-01-02")] > 1 {
+				parts = append(parts, core.FormatListingTime(d))
+			} else {
+				parts = append(parts, d.Format("Mon Jan 2"))
+			}
 		}
 		return strings.Join(parts, ", ")
 	}

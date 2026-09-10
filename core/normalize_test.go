@@ -34,6 +34,8 @@ func TestNormalizeTitleForDedup(t *testing.T) {
 		{"Paramount Theatre Club Seating - Nikki Glaser", "nikki glaser"},
 		// Plain title unchanged (no colon).
 		{"John Mulaney", "john mulaney"},
+		{"Ilana Glazer Live!", "ilana glazer"},
+		{"Live at the Apollo", "live at the apollo"},
 		// & → and, then colon strip.
 		{"Charlie Berens: The Lost & Found Tour", "charlie berens"},
 		// Dash-separated tour suffix.

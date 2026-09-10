@@ -10,6 +10,7 @@
             <div style="font-size: 0.73rem; font-weight: 600; color: {{if eq .Run.Status "ok"}}#86efac{{else if eq .Run.Status "error"}}#ef4444{{else}}#fbbf24{{end}}; margin-bottom: 3px; text-transform: uppercase;">{{.Run.Status}}</div>
             <div style="font-size: 0.73rem; color: #9ca3af; margin-bottom: 2px;">Last run {{relativeTime .Run.StartedAt}}</div>
             <div style="font-size: 0.73rem; color: #9ca3af;">{{if eq .Run.Status "running"}}Counts are available when the run finishes.{{else}}{{.Run.Scanned}} new opportunities &middot; {{.Run.Notified}} notified{{end}}</div>
+            {{if .Run.ErrorSummary}}<p class="error-detail">{{safeStatusError .Run.ErrorSummary}}</p>{{end}}
             {{else}}
             <div style="font-size: 0.73rem; color: #6b7280; font-style: italic;">No runs yet</div>
             {{end}}
@@ -75,6 +76,7 @@
                         <td style="padding: 7px 8px; color: #9ca3af;">${{printf "%.2f" .CostUSD}}</td>
                         {{end}}
                     </tr>
+                    {{if .ErrorSummary}}<tr><td colspan="7" class="error-detail">{{safeStatusError .ErrorSummary}}</td></tr>{{end}}
                     {{end}}
                     {{if not .Runs}}
                     <tr><td colspan="7" style="padding: 1.5rem 14px; color: #6b7280; text-align: center;">No runs yet.</td></tr>

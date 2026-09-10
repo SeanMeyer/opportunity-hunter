@@ -83,6 +83,21 @@ func (d *DB) PrepareDelivery(ctx context.Context, id int64, actions []core.Notif
 	_, err = d.db.ExecContext(ctx, `UPDATE pending_deliveries SET actions_json=? WHERE evaluation_id=?`, string(payload), id)
 	return err
 }
+
+// PrepareDeliveryContext freezes a filtered context together with its actions,
+// so a retry evaluates expiry against the same remaining opportunities.
+func (d *DB) PrepareDeliveryContext(ctx context.Context, id int64, deliveryContext core.NotifyContext, actions []core.NotifyAction) error {
+	payload, err := json.Marshal(actions)
+	if err != nil {
+		return err
+	}
+	contextPayload, err := json.Marshal(deliveryContext)
+	if err != nil {
+		return err
+	}
+	_, err = d.db.ExecContext(ctx, `UPDATE pending_deliveries SET context_json=?, actions_json=? WHERE evaluation_id=?`, string(contextPayload), string(payload), id)
+	return err
+}
 func (d *DB) CompleteDelivery(ctx context.Context, id int64) error {
 	_, err := d.db.ExecContext(ctx, `UPDATE pending_deliveries SET delivered=1 WHERE evaluation_id=?`, id)
 	return err

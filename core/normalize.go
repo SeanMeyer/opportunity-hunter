@@ -84,5 +84,13 @@ func NormalizeTitleForDedup(title string) string {
 		}
 	}
 
+	// The plain trailing stage billing is an anchored suffix, not a fuzzy
+	// performer-name match (e.g. "Ilana Glazer Live!").
+	for _, suffix := range []string{" live!", " live"} {
+		if strings.HasSuffix(t, suffix) && len(t)-len(suffix) >= 3 {
+			t = strings.TrimSpace(strings.TrimSuffix(t, suffix))
+			break
+		}
+	}
 	return t
 }

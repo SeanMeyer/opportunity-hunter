@@ -40,10 +40,14 @@ func (d *DB) GetPicksForEvaluation(ctx context.Context, evaluationID int64) ([]c
 
 // GetPicksForOpportunity returns all picks for an opportunity across evaluations.
 func (d *DB) GetPicksForOpportunity(ctx context.Context, opportunityID int64) ([]core.Pick, error) {
+	opportunityID, err := d.ResolveOpportunityID(ctx, opportunityID)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := d.db.QueryContext(ctx,
 		`SELECT id, evaluation_id, opportunity_id, score, display_score, reason, urgency, attributes
-		 FROM picks WHERE opportunity_id = ?
-		 ORDER BY id DESC`, opportunityID,
+		 FROM picks WHERE opportunity_id IN (SELECT id FROM opportunities WHERE id=? OR superseded_by=?)
+		 ORDER BY id DESC`, opportunityID, opportunityID,
 	)
 	if err != nil {
 		return nil, err

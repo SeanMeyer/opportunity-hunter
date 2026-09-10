@@ -47,6 +47,30 @@ func (f *powderNotifyFormatter) FormatPicks(ctx core.NotifyContext) []core.Notif
 	for _, pick := range updatePicks {
 		actions = append(actions, f.formatUpdatePick(ctx, pick)...)
 	}
+	// Forum webhooks always need a thread. Reuse the thread created for new
+	// picks in this batch, or make the first update the initial thread message.
+	threadRef := ""
+	for i := range actions {
+		a := &actions[i]
+		if a.Type == core.CreateThread {
+			threadRef = a.ThreadName
+			continue
+		}
+		if a.Type != core.PostMessage {
+			continue
+		}
+		if ctx.ExistingThreadID != "" {
+			a.Type = core.PostToThread
+			a.ThreadID = ctx.ExistingThreadID
+		} else if threadRef != "" {
+			a.Type = core.PostToThread
+			a.ThreadRef = threadRef
+		} else {
+			a.Type = core.CreateThread
+			a.ThreadName = buildThreadName(ctx)
+			threadRef = a.ThreadName
+		}
+	}
 
 	return actions
 }

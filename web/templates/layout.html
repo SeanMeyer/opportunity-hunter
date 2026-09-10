@@ -24,6 +24,7 @@
         nav a{color:var(--muted);text-decoration:none;padding:.6rem .9rem;border-radius:8px;text-transform:capitalize}
         nav a.active{background:#2d3953;color:#e2eaff}
         nav a:hover{background:#232c3e;color:white}
+        nav a{min-height:44px;display:inline-flex;align-items:center}
         .btn-status{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .8rem;border:1px solid var(--border);border-radius:8px;color:var(--muted);text-decoration:none;font-size:.85rem;min-height:44px}
         .btn-status.active{color:var(--accent);border-color:var(--accent)}
         .status-dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex-shrink:0}
@@ -66,6 +67,9 @@
         .card-reason-toggle{display:block;background:none;border:0;color:var(--accent);padding:.35rem 0;font-size:.85rem}
         .card-meta-row{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:.85rem}
         .urgency-badge{background:#403928;color:#f0d292;padding:.25rem .5rem;border-radius:6px}
+        .assessment-label{display:block;flex-basis:100%;font-size:.75rem;color:var(--muted)}
+        .booking-hint{font-size:.8rem;color:var(--muted)}
+        .error-detail{font-size:.8rem;color:#f8b4b4;overflow-wrap:anywhere;white-space:pre-wrap;padding:.5rem 0}
         details{margin-top:1rem}
         details summary{color:var(--accent);font-size:.85rem;padding:.5rem 0;min-height:44px}
         .card-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem 1.25rem;margin-top:.5rem;padding:1rem;background:#171c27;border-radius:8px}
@@ -91,6 +95,7 @@
         .empty p{max-width:440px;margin:auto;font-size:.9rem}
         @media(max-width:600px){.container{padding:1rem}.header-inner{gap:.5rem}header h1{font-size:1.2rem}.card{padding:1rem}.card-main{flex-direction:column;gap:.65rem}.score{max-width:100%}.toolbar select{max-width:100%}.toolbar-right{gap:.6rem}.run-status{width:100%}.schedule-next-inline{width:100%}.card-fields{grid-template-columns:minmax(0,1fr)}}
         @media(prefers-reduced-motion:no-preference){button,a{transition:background .15s,border-color .15s}}
+        @media(max-width:600px){nav{gap:.2rem;margin-top:.6rem}nav a{padding:.6rem .45rem;font-size:.85rem}.toolbar-right{gap:.4rem}.card-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.5rem .75rem}.card-controls .toolbar-control{display:flex;flex-direction:column;align-items:stretch;gap:.2rem}.card-controls select{width:100%;font-size:.8rem}.card-controls .count{grid-column:1/-1;font-size:.75rem}.card-reason-toggle{min-height:44px}}
     </style>
 </head>
 <body>

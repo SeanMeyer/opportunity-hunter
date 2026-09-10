@@ -76,7 +76,7 @@
 </div>
 
 {{if gt .TotalCards 0}}
-<div class="toolbar" style="margin-top: 0.5rem;">
+<div class="toolbar card-controls" style="margin-top: 0.5rem;">
     {{if .SortOptions}}
     <div class="toolbar-control">
     <label for="card-sort">Sort</label>
@@ -124,8 +124,9 @@
                     <span class="card-meta-item">{{.Icon}} {{.Value}}</span>
                     {{end}}
                     {{if .Card.Urgency}}
-                    <span class="urgency-badge">&#x26A0; {{.Card.Urgency}}</span>
+                    <span class="booking-hint">Booking notes in details</span>
                     {{end}}
+                    {{if .Card.AssessmentLabel}}<span class="assessment-label">{{.Card.AssessmentLabel}}</span>{{end}}
                 </div>
             </div>
         </div>
@@ -175,7 +176,7 @@
 {{else if gt .TotalCards 0}}
 <div class="empty">No results match this filter. <a href="/?hunt={{.ActiveHunt}}&sort={{.SortBy}}">Clear filter</a></div>
 {{else}}
-<div class="empty"><strong>No opportunities yet.</strong><p>{{if .HasRunFunc}}Use Run Now to check for recommendations, or adjust your preferences above.{{else}}Recommendations will appear here after this hunt has been evaluated.{{end}}</p></div>
+<div class="empty">{{if and .LatestRun (eq .LatestRun.Status "error")}}<strong>No current opportunities.</strong><p>The last scan had errors. <a href="/status?hunt={{.ActiveHunt}}">View System Status</a> for the reason.</p>{{else}}<strong>No current opportunities.</strong><p>{{if .HasRunFunc}}Use Run Now to check for recommendations, or adjust your preferences above.{{else}}Recommendations will appear here when this hunt finds a current match.{{end}}</p>{{end}}</div>
 {{end}}
 
 <script>

@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ var templateFS embed.FS
 
 // HuntInfo holds runtime info about a registered hunt for the web UI.
 type HuntInfo struct {
+	Expirer              core.Expirer
 	NotificationsEnabled bool
 	Name                 string
 	CardRenderer         core.CardRenderer
@@ -80,6 +82,13 @@ func nextScanLabel(next time.Time) string {
 	return "Next: " + next.Local().Format("Mon Jan 2, 3:04 PM")
 }
 
+var statusURL = regexp.MustCompile(`https?://[^\s"'<>]+`)
+var statusGoogleKey = regexp.MustCompile(`AIza[\w-]+`)
+
+func safeStatusError(message string) string {
+	return statusGoogleKey.ReplaceAllString(statusURL.ReplaceAllString(message, "[URL redacted]"), "[key redacted]")
+}
+
 func (s *Server) notificationsEnabled(name string) bool {
 	for _, h := range s.hunts {
 		if h.Name == name {
@@ -94,10 +103,11 @@ func (s *Server) notificationsEnabled(name string) bool {
 // user triggers a manual run via POST /run.
 func New(db *storage.DB, hunts []HuntInfo, homeAddress string, runFunc ...func(context.Context, string)) (*Server, error) {
 	funcMap := template.FuncMap{
-		"nextScanLabel":  nextScanLabel,
-		"relativeTime":   relativeTime,
-		"formatDistance": FormatDistance,
-		"summaryFields":  summaryFields,
+		"safeStatusError": safeStatusError,
+		"nextScanLabel":   nextScanLabel,
+		"relativeTime":    relativeTime,
+		"formatDistance":  FormatDistance,
+		"summaryFields":   summaryFields,
 	}
 	tmpl, err := template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
@@ -509,6 +519,14 @@ func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo)
 			continue
 		}
 		for _, opp := range opps {
+			var expirer core.Expirer
+			if info != nil {
+				expirer = info.Expirer
+			}
+			if core.OpportunityExpired(opp, expirer, time.Now()) {
+				continue
+			}
+			opp = core.UpcomingListing(opp, time.Now())
 			picks, err := s.db.GetPicksForOpportunity(ctx, opp.ID)
 			if err != nil || len(picks) == 0 {
 				continue
@@ -542,6 +560,17 @@ func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo)
 				}
 			}
 			card.OpportunityID = opp.ID
+			if evaluation, err := s.db.GetEvaluation(ctx, pick.EvaluationID); err == nil && !evaluation.EvaluatedAt.IsZero() {
+				card.AssessmentLabel = "Assessed " + evaluation.EvaluatedAt.Local().Format("Jan 2, 2006")
+				// Booking advice is time-sensitive; historical judgments remain stored.
+				if time.Since(evaluation.EvaluatedAt) > 30*24*time.Hour {
+					card.Urgency = ""
+					card.AssessmentLabel += " · Check current details"
+				}
+			}
+			if card.Urgency != "" {
+				card.Fields = append(card.Fields, core.CardField{Label: "Booking notes", Value: card.Urgency})
+			}
 			cards = append(cards, card)
 		}
 	}

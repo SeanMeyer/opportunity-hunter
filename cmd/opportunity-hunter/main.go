@@ -517,6 +517,7 @@ func buildHuntInfos(hunts []core.Hunt, webhooks map[string]string) []web.HuntInf
 	var infos []web.HuntInfo
 	for _, h := range hunts {
 		info := web.HuntInfo{Name: h.Name(), NotificationsEnabled: webhooks[h.Name()] != ""}
+		info.Expirer, _ = h.(core.Expirer)
 		if wh, ok := h.(core.WebHunt); ok {
 			info.CardRenderer = wh.CardRenderer()
 			info.FeedbackOptions = wh.FeedbackOptions()

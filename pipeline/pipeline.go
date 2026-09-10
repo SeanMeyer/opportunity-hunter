@@ -54,7 +54,9 @@ func (p *Pipeline) ScanAll(ctx context.Context, hunts []core.Hunt) core.Pipeline
 		scanned, scanErrs := p.scan(ctx, hunt)
 		hr.Scanned = scanned
 		hr.Errors = append(hr.Errors, scanErrs...)
-		p.expire(ctx, hunt, caps)
+		if err := p.expire(ctx, hunt, caps); err != nil {
+			hr.Errors = append(hr.Errors, core.StepError{Step: "expire", Err: err})
+		}
 		result.HuntResults = append(result.HuntResults, hr)
 	}
 	return result
@@ -119,6 +121,16 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 	caps, _ := core.ValidateHunt(hunt)
 	schedule := hunt.DefaultSchedule()
 	attemptedDeliveries := make(map[int64]bool)
+	if name == "comedy" {
+		if err := p.db.ReconcileComedySeries(ctx); err != nil {
+			result.Errors = append(result.Errors, core.StepError{Step: "deduplicate", Err: err})
+			return result
+		}
+	}
+	if err := p.expire(ctx, hunt, caps); err != nil {
+		result.Errors = append(result.Errors, core.StepError{Step: "expire", Err: err})
+		return result
+	}
 	// Retry saved delivery work independently of evaluation and budget gates.
 	deliveryAvailable := p.deliverPending(ctx, hunt, caps, nil, attemptedDeliveries, &result)
 
@@ -126,6 +138,10 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 	scanned, scanErrs := p.scan(ctx, hunt)
 	result.Scanned = scanned
 	result.Errors = append(result.Errors, scanErrs...)
+	if err := p.expire(ctx, hunt, caps); err != nil {
+		result.Errors = append(result.Errors, core.StepError{Step: "expire", Err: err})
+		return result
+	}
 
 	// Step 2: Collect — get discovered opportunities.
 	discovered, err := p.db.GetByState(ctx, name, core.Discovered)
@@ -163,6 +179,18 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 	// Step 6 + 7: Evaluate + Store.
 	var evals []core.Evaluation
 	for _, group := range groups {
+		// Earlier groups may have taken long enough for a later event to pass.
+		expirer, _ := hunt.(core.Expirer)
+		current := make([]core.Opportunity, 0, len(group.Opportunities))
+		for _, opp := range group.Opportunities {
+			if !core.OpportunityExpired(opp, expirer, time.Now()) {
+				current = append(current, core.UpcomingListing(opp, time.Now()))
+			}
+		}
+		group.Opportunities = current
+		if len(current) == 0 {
+			continue
+		}
 		eval, picks, evalErr := p.evaluateGroup(ctx, hunt, group)
 		if evalErr != nil {
 			result.Errors = append(result.Errors, core.StepError{
@@ -223,7 +251,9 @@ func (p *Pipeline) Run(ctx context.Context, hunt core.Hunt) core.HuntResult {
 	}
 
 	// Step 11: Expire.
-	p.expire(ctx, hunt, caps)
+	if err := p.expire(ctx, hunt, caps); err != nil {
+		result.Errors = append(result.Errors, core.StepError{Step: "expire", Err: err})
+	}
 
 	return result
 }
@@ -294,10 +324,20 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 	var keyOrder []string
 	for _, item := range allItems {
 		key := hunt.DedupeKey(item)
-		if seen[key] {
+		if seen[key] && name != "comedy" {
 			continue
 		}
 		if prev, exists := best[key]; exists {
+			if name == "comedy" {
+				prevTime, _ := time.Parse(time.RFC3339, prev.StartTime)
+				itemTime, _ := time.Parse(time.RFC3339, item.StartTime)
+				if core.IsDatePlaceholder(prevTime) != core.IsDatePlaceholder(itemTime) {
+					if !core.IsDatePlaceholder(itemTime) {
+						best[key] = item
+					}
+					continue
+				}
+			}
 			// Prefer the title that required less normalization (shorter diff).
 			prevNorm := core.NormalizeTitle(prev.Title)
 			itemNorm := core.NormalizeTitle(item.Title)
@@ -362,12 +402,21 @@ func (p *Pipeline) scan(ctx context.Context, hunt core.Hunt) (int, []core.StepEr
 			DiscoveredAt: time.Now(),
 		}
 
-		if _, err := p.db.InsertOpportunity(ctx, opp); err != nil {
+		created := true
+		var storeErr error
+		if name == "comedy" {
+			created, storeErr = p.db.UpsertComedySeries(ctx, opp)
+		} else {
+			_, storeErr = p.db.InsertOpportunity(ctx, opp)
+		}
+		if err := storeErr; err != nil {
 			slog.Error("insert opportunity", "hunt", name, "title", item.Title, "err", err)
 			errs = append(errs, core.StepError{Step: "scan-store", Err: err, Context: item.Title})
 			continue
 		}
-		stored++
+		if created {
+			stored++
+		}
 	}
 
 	return stored, errs
@@ -601,24 +650,21 @@ func mergeMultiDateItems(best map[string]core.RawItem, keyOrder []string, merger
 	return append(result, separate...)
 }
 
-func (p *Pipeline) expire(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities) {
+func (p *Pipeline) expire(ctx context.Context, hunt core.Hunt, caps core.HuntCapabilities) error {
 	name := hunt.Name()
-	for _, state := range []core.State{core.Notified, core.Reminded, core.Evaluated} {
+	expirer, _ := hunt.(core.Expirer)
+	for _, state := range []core.State{core.Discovered, core.Notified, core.Reminded, core.Evaluated} {
 		opps, err := p.db.GetByState(ctx, name, state)
 		if err != nil {
-			continue
+			return err
 		}
 		for _, opp := range opps {
-			shouldExpire := false
-			if caps.HasExpirer {
-				shouldExpire = hunt.(core.Expirer).ShouldExpire(opp)
-			} else {
-				// Default: expire after the last show date (or StartTime for single-date).
-				shouldExpire = opp.LastShowDate().Before(time.Now())
-			}
-			if shouldExpire {
-				p.db.UpdateState(ctx, opp.ID, core.Expired, nil)
+			if core.OpportunityExpired(opp, expirer, time.Now()) {
+				if err := p.db.UpdateState(ctx, opp.ID, core.Expired, nil); err != nil {
+					return err
+				}
 			}
 		}
 	}
+	return nil
 }

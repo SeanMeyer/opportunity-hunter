@@ -70,6 +70,17 @@ func (d *DB) runMigrations(ctx context.Context) error {
 			return err
 		}
 	}
+	if err := d.db.QueryRowContext(ctx, `SELECT count(*) FROM pragma_table_info('opportunities') WHERE name = 'superseded_by'`).Scan(&exists); err != nil {
+		return err
+	}
+	if exists == 0 {
+		if _, err := d.db.ExecContext(ctx, `ALTER TABLE opportunities ADD COLUMN superseded_by INTEGER REFERENCES opportunities(id)`); err != nil {
+			return err
+		}
+	}
+	if _, err := d.db.ExecContext(ctx, `CREATE INDEX IF NOT EXISTS idx_opportunities_superseded_by ON opportunities(superseded_by)`); err != nil {
+		return err
+	}
 	return nil
 }
 

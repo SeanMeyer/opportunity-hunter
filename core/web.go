@@ -40,16 +40,17 @@ type WebConfig struct {
 
 // CardData is the universal display format for the web UI.
 type CardData struct {
-	OpportunityID int64
-	Title         string
-	Subtitle      string
-	Score         string
-	ScoreTier     ScoreTier
-	Reason        string
-	Urgency       string
-	Fields        []CardField
-	ActionURL     string
-	ActionLabel   string
+	OpportunityID   int64
+	Title           string
+	Subtitle        string
+	Score           string
+	ScoreTier       ScoreTier
+	Reason          string
+	Urgency         string
+	AssessmentLabel string
+	Fields          []CardField
+	ActionURL       string
+	ActionLabel     string
 
 	// SortScore is a normalized [0,1] score for sorting. Higher = better.
 	// Comedy/performing/movies: pick.Score (already 0-1).

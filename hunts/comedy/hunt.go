@@ -63,12 +63,12 @@ func (h *ComedyHunt) Sources() []core.Source {
 
 func (h *ComedyHunt) DedupeKey(raw core.RawItem) string {
 	t, _ := time.Parse(time.RFC3339, raw.StartTime)
-	date := t.Format("2006-01-02")
-	return core.NormalizeTitleForDedup(raw.Title) + "|" + raw.VenueName + "|" + date
+	date := core.EventLocalDate(t)
+	return core.NormalizeTitleForDedup(raw.Title) + "|" + core.EventVenueKey(raw.VenueName, raw.VenueAddress) + "|" + date
 }
 
 func (h *ComedyHunt) MultiDateKey(raw core.RawItem) string {
-	return core.NormalizeTitleForDedup(raw.Title) + "|" + raw.VenueName
+	return core.NormalizeTitleForDedup(raw.Title) + "|" + core.EventVenueKey(raw.VenueName, raw.VenueAddress)
 }
 
 func (h *ComedyHunt) Evaluator() core.Evaluator {

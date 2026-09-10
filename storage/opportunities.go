@@ -12,6 +12,12 @@ import (
 
 // InsertOpportunity inserts a new opportunity and returns its ID.
 func (d *DB) InsertOpportunity(ctx context.Context, opp core.Opportunity) (int64, error) {
+	return insertOpportunity(ctx, d.db, opp)
+}
+
+func insertOpportunity(ctx context.Context, executor interface {
+	ExecContext(context.Context, string, ...any) (sql.Result, error)
+}, opp core.Opportunity) (int64, error) {
 	attrs := string(opp.Attributes)
 	if attrs == "" {
 		attrs = "{}"
@@ -19,7 +25,7 @@ func (d *DB) InsertOpportunity(ctx context.Context, opp core.Opportunity) (int64
 
 	showDatesJSON := marshalShowDates(opp.ShowDates)
 
-	result, err := d.db.ExecContext(ctx,
+	result, err := executor.ExecContext(ctx,
 		`INSERT INTO opportunities
 		 (hunt_name, source_id, source, title, subtitle, venue_id,
 		  start_time, end_time, price_min, price_max, ticket_url,
@@ -43,7 +49,7 @@ func (d *DB) GetOpportunity(ctx context.Context, id int64) (core.Opportunity, er
 		`SELECT id, hunt_name, source_id, source, title, subtitle, venue_id,
 		        start_time, end_time, price_min, price_max, ticket_url,
 		        state, attributes, raw_data, discovered_at,
-		        evaluated_at, notified_at, reminded_at, show_dates
+		        evaluated_at, notified_at, reminded_at, show_dates, superseded_by
 		 FROM opportunities WHERE id = ?`, id,
 	))
 }
@@ -54,8 +60,8 @@ func (d *DB) GetByState(ctx context.Context, huntName string, state core.State) 
 		`SELECT id, hunt_name, source_id, source, title, subtitle, venue_id,
 		        start_time, end_time, price_min, price_max, ticket_url,
 		        state, attributes, raw_data, discovered_at,
-		        evaluated_at, notified_at, reminded_at, show_dates
-		 FROM opportunities WHERE hunt_name = ? AND state = ?
+		        evaluated_at, notified_at, reminded_at, show_dates, superseded_by
+		 FROM opportunities WHERE hunt_name = ? AND state = ? AND superseded_by IS NULL
 		 ORDER BY start_time`, huntName, string(state),
 	)
 	if err != nil {
@@ -79,10 +85,10 @@ func (d *DB) OpportunityExists(ctx context.Context, huntName, sourceID string) (
 // suitable for recomputing dedup keys against incoming scan results.
 func (d *DB) GetRawItemsForDedup(ctx context.Context, huntName string) ([]core.RawItem, error) {
 	rows, err := d.db.QueryContext(ctx,
-		`SELECT o.source_id, o.source, o.title, COALESCE(v.name, ''), o.start_time, COALESCE(o.end_time, ''), o.show_dates
+		`SELECT o.source_id, o.source, o.title, COALESCE(v.name, ''), COALESCE(v.address, ''), o.start_time, COALESCE(o.end_time, ''), o.show_dates
 		 FROM opportunities o
 		 LEFT JOIN venues v ON o.venue_id = v.id
-		 WHERE o.hunt_name = ?`, huntName,
+		 WHERE o.hunt_name = ? AND o.superseded_by IS NULL`, huntName,
 	)
 	if err != nil {
 		return nil, err
@@ -93,7 +99,7 @@ func (d *DB) GetRawItemsForDedup(ctx context.Context, huntName string) ([]core.R
 	for rows.Next() {
 		var item core.RawItem
 		var showDatesStr string
-		if err := rows.Scan(&item.SourceID, &item.Source, &item.Title, &item.VenueName, &item.StartTime, &item.EndTime, &showDatesStr); err != nil {
+		if err := rows.Scan(&item.SourceID, &item.Source, &item.Title, &item.VenueName, &item.VenueAddress, &item.StartTime, &item.EndTime, &showDatesStr); err != nil {
 			return nil, err
 		}
 		item.ShowDates = unmarshalShowDates(showDatesStr)
@@ -139,9 +145,9 @@ func (d *DB) GetUpcoming(ctx context.Context, huntName string, within time.Durat
 		`SELECT id, hunt_name, source_id, source, title, subtitle, venue_id,
 		        start_time, end_time, price_min, price_max, ticket_url,
 		        state, attributes, raw_data, discovered_at,
-		        evaluated_at, notified_at, reminded_at, show_dates
+		        evaluated_at, notified_at, reminded_at, show_dates, superseded_by
 		 FROM opportunities
-		 WHERE hunt_name = ? AND state IN ('notified', 'reminded')
+		 WHERE hunt_name = ? AND state IN ('notified', 'reminded') AND superseded_by IS NULL
 		   AND start_time >= ? AND start_time <= ?
 		 ORDER BY start_time`,
 		huntName, now.Format(time.RFC3339), cutoff.Format(time.RFC3339),
@@ -168,7 +174,7 @@ func (d *DB) scanOpportunity(row *sql.Row) (core.Opportunity, error) {
 		&opp.Title, &opp.Subtitle, &venueID,
 		&startStr, &endStr, &priceMin, &priceMax, &opp.TicketURL,
 		&stateStr, &attrsStr, &opp.RawData, &discoveredStr,
-		&evalStr, &notifStr, &remindStr, &showDatesStr,
+		&evalStr, &notifStr, &remindStr, &showDatesStr, &opp.SupersededBy,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return opp, ErrNotFound
@@ -228,7 +234,7 @@ func (d *DB) scanOpportunities(rows *sql.Rows) ([]core.Opportunity, error) {
 			&opp.Title, &opp.Subtitle, &venueID,
 			&startStr, &endStr, &priceMin, &priceMax, &opp.TicketURL,
 			&stateStr, &attrsStr, &opp.RawData, &discoveredStr,
-			&evalStr, &notifStr, &remindStr, &showDatesStr,
+			&evalStr, &notifStr, &remindStr, &showDatesStr, &opp.SupersededBy,
 		)
 		if err != nil {
 			return nil, err

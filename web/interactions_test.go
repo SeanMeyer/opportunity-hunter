@@ -56,7 +56,7 @@ func TestCardsRestoreLatestFeedbackAndSeparateDetails(t *testing.T) {
 	db := testutil.NewTestDB(t)
 	ctx := context.Background()
 	now := time.Now()
-	id, err := db.InsertOpportunity(ctx, core.Opportunity{HuntName: "comedy", SourceID: "card", Title: "Test card", State: core.Evaluated, DiscoveredAt: now})
+	id, err := db.InsertOpportunity(ctx, core.Opportunity{HuntName: "comedy", SourceID: "card", Title: "Test card", State: core.Evaluated, DiscoveredAt: now, StartTime: now.Add(24 * time.Hour)})
 	if err != nil {
 		t.Fatal(err)
 	}
