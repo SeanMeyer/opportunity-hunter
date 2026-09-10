@@ -14,7 +14,7 @@ func TestDateDisplayDistinguishesSameDayShowtimes(t *testing.T) {
 		t.Fatalf("showtimes indistinguishable: %s", got)
 	}
 	got = formatDateDisplay(core.Opportunity{StartTime: at, ShowDates: []time.Time{at, at.Add(24 * time.Hour)}})
-	if got != "Sat Nov 7, Sun Nov 8" {
+	if got != "Sat Nov 7, 2026, Sun Nov 8, 2026" {
 		t.Fatalf("ordinary dates no longer compact: %s", got)
 	}
 }

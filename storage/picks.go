@@ -47,7 +47,7 @@ func (d *DB) GetPicksForOpportunity(ctx context.Context, opportunityID int64) ([
 	rows, err := d.db.QueryContext(ctx,
 		`SELECT id, evaluation_id, opportunity_id, score, display_score, reason, urgency, attributes
 		 FROM picks WHERE opportunity_id IN (SELECT id FROM opportunities WHERE id=? OR superseded_by=?)
-		 ORDER BY id DESC`, opportunityID, opportunityID,
+		 ORDER BY evaluation_id DESC, (opportunity_id=?) DESC, id DESC`, opportunityID, opportunityID, opportunityID,
 	)
 	if err != nil {
 		return nil, err

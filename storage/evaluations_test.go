@@ -14,7 +14,7 @@ func TestSaveAndGetEvaluation(t *testing.T) {
 
 	eval := core.Evaluation{
 		HuntName:       "comedy",
-		GroupKey:        "2026-W10",
+		GroupKey:       "2026-W10",
 		EvaluatedAt:    time.Now(),
 		RawLLMResponse: `{"picks": []}`,
 		CostUSD:        0.003,
@@ -48,7 +48,7 @@ func TestSaveEvaluationWithPicks(t *testing.T) {
 
 	eval := core.Evaluation{
 		HuntName:    "comedy",
-		GroupKey:     "2026-W10",
+		GroupKey:    "2026-W10",
 		EvaluatedAt: time.Now(),
 		CostUSD:     0.005,
 	}
@@ -82,12 +82,12 @@ func TestGetLatestEvaluation(t *testing.T) {
 
 	db.SaveEvaluation(ctx, core.Evaluation{
 		HuntName:    "comedy",
-		GroupKey:     "2026-W10",
+		GroupKey:    "2026-W10",
 		EvaluatedAt: time.Now().Add(-1 * time.Hour),
 	})
 	db.SaveEvaluation(ctx, core.Evaluation{
 		HuntName:    "comedy",
-		GroupKey:     "2026-W10",
+		GroupKey:    "2026-W10",
 		EvaluatedAt: time.Now(),
 		CostUSD:     0.01,
 	})
@@ -123,5 +123,28 @@ func TestGetPicksForOpportunity(t *testing.T) {
 	}
 	if len(picks) != 2 {
 		t.Fatalf("expected 2 picks, got %d", len(picks))
+	}
+}
+
+func TestCanonicalPickWinsWithinSameEvaluation(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	canonical := insertTestOpportunity(t, db, "comedy", "Main listing")
+	alias := insertTestOpportunity(t, db, "comedy", "Duplicate listing")
+	if _, err := db.RawDB().Exec("UPDATE opportunities SET superseded_by=? WHERE id=?", canonical, alias); err != nil {
+		t.Fatal(err)
+	}
+	eval, _ := db.SaveEvaluation(ctx, core.Evaluation{HuntName: "comedy", EvaluatedAt: time.Now()})
+	db.SavePick(ctx, core.Pick{EvaluationID: eval, OpportunityID: canonical, Reason: "Main recommendation"})
+	db.SavePick(ctx, core.Pick{EvaluationID: eval, OpportunityID: alias, Reason: "Duplicate of main listing"})
+	picks, err := db.GetPicksForOpportunity(ctx, canonical)
+	if err != nil || len(picks) != 2 || picks[0].OpportunityID != canonical {
+		t.Fatalf("wrong displayed pick: %+v %v", picks, err)
+	}
+	newer, _ := db.SaveEvaluation(ctx, core.Evaluation{HuntName: "comedy", EvaluatedAt: time.Now().Add(time.Hour)})
+	db.SavePick(ctx, core.Pick{EvaluationID: newer, OpportunityID: alias, Reason: "Fresh assessment"})
+	picks, err = db.GetPicksForOpportunity(ctx, canonical)
+	if err != nil || len(picks) != 3 || picks[0].EvaluationID != newer {
+		t.Fatalf("fresh alias assessment hidden: %+v %v", picks, err)
 	}
 }

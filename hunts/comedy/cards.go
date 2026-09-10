@@ -25,14 +25,14 @@ func formatDateDisplay(opp core.Opportunity) string {
 			if days[d.Format("2006-01-02")] > 1 {
 				parts = append(parts, core.FormatListingTime(d))
 			} else {
-				parts = append(parts, d.Format("Mon Jan 2"))
+				parts = append(parts, d.Format("Mon Jan 2, 2006"))
 			}
 		}
 		return strings.Join(parts, ", ")
 	}
 	first := opp.ShowDates[0]
 	last := opp.ShowDates[len(opp.ShowDates)-1]
-	return fmt.Sprintf("%s – %s (%d shows)", first.Format("Jan 2"), last.Format("Jan 2"), len(opp.ShowDates))
+	return fmt.Sprintf("%s – %s (%d shows)", first.Format("Jan 2, 2006"), last.Format("Jan 2, 2006"), len(opp.ShowDates))
 }
 
 type comedyCardRenderer struct{}
