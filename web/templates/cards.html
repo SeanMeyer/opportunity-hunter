@@ -2,6 +2,7 @@
 {{if .Notice}}<div class="notice" role="status">{{.Notice}}</div>{{end}}
 <div class="hunt-heading"><p class="eyebrow">Your next good plan</p><h2>{{huntLabel .ActiveHunt}}</h2></div>
 {{if .LatestRun}}{{if eq .LatestRun.Status "error"}}<p class="error-detail">The last scan had errors. <a href="/status?hunt={{.ActiveHunt}}">View System Status</a></p>{{end}}{{end}}
+{{if .LatestRun}}{{if eq .LatestRun.Status "running"}}<p class="run-status" role="status">Scan running · started {{relativeTime .LatestRun.StartedAt}}</p>{{end}}{{end}}
 <details class="scan-controls"><summary>Scan &amp; preferences</summary>
 <div class="toolbar">
     <div class="toolbar-right">
@@ -112,7 +113,7 @@
     <article id="card-{{.OppID}}" class="card tier-{{.Card.ScoreTier}}" aria-labelledby="title-{{.OppID}}">
         <div class="card-main">
             {{if .Card.Score}}
-            <span class="score score-{{.Card.ScoreTier}}">{{.Card.Score}}</span>
+            <span class="score score-{{.Card.ScoreTier}}{{if eq $hunt "powder"}} score-verdict{{end}}">{{.Card.Score}}</span>
             {{end}}
             <div class="card-body">
                 <div class="card-top-row">
@@ -156,7 +157,7 @@
                 <span class="fb-saved" id="fb-saved-{{.OppID}}" {{if not .Feedback}}hidden{{end}}>Saved</span>
             </div>
         </div>
-        <div class="fb-form" id="fb-form-{{.OppID}}" data-saved-rating="{{if .Feedback}}{{.Feedback.Rating}}{{end}}" hidden>
+        <div class="fb-form" id="fb-form-{{.OppID}}" tabindex="-1" aria-label="Edit recommendation feedback" data-saved-rating="{{if .Feedback}}{{.Feedback.Rating}}{{end}}" hidden>
             <form method="POST" action="/feedback">
                 <input type="hidden" name="hunt" value="{{$hunt}}">
                 <input type="hidden" name="sort" value="{{$.SortBy}}">
@@ -202,7 +203,7 @@ function showFeedbackForm(oppId, rating) {
     form.hidden = false;
     selectRating(oppId, rating);
     document.getElementById('fb-saved-' + oppId).hidden = true;
-    form.querySelector('.fb-note').focus();
+    form.focus();
 }
 function hideFeedbackForm(oppId) {
     var form = document.getElementById('fb-form-' + oppId);

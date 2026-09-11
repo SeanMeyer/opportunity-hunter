@@ -1,3 +1,5 @@
+Current design: see [September 10 card review](reviews/2026-09-10-cards/review.md). The notes below describe the earlier September 9 iteration.
+
 # UI cleanup — September 9, 2026
 
 The existing dark card interface now uses one shared stylesheet, readable contrast,

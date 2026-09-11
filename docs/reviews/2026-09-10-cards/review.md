@@ -43,3 +43,11 @@ Artifacts: before-desktop.png, after-desktop.png, after-mobile.png. Screenshots 
 real copied content; the selected feedback visible in the mobile image is QA data.
 Additional interaction/category captures and raw review output are in the task-owned
 local temporary directory oh-visual-pass.
+
+Final product-informed Gemini review inspected revised desktop/mobile screenshots
+and the code. Accepted follow-ups: movie route parity, visible running/error status,
+focus the feedback editor without automatically opening a touch keyboard, and keep
+word-based powder verdicts above the title. Reason duplication had already been fixed
+by hiding the teaser while details are open. Old CSS for the removed reason toggle
+was removed. Broad stylesheet consolidation and sub-minute route rounding are outside
+this pass; the latter is pre-existing and not exercised by the current venue dataset.

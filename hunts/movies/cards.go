@@ -78,23 +78,9 @@ func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, ve
 			Icon: "📍", Label: "Venue", Value: venue.Name,
 		})
 	}
-	if venue.WalkingMinutes > 0 || venue.DrivingMinutes > 0 {
-		var distVal, icon string
-		if venue.WalkingMinutes > 0 && (venue.WalkingMinutes <= 30 || venue.DrivingMinutes == 0) {
-			icon = "🚶"
-			distVal = fmt.Sprintf("%d min walk", venue.WalkingMinutes)
-		} else {
-			icon = "🚗"
-			distVal = fmt.Sprintf("%d min drive", venue.DrivingMinutes)
-		}
-		if venue.DistanceMi > 0 {
-			distVal += fmt.Sprintf(" · %.1f mi", venue.DistanceMi)
-		}
-		card.Fields = append(card.Fields, core.CardField{
-			Icon: icon, Label: "Distance", Value: distVal,
-		})
+	if travel := core.VenueTravel(venue); travel.Value != "" {
+		card.Fields = append(card.Fields, travel)
 	}
-
 	if opp.PriceMin != nil {
 		price := fmt.Sprintf("$%.0f", *opp.PriceMin)
 		if opp.PriceMax != nil {
