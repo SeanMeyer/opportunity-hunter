@@ -496,6 +496,12 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 		if opp.VenueID != nil {
 			v, err := p.db.GetVenue(ctx, *opp.VenueID)
 			if err == nil {
+				if d, err := p.db.GetDistance(ctx, v.ID, p.homeAddress, "walking"); err == nil {
+					v.WalkingMinutes, v.DistanceMi = d.Minutes, d.DistanceMi
+				}
+				if d, err := p.db.GetDistance(ctx, v.ID, p.homeAddress, "driving"); err == nil {
+					v.DrivingMinutes, v.DrivingDistanceMi = d.Minutes, d.DistanceMi
+				}
 				venues[v.ID] = v
 			}
 		}
@@ -505,6 +511,10 @@ func (p *Pipeline) evaluateGroup(ctx context.Context, hunt core.Hunt, group core
 	if enricher, ok := hunt.(core.VenueEnricher); ok {
 		enricher.EnrichVenues(ctx, venues)
 		for _, v := range venues {
+			if v.DrivingMinutes > 0 {
+				p.db.SaveDistance(ctx, storage.DistanceRow{VenueID: v.ID, HomeAddress: p.homeAddress,
+					Mode: "driving", Minutes: v.DrivingMinutes, DistanceMi: v.DrivingDistanceMi, CreatedAt: time.Now()})
+			}
 			if v.WalkingMinutes > 0 || v.DistanceMi > 0 {
 				p.db.SaveDistance(ctx, storage.DistanceRow{
 					VenueID:     v.ID,

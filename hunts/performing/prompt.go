@@ -32,8 +32,8 @@ Unlike comedy or movies, performing arts scoring should heavily weight EXTERNAL 
 		if opp.VenueID != nil {
 			if venue, ok := ec.Venues[*opp.VenueID]; ok {
 				venueLine := venue.Name
-				if venue.WalkingMinutes > 0 {
-					venueLine += fmt.Sprintf(" (%d min walk)", venue.WalkingMinutes)
+				if travel := core.VenueTravel(venue); travel.Value != "" {
+					venueLine += " (" + travel.Value + ")"
 				}
 				fmt.Fprintf(&b, "- Venue: %s\n", venueLine)
 			}

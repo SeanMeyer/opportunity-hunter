@@ -1,5 +1,8 @@
 {{define "content"}}
 {{if .Notice}}<div class="notice" role="status">{{.Notice}}</div>{{end}}
+<div class="hunt-heading"><p class="eyebrow">Your next good plan</p><h2>{{huntLabel .ActiveHunt}}</h2></div>
+{{if .LatestRun}}{{if eq .LatestRun.Status "error"}}<p class="error-detail">The last scan had errors. <a href="/status?hunt={{.ActiveHunt}}">View System Status</a></p>{{end}}{{end}}
+<details class="scan-controls"><summary>Scan &amp; preferences</summary>
 <div class="toolbar">
     <div class="toolbar-right">
         <span class="run-status">
@@ -22,11 +25,10 @@
             <button type="submit" class="btn-ghost">Run Now</button>
         </form>
         {{end}}
-        <button class="prefs-toggle" type="button" onclick="togglePreferences(this)" aria-expanded="false" aria-controls="prefs-panel">Preferences &amp; schedule</button>
     </div>
 </div>
 
-<div id="prefs-panel" class="prefs-panel" hidden>
+<div id="prefs-panel" class="prefs-panel">
     <form method="POST" action="/preferences">
         <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
         <input type="hidden" name="sort" value="{{.SortBy}}">
@@ -75,6 +77,7 @@
     </form>
 </div>
 
+</details>
 {{if gt .TotalCards 0}}
 <div class="toolbar card-controls" style="margin-top: 0.5rem;">
     {{if .SortOptions}}
@@ -116,24 +119,21 @@
                     <h2 id="title-{{.OppID}}" class="card-title">{{.Card.Title}}</h2>
                     {{if .Card.Subtitle}}<span class="card-subtitle">{{.Card.Subtitle}}</span>{{end}}
                 </div>
-                {{if .Card.Reason}}<div class="card-reason" id="reason-{{.OppID}}">{{.Card.Reason}}</div>
-                <button class="card-reason-toggle" id="reason-toggle-{{.OppID}}" aria-expanded="false" aria-controls="reason-{{.OppID}}" hidden onclick="toggleReason({{.OppID}})">show more</button>{{end}}
+                {{if .Card.DateDisplay}}<div class="card-date">{{.Card.DateDisplay}}</div>{{end}}
                 <div class="card-meta-row">
-                    {{if .Card.DateDisplay}}<span class="card-meta-item">{{.Card.DateDisplay}}</span>{{end}}
                     {{range summaryFields .Card.Fields}}
                     <span class="card-meta-item">{{.Icon}} {{.Value}}</span>
                     {{end}}
-                    {{if .Card.Urgency}}
-                    <span class="booking-hint">Booking notes in details</span>
-                    {{end}}
-                    {{if .Card.AssessmentLabel}}<span class="assessment-label">{{.Card.AssessmentLabel}}</span>{{end}}
                 </div>
+                {{if .Card.Reason}}<div class="card-reason">{{.Card.Reason}}</div>{{end}}
             </div>
         </div>
 
-        {{if .Card.Fields}}
+        {{if or .Card.Fields .Card.Reason .Card.AssessmentLabel}}
         <details>
-            <summary>Explore details</summary>
+            <summary>Why this pick &amp; details</summary>
+            {{if .Card.Reason}}<p class="detail-reason">{{.Card.Reason}}</p>{{end}}
+            {{if .Card.AssessmentLabel}}<p class="assessment-label">{{.Card.AssessmentLabel}}</p>{{end}}
             <div class="card-fields">
                 {{range .Card.Fields}}
                 <div class="field {{if gt (len .Value) 100}}field-long{{end}}">
@@ -150,8 +150,9 @@
             <a href="{{.Card.ActionURL}}" target="_blank" rel="noopener noreferrer" class="card-action-link">{{.Card.ActionLabel}}</a>
             {{end}}
             <div class="fb-buttons">
-                <button type="button" data-rating="up" aria-pressed="{{if .Feedback}}{{if eq .Feedback.Rating "up"}}true{{else}}false{{end}}{{else}}false{{end}}" class="fb-btn fb-up {{if .Feedback}}{{if eq .Feedback.Rating "up"}}selected{{end}}{{end}}" onclick="showFeedbackForm({{.OppID}}, 'up', this)" title="Good recommendation" aria-label="Good recommendation">&#x1F44D;</button>
-                <button type="button" data-rating="down" aria-pressed="{{if .Feedback}}{{if eq .Feedback.Rating "down"}}true{{else}}false{{end}}{{else}}false{{end}}" class="fb-btn fb-down {{if .Feedback}}{{if eq .Feedback.Rating "down"}}selected{{end}}{{end}}" onclick="showFeedbackForm({{.OppID}}, 'down', this)" title="Bad recommendation" aria-label="Bad recommendation">&#x1F44E;</button>
+                <span class="fb-hint">Your take <span>· change anytime</span></span>
+                <button type="button" data-rating="up" aria-pressed="{{if .Feedback}}{{if eq .Feedback.Rating "up"}}true{{else}}false{{end}}{{else}}false{{end}}" class="fb-btn fb-up {{if .Feedback}}{{if eq .Feedback.Rating "up"}}selected{{end}}{{end}}" onclick="showFeedbackForm({{.OppID}}, 'up', this)" title="Good recommendation" aria-label="Good pick"><span aria-hidden="true">&#x1F44D;</span><span>Good pick</span></button>
+                <button type="button" data-rating="down" aria-pressed="{{if .Feedback}}{{if eq .Feedback.Rating "down"}}true{{else}}false{{end}}{{else}}false{{end}}" class="fb-btn fb-down {{if .Feedback}}{{if eq .Feedback.Rating "down"}}selected{{end}}{{end}}" onclick="showFeedbackForm({{.OppID}}, 'down', this)" title="Bad recommendation" aria-label="Not for me"><span aria-hidden="true">&#x1F44E;</span><span>Not for me</span></button>
                 <span class="fb-saved" id="fb-saved-{{.OppID}}" {{if not .Feedback}}hidden{{end}}>Saved</span>
             </div>
         </div>
@@ -164,6 +165,7 @@
                 <input type="hidden" name="title" value="{{.Card.Title}}">
                 <input type="hidden" name="rating" id="fb-rating-{{.OppID}}" value="">
                 <div class="fb-form-row">
+                    <p class="fb-explainer">Only saved when you choose Save. You can change your feedback later.</p>
                     <input type="text" name="note" aria-label="Feedback note" placeholder="Why? (optional)" class="fb-note" value="{{if .Feedback}}{{.Feedback.Note}}{{end}}">
                     <button type="submit" class="fb-save">Save</button>
                     <button type="button" class="fb-cancel" onclick="hideFeedbackForm({{.OppID}})">Cancel</button>
@@ -180,11 +182,6 @@
 {{end}}
 
 <script>
-function togglePreferences(button) {
-    var panel = document.getElementById('prefs-panel');
-    panel.hidden = !panel.hidden;
-    button.setAttribute('aria-expanded', String(!panel.hidden));
-}
 function updateView(key, value) {
     var url = new URL(window.location.href);
     url.searchParams.set(key, value);
@@ -220,21 +217,5 @@ function toggleDayPicker() {
     document.getElementById('sched-day-wrap').style.display = Number(document.getElementById('sched-interval').value) >= 10080 ? '' : 'none';
 }
 toggleDayPicker();
-function toggleReason(oppId) {
-    var el = document.getElementById('reason-' + oppId);
-    var button = document.getElementById('reason-toggle-' + oppId);
-    var expanded = el.classList.toggle('expanded');
-    button.textContent = expanded ? 'Show less' : 'Show more';
-    button.setAttribute('aria-expanded', String(expanded));
-}
-function measureReasons() {
-    document.querySelectorAll('.card-reason').forEach(function(el) {
-        var button = document.getElementById(el.id.replace('reason-', 'reason-toggle-'));
-        button.hidden = !el.classList.contains('expanded') && el.scrollHeight <= el.clientHeight + 1;
-    });
-}
-window.addEventListener('resize', measureReasons);
-measureReasons();
-if (document.fonts) document.fonts.ready.then(measureReasons);
 </script>
 {{end}}

@@ -112,13 +112,14 @@ func (o *Opportunity) Validate() error {
 
 // Venue is a physical location shared across hunts.
 type Venue struct {
-	ID             int64
-	Name           string
-	Address        string
-	Latitude       float64
-	Longitude      float64
-	Notes          string
-	WalkingMinutes int     // 0 = unknown; enriched from distance_cache
-	DrivingMinutes int     // enriched from distance_cache (mode=driving)
-	DistanceMi     float64 // 0 = unknown; enriched from distance_cache
+	ID                int64
+	Name              string
+	Address           string
+	Latitude          float64
+	Longitude         float64
+	Notes             string
+	WalkingMinutes    int     // 0 = unknown; enriched from distance_cache
+	DrivingMinutes    int     // enriched from distance_cache (mode=driving)
+	DrivingDistanceMi float64 // driving route length; separate from walking distance
+	DistanceMi        float64 // 0 = unknown; enriched from distance_cache
 }

@@ -80,7 +80,7 @@ func TestCardsRestoreLatestFeedbackAndSeparateDetails(t *testing.T) {
 		t.Fatal(w.Code, w.Body.String())
 	}
 	body := w.Body.String()
-	for _, want := range []string{`data-saved-rating="down"`, `data-rating="down" aria-pressed="true"`, `value="Saved note"`, `<span class="card-meta-item">Saturday</span>`} {
+	for _, want := range []string{`data-saved-rating="down"`, `data-rating="down" aria-pressed="true"`, `value="Saved note"`, `<div class="card-date">Saturday</div>`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("missing %s", want)
 		}

@@ -103,6 +103,7 @@ func (s *Server) notificationsEnabled(name string) bool {
 // user triggers a manual run via POST /run.
 func New(db *storage.DB, hunts []HuntInfo, homeAddress string, runFunc ...func(context.Context, string)) (*Server, error) {
 	funcMap := template.FuncMap{
+		"huntLabel":       func(name string) string { return strings.Title(strings.ReplaceAll(name, "-", " ")) },
 		"safeStatusError": safeStatusError,
 		"nextScanLabel":   nextScanLabel,
 		"relativeTime":    relativeTime,
@@ -543,6 +544,7 @@ func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo)
 					}
 					if dist, err := s.db.GetDistance(ctx, venue.ID, s.homeAddress, "driving"); err == nil {
 						venue.DrivingMinutes = dist.Minutes
+						venue.DrivingDistanceMi = dist.DistanceMi
 					}
 				}
 			}

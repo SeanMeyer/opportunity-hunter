@@ -3,7 +3,7 @@ package comedy
 import (
 	"context"
 	"fmt"
-	"log/slog"
+
 	"net/http"
 	"strings"
 	"time"
@@ -120,24 +120,9 @@ func (h *ComedyHunt) WebConfig() core.WebConfig {
 	}
 }
 
-// EnrichVenues fetches walking distances for venues that don't have them yet.
+// EnrichVenues fetches appropriate walking and driving routes.
 func (h *ComedyHunt) EnrichVenues(ctx context.Context, venues map[int64]core.Venue) {
-	if h.distClient == nil || h.homeAddress == "" {
-		return
-	}
-	for id, venue := range venues {
-		if venue.WalkingMinutes > 0 || venue.Address == "" {
-			continue
-		}
-		result, err := h.distClient.GetDistance(ctx, h.homeAddress, venue.Address, "WALK")
-		if err != nil {
-			slog.Warn("distance lookup failed", "venue", venue.Name, "err", err)
-			continue
-		}
-		venue.WalkingMinutes = result.Minutes
-		venue.DistanceMi = result.DistanceMi
-		venues[id] = venue
-	}
+	h.distClient.EnrichVenues(ctx, h.homeAddress, venues)
 }
 
 // shouldSkipForEval filters recurring house shows.
