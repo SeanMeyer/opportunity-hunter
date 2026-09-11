@@ -51,3 +51,9 @@ word-based powder verdicts above the title. Reason duplication had already been 
 by hiding the teaser while details are open. Old CSS for the removed reason toggle
 was removed. Broad stylesheet consolidation and sub-minute route rounding are outside
 this pass; the latter is pre-existing and not exercised by the current venue dataset.
+
+Deployed v0.3.8 on Unraid, September 11 at 01:31 UTC. See deployment notes for
+backup and startup evidence. live-mobile.png shows production after deployment,
+with 59 current comedy cards and no QA feedback. All 17 driving routes were
+backfilled safely into production. The startup scans also produced fresh comedy
+and movie evaluations; no notifications were sent.
