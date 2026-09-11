@@ -28,3 +28,5 @@ Independent read-only code review found missing Shorts support, now fixed. Gemin
 ## Rollout
 
 This change affects new evaluations. It does not mass-research existing cards or alter their assessment dates. A separate intentional backfill is needed to populate existing recommendations. No new service credentials are required. Discord configuration is unchanged.
+
+Deployed as v0.3.9 on September 11 at 22:47 UTC; see ../../deployments/2026-09-09-unraid.md. A real startup evaluation populated the Chris Fleming Live card with a clip and review context. Existing cards were not bulk-backfilled.
