@@ -16,14 +16,15 @@ type moviesCardRenderer struct {
 
 func (r *moviesCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, venue core.Venue) core.CardData {
 	card := core.CardData{
-		Title:       opp.Title,
-		Subtitle:    opp.Subtitle,
-		Score:       pick.DisplayScore,
-		Reason:      pick.Reason,
-		Urgency:     pick.Urgency,
-		SortScore:   pick.Score,
-		DateSort:    opp.StartTime.Unix(),
-		DateDisplay: core.FormatListingTime(opp.StartTime),
+		Title:          opp.Title,
+		Subtitle:       opp.Subtitle,
+		Score:          pick.DisplayScore,
+		Reason:         pick.Reason,
+		ReviewEvidence: core.ReadReviewEvidence(pick.Attributes),
+		Urgency:        pick.Urgency,
+		SortScore:      pick.Score,
+		DateSort:       opp.StartTime.Unix(),
+		DateDisplay:    core.FormatListingTime(opp.StartTime),
 	}
 	if opp.Source == "tmdb" && !opp.StartTime.IsZero() {
 		prefix := "Released "

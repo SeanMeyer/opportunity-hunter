@@ -39,12 +39,12 @@ func (e *comedyEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 
 	prompt := buildPrompt(ec)
 
-	twoStep, err := e.llm.TwoStep(ctx, prompt, comedyEvalSchema())
+	twoStep, err := e.llm.TwoStep(ctx, prompt+llm.ReviewEvidencePrompt, llm.WithReviewEvidence(comedyEvalSchema()))
 	if err != nil {
 		return nil, fmt.Errorf("comedy evaluate: %w", err)
 	}
 
-	picks := parsePicks(twoStep.Structured, filtered)
+	picks := parsePicks(twoStep.Structured, filtered, twoStep.Sources)
 
 	slog.Info("comedy evaluation complete",
 		"shows", len(filtered),
@@ -68,7 +68,11 @@ func (e *comedyEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 // parsePicks extracts picks from the LLM structured output.
 // show_id maps 1:1 to the filtered opportunity list (no group expansion needed
 // since multi-date merging now happens at scan time).
-func parsePicks(structured map[string]any, opps []core.Opportunity) []core.Pick {
+func parsePicks(structured map[string]any, opps []core.Opportunity, groundedSources ...[]string) []core.Pick {
+	var sources []string
+	if len(groundedSources) > 0 {
+		sources = groundedSources[0]
+	}
 	rawPicks, ok := structured["picks"]
 	if !ok {
 		return nil
@@ -105,7 +109,7 @@ func parsePicks(structured map[string]any, opps []core.Opportunity) []core.Pick 
 			DisplayScore:  fmt.Sprintf("%d/10", score),
 			Reason:        reason,
 			Urgency:       urgency,
-			Attributes:    attrs.Encode(),
+			Attributes:    core.WithReviewEvidence(attrs.Encode(), llm.ParseReviewEvidence(entry, sources)),
 		})
 	}
 	return picks

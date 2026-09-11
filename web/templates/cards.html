@@ -130,11 +130,24 @@
             </div>
         </div>
 
-        {{if or .Card.Fields .Card.Reason .Card.AssessmentLabel}}
+        {{if .Card.ReviewEvidence}}
+        <section class="review-evidence" aria-label="Get a feel for it">
+            <h3>Get a feel for it</h3>
+            {{template "review-note" (index .Card.ReviewEvidence 0)}}
+        </section>
+        {{end}}
+
+        {{if or .Card.Fields .Card.Reason .Card.AssessmentLabel .Card.ReviewEvidence}}
         <details>
-            <summary>Why this pick &amp; details</summary>
+            <summary>{{if .Card.ReviewEvidence}}Reviews &amp; recommendation details{{else}}Why this pick &amp; details{{end}}</summary>
             {{if .Card.Reason}}<p class="detail-reason">{{.Card.Reason}}</p>{{end}}
             {{if .Card.AssessmentLabel}}<p class="assessment-label">{{.Card.AssessmentLabel}}</p>{{end}}
+            {{if gt (len .Card.ReviewEvidence) 1}}
+            <section class="review-evidence" aria-label="More reviews and context">
+                <h3>More reviews &amp; context</h3>
+                {{range $i, $review := .Card.ReviewEvidence}}{{if gt $i 0}}{{template "review-note" $review}}{{end}}{{end}}
+            </section>
+            {{end}}
             <div class="card-fields">
                 {{range .Card.Fields}}
                 <div class="field {{if gt (len .Value) 100}}field-long{{end}}">
@@ -219,4 +232,12 @@ function toggleDayPicker() {
 }
 toggleDayPicker();
 </script>
+{{end}}
+
+{{define "review-note"}}
+<div class="review-note">
+    <a href="{{.URL}}" target="_blank" rel="noopener noreferrer">{{if eq .Kind "clip"}}<span aria-hidden="true">&#9655;</span> Watch a bit · {{else if eq .Kind "award"}}Award · {{end}}{{.Title}} <span aria-hidden="true">&#8599;</span></a>
+    <span class="review-subject">{{.Subject}}</span>
+    <p>{{.Summary}}</p>
+</div>
 {{end}}

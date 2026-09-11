@@ -47,6 +47,7 @@ type CardData struct {
 	ScoreTier       ScoreTier
 	Reason          string
 	Urgency         string
+	ReviewEvidence  []ReviewEvidence
 	AssessmentLabel string
 	Fields          []CardField
 	ActionURL       string

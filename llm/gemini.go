@@ -104,6 +104,11 @@ func (c *Client) twoStep(ctx context.Context, prompt, researchPrompt string, sch
 	}
 	result.Research = researchResp.Text()
 	result.Sources = extractSources(researchResp)
+	if schema != nil {
+		if picks := schema.Properties["picks"]; picks != nil && picks.Items != nil && picks.Items.Properties["review_evidence"] != nil {
+			result.Sources = resolveReviewSources(ctx, result.Sources)
+		}
+	}
 	result.CostUSD += responseCost(c.model, researchResp)
 
 	// Step 2: Structured extraction.

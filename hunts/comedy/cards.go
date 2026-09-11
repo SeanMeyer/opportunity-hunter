@@ -39,14 +39,15 @@ type comedyCardRenderer struct{}
 
 func (r *comedyCardRenderer) RenderCard(opp core.Opportunity, pick core.Pick, venue core.Venue) core.CardData {
 	card := core.CardData{
-		Title:       opp.Title,
-		Subtitle:    venue.Name,
-		Score:       pick.DisplayScore,
-		Reason:      pick.Reason,
-		Urgency:     pick.Urgency,
-		SortScore:   pick.Score,
-		DateSort:    opp.StartTime.Unix(),
-		DateDisplay: formatDateDisplay(opp),
+		Title:          opp.Title,
+		Subtitle:       venue.Name,
+		Score:          pick.DisplayScore,
+		Reason:         pick.Reason,
+		ReviewEvidence: core.ReadReviewEvidence(pick.Attributes),
+		Urgency:        pick.Urgency,
+		SortScore:      pick.Score,
+		DateSort:       opp.StartTime.Unix(),
+		DateDisplay:    formatDateDisplay(opp),
 	}
 
 	switch {

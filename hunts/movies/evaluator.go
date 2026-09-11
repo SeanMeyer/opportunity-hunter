@@ -33,12 +33,12 @@ func (e *moviesEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 
 	prompt := buildPrompt(ec, e.theaters, e.homeLat, e.homeLon)
 
-	twoStep, err := e.llm.TwoStep(ctx, prompt, moviesEvalSchema())
+	twoStep, err := e.llm.TwoStep(ctx, prompt+llm.ReviewEvidencePrompt, llm.WithReviewEvidence(moviesEvalSchema()))
 	if err != nil {
 		return nil, fmt.Errorf("movies evaluate: %w", err)
 	}
 
-	picks := parsePicks(twoStep.Structured, ec.Opportunities)
+	picks := parsePicks(twoStep.Structured, ec.Opportunities, twoStep.Sources)
 
 	slog.Info("movies evaluation complete",
 		"movies", len(ec.Opportunities),
@@ -61,7 +61,11 @@ func (e *moviesEvaluator) Evaluate(ctx context.Context, ec core.EvalContext) (*c
 
 // parsePicks extracts picks from the LLM structured output, mapping movie_id
 // back to opportunity IDs.
-func parsePicks(structured map[string]any, opps []core.Opportunity) []core.Pick {
+func parsePicks(structured map[string]any, opps []core.Opportunity, groundedSources ...[]string) []core.Pick {
+	var sources []string
+	if len(groundedSources) > 0 {
+		sources = groundedSources[0]
+	}
 	rawPicks, ok := structured["picks"]
 	if !ok {
 		return nil
@@ -95,6 +99,7 @@ func parsePicks(structured map[string]any, opps []core.Opportunity) []core.Pick 
 			DisplayScore:  fmt.Sprintf("%d/10", score),
 			Reason:        reason,
 			Urgency:       urgency,
+			Attributes:    core.WithReviewEvidence(nil, llm.ParseReviewEvidence(entry, sources)),
 		})
 	}
 	return picks

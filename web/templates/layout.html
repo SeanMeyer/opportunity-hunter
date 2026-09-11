@@ -121,7 +121,16 @@
         @media(max-width:600px){.hunt-heading{margin:.2rem 0 .5rem}.hunt-heading .eyebrow{display:none}.scan-controls{margin:0 0 .25rem}.card-controls .count{display:none}.cards{margin-top:.65rem}}
         .card:has(details[open]) .card-reason{display:none}
         .score-verdict{float:none;display:table;margin:0 0 .65rem;max-width:100%}
-    </style>
+    .review-evidence { margin: .2rem 0 1rem; padding: .85rem 1rem; background: #202a3a; border-radius: 10px; }
+.review-evidence h3 { margin: 0 0 .65rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.review-note + .review-note { margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+.review-note a { display: inline-block; font-size: .9rem; font-weight: 600; color: var(--accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.review-subject { display: block; font-size: .76rem; color: var(--muted); margin-top: .2rem; }
+.review-note p { margin: .3rem 0 0; font-size: .85rem; line-height: 1.55; color: var(--text); }
+@media(max-width:600px) {
+    .card:not(:has(details[open])) .review-note p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+}
+</style>
 </head>
 <body>
     <header>
