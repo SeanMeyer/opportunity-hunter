@@ -41,6 +41,8 @@ type WebConfig struct {
 // CardData is the universal display format for the web UI.
 type CardData struct {
 	OpportunityID   int64
+	VenueKey        string // Stable venue identity for browsing filters.
+	VenueName       string
 	Title           string
 	Subtitle        string
 	Score           string

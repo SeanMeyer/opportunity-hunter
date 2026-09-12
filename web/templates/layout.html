@@ -34,6 +34,7 @@
         .schedule-next-inline{color:var(--muted);font-size:.8rem;margin-right:auto}
         .toolbar label{color:var(--muted)}
         .toolbar-control{display:flex;align-items:center;gap:.6rem;max-width:100%}
+        .venue-control{min-width:0}.venue-control select{min-width:0;max-width:24rem}
         .toolbar .count{margin-left:auto;color:var(--muted)}
         .prefs-toggle,.btn-ghost{color:var(--accent);font-size:.85rem}
         .prefs-panel{background:var(--surface);padding:1.25rem;border:1px solid var(--border);border-radius:12px;margin-bottom:1.5rem}
@@ -93,7 +94,7 @@
         .empty p{max-width:440px;margin:auto;font-size:.9rem}
         @media(max-width:600px){.container{padding:1rem}.header-inner{gap:.5rem}header h1{font-size:1.2rem}.card{padding:1rem}.card-main{flex-direction:column;gap:.65rem}.score{max-width:100%}.toolbar select{max-width:100%}.toolbar-right{gap:.6rem}.run-status{width:100%}.schedule-next-inline{width:100%}.card-fields{grid-template-columns:minmax(0,1fr)}}
         @media(prefers-reduced-motion:no-preference){button,a{transition:background .15s,border-color .15s}}
-        @media(max-width:600px){nav{gap:.2rem;margin-top:.6rem}nav a{padding:.6rem .45rem;font-size:.85rem}.toolbar-right{gap:.4rem}.card-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.5rem .75rem}.card-controls .toolbar-control{display:flex;flex-direction:column;align-items:stretch;gap:.2rem}.card-controls select{width:100%;font-size:.8rem}.card-controls .count{grid-column:1/-1;font-size:.75rem}}
+        @media(max-width:600px){nav{gap:.2rem;margin-top:.6rem}nav a{padding:.6rem .45rem;font-size:.85rem}.toolbar-right{gap:.4rem}.card-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.5rem .75rem}.card-controls .toolbar-control{display:flex;flex-direction:column;align-items:stretch;gap:.2rem}.card-controls select{width:100%;font-size:.8rem}.card-controls .venue-control{grid-column:1/-1}.card-controls .venue-control select{max-width:100%}.card-controls .count{grid-column:1/-1;font-size:.75rem}}
         .hunt-heading{margin:.8rem 0 1.5rem}
         .eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--good);margin-bottom:.3rem}
         .hunt-heading h2{font-size:2rem;letter-spacing:-.045em;font-weight:650}

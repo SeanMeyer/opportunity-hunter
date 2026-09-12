@@ -23,6 +23,7 @@
             <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
         <input type="hidden" name="sort" value="{{.SortBy}}">
         <input type="hidden" name="filter" value="{{.FilterValue}}">
+        <input type="hidden" name="venue" value="{{.VenueFilter}}">
             <button type="submit" class="btn-ghost">Run Now</button>
         </form>
         {{end}}
@@ -34,6 +35,7 @@
         <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
         <input type="hidden" name="sort" value="{{.SortBy}}">
         <input type="hidden" name="filter" value="{{.FilterValue}}">
+        <input type="hidden" name="venue" value="{{.VenueFilter}}">
         <div class="prefs-header">
             <strong>Preferences</strong>
             <span class="prefs-hint">Tell us what makes an opportunity worth your time.</span>
@@ -45,6 +47,7 @@
         <input type="hidden" name="hunt" value="{{.ActiveHunt}}">
         <input type="hidden" name="sort" value="{{.SortBy}}">
         <input type="hidden" name="filter" value="{{.FilterValue}}">
+        <input type="hidden" name="venue" value="{{.VenueFilter}}">
         <div class="prefs-header">
             <strong>Scan Schedule</strong>
             <span class="prefs-hint">How often this hunt scans for new opportunities.</span>
@@ -79,7 +82,7 @@
 </div>
 
 </details>
-{{if gt .TotalCards 0}}
+{{if or (gt .TotalCards 0) .VenueFilter}}
 <div class="toolbar card-controls" style="margin-top: 0.5rem;">
     {{if .SortOptions}}
     <div class="toolbar-control">
@@ -98,6 +101,17 @@
         <option value="" {{if eq .FilterValue ""}}selected{{end}}>All ({{.TotalCards}})</option>
         {{range .FilterOptions}}
         <option value="{{.Value}}" {{if eq $.FilterValue .Value}}selected{{end}}>{{.Label}}</option>
+        {{end}}
+    </select>
+    </div>
+    {{end}}
+    {{if .VenueOptions}}
+    <div class="toolbar-control venue-control">
+    <label for="card-venue">Venue</label>
+    <select id="card-venue" onchange="updateView('venue', this.value)">
+        <option value="" {{if eq .VenueFilter ""}}selected{{end}}>All venues</option>
+        {{range .VenueOptions}}
+        <option value="{{.Value}}" {{if eq $.VenueFilter .Value}}selected{{end}}>{{.Label}}</option>
         {{end}}
     </select>
     </div>
@@ -175,6 +189,7 @@
                 <input type="hidden" name="hunt" value="{{$hunt}}">
                 <input type="hidden" name="sort" value="{{$.SortBy}}">
                 <input type="hidden" name="filter" value="{{$.FilterValue}}">
+                <input type="hidden" name="venue" value="{{$.VenueFilter}}">
                 <input type="hidden" name="opportunity_id" value="{{.OppID}}">
                 <input type="hidden" name="title" value="{{.Card.Title}}">
                 <input type="hidden" name="rating" id="fb-rating-{{.OppID}}" value="">
@@ -189,8 +204,8 @@
     </article>
     {{end}}
 </div>
-{{else if gt .TotalCards 0}}
-<div class="empty">No results match this filter. <a href="/?hunt={{.ActiveHunt}}&sort={{.SortBy}}">Clear filter</a></div>
+{{else if or (gt .TotalCards 0) .VenueFilter}}
+<div class="empty">No results match these filters. <a href="/?hunt={{.ActiveHunt}}&sort={{.SortBy}}">Clear filters</a></div>
 {{else}}
 <div class="empty">{{if and .LatestRun (eq .LatestRun.Status "error")}}<strong>No current opportunities.</strong><p>The last scan had errors. <a href="/status?hunt={{.ActiveHunt}}">View System Status</a> for the reason.</p>{{else}}<strong>No current opportunities.</strong><p>{{if .HasRunFunc}}Use Run Now to check for recommendations, or adjust your preferences above.{{else}}Recommendations will appear here when this hunt finds a current match.{{end}}</p>{{end}}</div>
 {{end}}

@@ -285,6 +285,8 @@ type pageData struct {
 	Status               *StatusInfo
 	SortBy               string
 	FilterValue          string
+	VenueFilter          string
+	VenueOptions         []core.FilterOption
 	SortOptions          []core.SortOption
 	FilterOptions        []core.FilterOption
 	Schedule             *ScheduleInfo
@@ -333,6 +335,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		Status:               s.statusSnapshot(),
 		SortBy:               sortBy,
 		FilterValue:          filterValue,
+		VenueFilter:          r.URL.Query().Get("venue"),
 		HasRunFunc:           s.runFunc != nil,
 		NotificationsEnabled: s.notificationsEnabled(activeHunt),
 	}
@@ -377,7 +380,9 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	rawCards := s.loadCards(ctx, activeHunt, huntInfo)
 	data.TotalCards = len(rawCards)
 
-	// Filter cards.
+	// Build venue options from all current cards so score filtering cannot hide a venue.
+	data.VenueOptions = venueOptions(rawCards, data.VenueFilter)
+	rawCards = filterByVenue(rawCards, data.VenueFilter)
 	rawCards = filterCards(rawCards, filterValue)
 
 	// Sort cards.
@@ -562,6 +567,13 @@ func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo)
 				}
 			}
 			card.OpportunityID = opp.ID
+			if venue.ID != 0 && strings.TrimSpace(venue.Name) != "" {
+				card.VenueKey = core.EventVenueKey(venue.Name, venue.Address)
+				card.VenueName = strings.TrimSpace(venue.Name)
+				if card.VenueKey == core.EventVenueKey("Comedy Works Downtown", "1226 15th St") {
+					card.VenueName = "Comedy Works Downtown"
+				}
+			}
 			if evaluation, err := s.db.GetEvaluation(ctx, pick.EvaluationID); err == nil && !evaluation.EvaluatedAt.IsZero() {
 				card.AssessmentLabel = "Assessed " + evaluation.EvaluatedAt.Local().Format("Jan 2, 2006")
 				// Booking advice is time-sensitive; historical judgments remain stored.
@@ -676,7 +688,7 @@ func (s *Server) handleSaveFeedback(w http.ResponseWriter, r *http.Request) {
 // Build redirects from known local fields, preserving the user's current view.
 func (s *Server) redirectToView(w http.ResponseWriter, r *http.Request, saved, anchor string) {
 	q := url.Values{"hunt": {r.FormValue("hunt")}, "saved": {saved}}
-	for _, key := range []string{"sort", "filter"} {
+	for _, key := range []string{"sort", "filter", "venue"} {
 		if value := r.FormValue(key); value != "" {
 			q.Set(key, value)
 		}
