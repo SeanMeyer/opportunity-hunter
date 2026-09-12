@@ -186,3 +186,11 @@ CREATE TABLE IF NOT EXISTS pending_deliveries (
  actions_json TEXT,
  delivered INTEGER NOT NULL DEFAULT 0
 );
+
+-- Independent enrichment audit; never changes a recommendation's assessment date.
+CREATE TABLE IF NOT EXISTS review_backfills (
+ pick_id INTEGER PRIMARY KEY REFERENCES picks(id),
+ checked_at TEXT NOT NULL,
+ evidence_count INTEGER NOT NULL,
+ audit_json TEXT NOT NULL
+);
