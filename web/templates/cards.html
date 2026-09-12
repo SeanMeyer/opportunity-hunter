@@ -98,7 +98,7 @@
     <div class="toolbar-control">
     <label for="card-filter">Filter</label>
     <select id="card-filter" onchange="updateView('filter', this.value)">
-        <option value="" {{if eq .FilterValue ""}}selected{{end}}>All ({{.TotalCards}})</option>
+        <option value="" {{if eq .FilterValue ""}}selected{{end}}>All ({{.VenueTotal}})</option>
         {{range .FilterOptions}}
         <option value="{{.Value}}" {{if eq $.FilterValue .Value}}selected{{end}}>{{.Label}}</option>
         {{end}}

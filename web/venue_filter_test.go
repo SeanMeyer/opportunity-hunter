@@ -37,7 +37,7 @@ func TestVenueFilterCombinesScoreAndAliases(t *testing.T) {
 			}
 		}
 	}
-	s, err := New(db, []HuntInfo{{Name: "comedy", CardRenderer: interactionRenderer{}}}, "")
+	s, err := New(db, []HuntInfo{{Name: "comedy", CardRenderer: interactionRenderer{}, WebConfig: core.WebConfig{FilterOptions: []core.FilterOption{{Value: "8", Label: "8+ only"}}}}}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,6 +57,9 @@ func TestVenueFilterCombinesScoreAndAliases(t *testing.T) {
 		}
 		if !strings.Contains(body, `id="card-venue"`) {
 			t.Fatal("missing venue dropdown")
+		}
+		if tc.venue == key && !strings.Contains(body, ">All (4)</option>") {
+			t.Fatal("score count ignores venue")
 		}
 		if tc.venue == key && strings.Contains(body, ">Show 2-") {
 			t.Fatal("South leaked into Downtown")
@@ -87,5 +90,16 @@ func TestVenueUnavailableWithNoCardsStillOffersReset(t *testing.T) {
 		if !strings.Contains(w.Body.String(), want) {
 			t.Fatalf("missing %s", want)
 		}
+	}
+}
+
+func TestVenueLabelsUseStructuredAddress(t *testing.T) {
+	cards := []core.CardData{
+		{VenueKey: "cafe|stage|123 a", VenueName: "Cafe|Stage", VenueAddress: "123 A"},
+		{VenueKey: "cafe|stage|456 b", VenueName: "Cafe|Stage", VenueAddress: "456 B"},
+	}
+	opts := venueOptions(cards, "")
+	if len(opts) != 2 || opts[0].Label != "Cafe|Stage · 123 A" || opts[1].Label != "Cafe|Stage · 456 B" {
+		t.Fatalf("%+v", opts)
 	}
 }

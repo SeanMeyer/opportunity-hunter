@@ -43,6 +43,7 @@ type CardData struct {
 	OpportunityID   int64
 	VenueKey        string // Stable venue identity for browsing filters.
 	VenueName       string
+	VenueAddress    string
 	Title           string
 	Subtitle        string
 	Score           string

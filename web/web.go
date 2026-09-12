@@ -286,6 +286,7 @@ type pageData struct {
 	SortBy               string
 	FilterValue          string
 	VenueFilter          string
+	VenueTotal           int
 	VenueOptions         []core.FilterOption
 	SortOptions          []core.SortOption
 	FilterOptions        []core.FilterOption
@@ -383,6 +384,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	// Build venue options from all current cards so score filtering cannot hide a venue.
 	data.VenueOptions = venueOptions(rawCards, data.VenueFilter)
 	rawCards = filterByVenue(rawCards, data.VenueFilter)
+	data.VenueTotal = len(rawCards)
 	rawCards = filterCards(rawCards, filterValue)
 
 	// Sort cards.
@@ -570,6 +572,7 @@ func (s *Server) loadCards(ctx context.Context, huntName string, info *HuntInfo)
 			if venue.ID != 0 && strings.TrimSpace(venue.Name) != "" {
 				card.VenueKey = core.EventVenueKey(venue.Name, venue.Address)
 				card.VenueName = strings.TrimSpace(venue.Name)
+				card.VenueAddress = strings.TrimSpace(venue.Address)
 				if card.VenueKey == core.EventVenueKey("Comedy Works Downtown", "1226 15th St") {
 					card.VenueName = "Comedy Works Downtown"
 				}

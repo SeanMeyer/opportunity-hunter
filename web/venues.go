@@ -8,9 +8,11 @@ import (
 
 func venueOptions(cards []core.CardData, selected string) []core.FilterOption {
 	names := map[string]string{}
+	addresses := map[string]string{}
 	for _, c := range cards {
-		if c.VenueKey != "" && (names[c.VenueKey] == "" || c.VenueName < names[c.VenueKey]) {
+		if c.VenueKey != "" && c.VenueName != "" && (names[c.VenueKey] == "" || c.VenueName < names[c.VenueKey]) {
 			names[c.VenueKey] = c.VenueName
+			addresses[c.VenueKey] = c.VenueAddress
 		}
 	}
 	labelCounts := map[string]int{}
@@ -20,7 +22,7 @@ func venueOptions(cards []core.CardData, selected string) []core.FilterOption {
 	var options []core.FilterOption
 	for key, name := range names {
 		if labelCounts[strings.ToLower(name)] > 1 {
-			_, address, _ := strings.Cut(key, "|")
+			address := addresses[key]
 			if address == "" {
 				address = "address unavailable"
 			}
