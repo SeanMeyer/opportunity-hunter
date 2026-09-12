@@ -116,11 +116,73 @@
     </select>
     </div>
     {{end}}
-    <span class="count">{{len .Cards}} results</span>
+    <span class="count">{{.MatchedCards}} results{{if .DownvotedCards}} · {{len .DownvotedCards}} not for me{{end}}</span>
 </div>
 {{end}}
 
-{{if .Cards}}
+{{if gt .MatchedCards 0}}
+{{if .Cards}}{{template "card-list" .}}{{else}}<p class="empty">All matching recommendations are in Not for me below.</p>{{end}}
+{{if .DownvotedCards}}
+<details id="not-for-me" class="downvoted-section">
+    <summary>Not for me ({{len .DownvotedCards}})</summary>
+    <p class="downvoted-hint">Your saved downvotes. Change a pick to Good pick to return it to the main list.</p>
+    {{template "card-list" .DownvotedView}}
+</details>
+{{end}}
+{{else if or (gt .TotalCards 0) .VenueFilter}}
+<div class="empty">No results match these filters. <a href="/?hunt={{.ActiveHunt}}&sort={{.SortBy}}">Clear filters</a></div>
+{{else}}
+<div class="empty">{{if and .LatestRun (eq .LatestRun.Status "error")}}<strong>No current opportunities.</strong><p>The last scan had errors. <a href="/status?hunt={{.ActiveHunt}}">View System Status</a> for the reason.</p>{{else}}<strong>No current opportunities.</strong><p>{{if .HasRunFunc}}Use Run Now to check for recommendations, or adjust your preferences above.{{else}}Recommendations will appear here when this hunt finds a current match.{{end}}</p>{{end}}</div>
+{{end}}
+
+<script>
+function updateView(key, value) {
+    var url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    url.searchParams.delete('saved');
+    url.hash = '';
+    window.location.assign(url);
+}
+function selectRating(oppId, rating) {
+    document.getElementById('fb-' + oppId).querySelectorAll('.fb-btn').forEach(function(button) {
+        var selected = button.dataset.rating === rating;
+        button.classList.toggle('selected', selected);
+        button.setAttribute('aria-pressed', String(selected));
+    });
+}
+function showFeedbackForm(oppId, rating) {
+    var form = document.getElementById('fb-form-' + oppId);
+    document.getElementById('fb-rating-' + oppId).value = rating;
+    form.hidden = false;
+    selectRating(oppId, rating);
+    document.getElementById('fb-saved-' + oppId).hidden = true;
+    form.focus();
+}
+function hideFeedbackForm(oppId) {
+    var form = document.getElementById('fb-form-' + oppId);
+    var draftRating = document.getElementById('fb-rating-' + oppId).value;
+    form.querySelector('form').reset();
+    form.hidden = true;
+    selectRating(oppId, form.dataset.savedRating);
+    document.getElementById('fb-saved-' + oppId).hidden = !form.dataset.savedRating;
+    document.getElementById('fb-' + oppId).querySelector('[data-rating="' + draftRating + '"]').focus();
+}
+function toggleDayPicker() {
+    document.getElementById('sched-day-wrap').style.display = Number(document.getElementById('sched-interval').value) >= 10080 ? '' : 'none';
+}
+toggleDayPicker();
+</script>
+{{end}}
+
+{{define "review-note"}}
+<div class="review-note">
+    <a href="{{.URL}}" target="_blank" rel="noopener noreferrer">{{if eq .Kind "clip"}}<span aria-hidden="true">&#9655;</span> Watch a bit · {{else if eq .Kind "award"}}Award · {{end}}{{.Title}} <span aria-hidden="true">&#8599;</span></a>
+    <span class="review-subject">{{.Subject}}</span>
+    <p>{{.Summary}}</p>
+</div>
+{{end}}
+
+{{define "card-list"}}
 <div class="cards">
     {{$hunt := .ActiveHunt}}
     {{range .Cards}}
@@ -203,56 +265,5 @@
         </div>
     </article>
     {{end}}
-</div>
-{{else if or (gt .TotalCards 0) .VenueFilter}}
-<div class="empty">No results match these filters. <a href="/?hunt={{.ActiveHunt}}&sort={{.SortBy}}">Clear filters</a></div>
-{{else}}
-<div class="empty">{{if and .LatestRun (eq .LatestRun.Status "error")}}<strong>No current opportunities.</strong><p>The last scan had errors. <a href="/status?hunt={{.ActiveHunt}}">View System Status</a> for the reason.</p>{{else}}<strong>No current opportunities.</strong><p>{{if .HasRunFunc}}Use Run Now to check for recommendations, or adjust your preferences above.{{else}}Recommendations will appear here when this hunt finds a current match.{{end}}</p>{{end}}</div>
-{{end}}
-
-<script>
-function updateView(key, value) {
-    var url = new URL(window.location.href);
-    url.searchParams.set(key, value);
-    url.searchParams.delete('saved');
-    url.hash = '';
-    window.location.assign(url);
-}
-function selectRating(oppId, rating) {
-    document.getElementById('fb-' + oppId).querySelectorAll('.fb-btn').forEach(function(button) {
-        var selected = button.dataset.rating === rating;
-        button.classList.toggle('selected', selected);
-        button.setAttribute('aria-pressed', String(selected));
-    });
-}
-function showFeedbackForm(oppId, rating) {
-    var form = document.getElementById('fb-form-' + oppId);
-    document.getElementById('fb-rating-' + oppId).value = rating;
-    form.hidden = false;
-    selectRating(oppId, rating);
-    document.getElementById('fb-saved-' + oppId).hidden = true;
-    form.focus();
-}
-function hideFeedbackForm(oppId) {
-    var form = document.getElementById('fb-form-' + oppId);
-    var draftRating = document.getElementById('fb-rating-' + oppId).value;
-    form.querySelector('form').reset();
-    form.hidden = true;
-    selectRating(oppId, form.dataset.savedRating);
-    document.getElementById('fb-saved-' + oppId).hidden = !form.dataset.savedRating;
-    document.getElementById('fb-' + oppId).querySelector('[data-rating="' + draftRating + '"]').focus();
-}
-function toggleDayPicker() {
-    document.getElementById('sched-day-wrap').style.display = Number(document.getElementById('sched-interval').value) >= 10080 ? '' : 'none';
-}
-toggleDayPicker();
-</script>
-{{end}}
-
-{{define "review-note"}}
-<div class="review-note">
-    <a href="{{.URL}}" target="_blank" rel="noopener noreferrer">{{if eq .Kind "clip"}}<span aria-hidden="true">&#9655;</span> Watch a bit · {{else if eq .Kind "award"}}Award · {{end}}{{.Title}} <span aria-hidden="true">&#8599;</span></a>
-    <span class="review-subject">{{.Subject}}</span>
-    <p>{{.Summary}}</p>
 </div>
 {{end}}

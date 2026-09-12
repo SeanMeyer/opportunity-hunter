@@ -279,6 +279,8 @@ type pageData struct {
 	Hunts                []string
 	ActiveHunt           string
 	Cards                []cardItem
+	DownvotedCards       []cardItem
+	MatchedCards         int
 	TotalCards           int // before filtering — used to keep toolbar visible
 	Preferences          string
 	FeedbackOptions      []core.FeedbackOption
@@ -295,6 +297,12 @@ type pageData struct {
 	HasRunFunc           bool
 	LatestRun            *storage.PipelineRun
 	Notice               string
+}
+
+// DownvotedView reuses the card template and current filter/form context.
+func (d pageData) DownvotedView() pageData {
+	d.Cards = d.DownvotedCards
+	return d
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -345,6 +353,8 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		data.Notice = "Preferences saved. They will apply to the next evaluation."
 	case "schedule":
 		data.Notice = "Scan schedule saved."
+	case "feedback-down":
+		data.Notice = "Saved in Not for me. You can change your feedback there."
 	case "feedback":
 		data.Notice = "Feedback saved. Thank you."
 	case "run":
@@ -391,7 +401,8 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	sortCards(rawCards, sortBy)
 
 	// Wrap with opportunity IDs for feedback forms.
-	items := make([]cardItem, len(rawCards))
+	items := make([]cardItem, 0, len(rawCards))
+	data.MatchedCards = len(rawCards)
 	feedback, err := s.db.GetRecentFeedback(ctx, activeHunt, -1)
 	if err != nil {
 		slog.Error("load feedback", "err", err)
@@ -405,8 +416,13 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 			latestFeedback[*fb.OpportunityID] = fb
 		}
 	}
-	for i, c := range rawCards {
-		items[i] = cardItem{Card: c, OppID: c.OpportunityID, Feedback: latestFeedback[c.OpportunityID]}
+	for _, c := range rawCards {
+		item := cardItem{Card: c, OppID: c.OpportunityID, Feedback: latestFeedback[c.OpportunityID]}
+		if item.Feedback != nil && item.Feedback.Rating == "down" {
+			data.DownvotedCards = append(data.DownvotedCards, item)
+		} else {
+			items = append(items, item)
+		}
 	}
 	data.Cards = items
 
@@ -684,6 +700,10 @@ func (s *Server) handleSaveFeedback(w http.ResponseWriter, r *http.Request) {
 	anchor := ""
 	if fb.OpportunityID != nil {
 		anchor = fmt.Sprintf("card-%d", *fb.OpportunityID)
+	}
+	if fb.OpportunityID != nil && rating == "down" {
+		s.redirectToView(w, r, "feedback-down", "not-for-me")
+		return
 	}
 	s.redirectToView(w, r, "feedback", anchor)
 }
